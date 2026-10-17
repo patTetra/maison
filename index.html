@@ -1,0 +1,1601 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Maison">
+<meta name="theme-color" content="#050b10">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Maison</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#050b10; --card:#0c1a22; --card2:#17303b; --line2:#1b3440;
+  --text:#e6f6fa; --text2:#b4cdd4; --muted:#9bbcc5; --muted2:#8fb0b9;
+  --warn:#ffb020; --danger:#ff5a52;
+  --accent:#22d3ee; --accent-soft:#22d3ee26; --accent-line:#22d3ee40; --accent-strong:#22d3ee80;
+  --ft:'Rajdhani',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0;text-align:inherit;-webkit-touch-callout:none;user-select:none}
+input,select{font:inherit;color:inherit}
+h1,h2,h3,p{margin:0}
+svg{flex:none}
+
+#app{position:fixed;inset:0;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:var(--bg)}
+.views{flex:1;position:relative;overflow:hidden;min-height:0}
+.view{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 28px;display:none}
+.view.active{display:block}
+.view.frameview{padding:env(safe-area-inset-top,0px) 0 0;overflow:hidden}
+.view.frameview iframe{width:100%;height:100%;border:0;display:block;background:#101214}
+.stack{display:flex;flex-direction:column;gap:14px}
+
+.tabbar{display:flex;padding:8px 2px calc(env(safe-area-inset-bottom,0px) + 8px);background:rgba(5,11,16,.96);border-top:1px solid var(--accent-line)}
+.tab{flex:1;min-height:50px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted2)}
+.tab .pill{width:46px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center}
+.tab span{font-size:11px;font-weight:600}
+.tab.active{color:var(--accent)}
+.tab.active .pill{background:var(--accent-soft)}
+
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.dateline{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2)}
+.hello{margin-top:2px;font-family:var(--ft);font-size:34px;line-height:1;font-weight:700}
+.stat{font-size:12px;font-weight:600;padding:6px 10px;border-radius:999px;background:rgba(255,176,32,.14);color:var(--warn);white-space:nowrap}
+.stat.err{background:rgba(255,90,82,.14);color:var(--danger)}
+
+.banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.4);font-size:14px}
+.banner span{flex:1}
+
+.shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.sc{height:72px;padding:8px;border-radius:16px;background:var(--card);border:1px solid var(--line2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--text2);font-size:13px;font-weight:600;text-align:center}
+.sc svg{color:var(--muted2)}
+.sc.on{background:var(--accent-soft);border-color:var(--accent-strong);color:var(--text)}
+.sc.on svg{color:var(--accent)}
+
+.power{display:flex;align-items:center;gap:12px;height:52px;padding:0 16px;border-radius:16px;background:var(--card);border:1px solid var(--accent-line);width:100%}
+.pw-l{flex:1;font-size:14px;font-weight:500;color:var(--text2)}
+.pw-v{font-family:var(--ft);font-size:24px;font-weight:700}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{min-height:92px;padding:12px;border-radius:16px;background:var(--card);border:1px solid var(--line2);display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;width:100%;color:inherit}
+.tile.lt{min-height:78px}
+.tile.wide{grid-column:1/-1}
+.tile.na{opacity:.5}
+.tile-top{display:flex;align-items:center;gap:8px;width:100%;color:var(--muted2)}
+.tile-lab{flex:1;font-size:13px;font-weight:600;color:var(--text2)}
+.tile-val{margin-top:4px;font-family:var(--ft);font-size:24px;font-weight:700;line-height:1.1;color:var(--text2)}
+.tile-sub{font-size:12px;color:var(--muted)}
+.tile.on{background:var(--accent-soft);border-color:var(--accent-strong)}
+.tile.on .tile-top>svg:first-child,.tile.on .tile-val{color:var(--accent)}
+.tile.warn{background:rgba(255,176,32,.12);border-color:rgba(255,176,32,.45)}
+.tile.warn .tile-top>svg:first-child,.tile.warn .tile-val{color:var(--warn)}
+
+.acc{border-radius:20px;background:var(--card);border:1px solid var(--accent-line);overflow:hidden}
+.acc-head{width:100%;height:56px;padding:0 14px;display:flex;align-items:center;gap:12px;color:inherit}
+.acc-ic{width:36px;height:36px;border-radius:18px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+.acc-t{flex:none;font-family:var(--ft);font-size:20px;font-weight:600;white-space:nowrap}
+.acc-s{flex:1;min-width:0;text-align:right;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc .chev{color:var(--accent);transition:transform .2s;display:flex}
+.acc.open .chev{transform:rotate(180deg)}
+.acc-body{padding:0 14px 8px}
+.evt{display:flex;align-items:center;gap:14px;min-height:38px;border-top:1px solid var(--card2);padding:4px 0}
+.evt-t{width:58px;flex:none;font-family:var(--ft);font-size:18px;font-weight:700;color:var(--accent)}
+.evt-n{flex:1;font-size:14px;font-weight:500}
+.evt-n small{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.hw{padding:6px 0;border-top:1px solid var(--card2);font-size:14px}
+.hw b{font-weight:600}
+.hw span{display:block;font-size:12px;color:var(--muted)}
+.empty{padding:10px 0;font-size:13px;color:var(--muted);border-top:1px solid var(--card2)}
+
+.sec{margin:6px 0 0;font-family:var(--ft);font-size:20px;font-weight:600;display:flex;align-items:baseline;justify-content:space-between}
+.sec small{font-size:13px;color:var(--muted);font-weight:400;font-family:'Barlow',sans-serif}
+.hint{font-size:12px;color:var(--muted);line-height:1.4}
+.pg-sub{font-size:13px;color:var(--muted)}
+
+.card{background:var(--card);border:1px solid var(--accent-line);border-radius:20px;padding:14px}
+.card h2{font-family:var(--ft);font-size:20px;font-weight:600;display:flex;justify-content:space-between;align-items:center;min-height:36px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;border-top:1px solid var(--card2);font-size:14px}
+.card h2+.row{margin-top:6px}
+.row>span:first-child{color:var(--text2)}
+.row .big{font-family:var(--ft);font-size:22px;font-weight:700}
+.row .val{color:var(--muted);text-align:right}
+.chip{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.chip.warn{background:rgba(255,176,32,.14);color:var(--warn)}
+.chip.off{background:var(--card2);color:var(--muted)}
+.subhead{width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--card2);font-size:14px;color:var(--accent);font-weight:600}
+.subhead .chev{display:flex;transition:transform .2s}
+.subhead.open .chev{transform:rotate(180deg)}
+
+.sw{width:52px;height:30px;border-radius:15px;background:var(--card2);position:relative;flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:12px;background:var(--muted2);transition:transform .2s,background .2s}
+.sw.on{background:var(--accent-strong)}
+.sw.on::after{transform:translateX(22px);background:var(--accent)}
+.sw.danger.on{background:rgba(255,90,82,.5)}
+.sw.danger.on::after{background:var(--danger)}
+.stepper{display:flex;align-items:center;gap:6px}
+.sb{width:44px;height:44px;border-radius:12px;border:1px solid var(--accent-line);color:var(--accent);font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center}
+.sv{min-width:70px;text-align:center;font-family:var(--ft);font-size:20px;font-weight:700}
+.sv small{font-size:12px;font-weight:500;color:var(--muted);margin-left:2px}
+.days{display:flex;gap:6px;padding:8px 0 4px}
+.day{flex:1;text-align:center;height:44px;border-radius:12px;background:var(--card2);color:var(--muted);font-weight:700}
+.day.on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent-strong)}
+.inp{height:44px;width:100%;border-radius:12px;border:1px solid var(--line2);background:var(--card2);padding:0 12px;color:var(--text);font-size:16px}
+.inp.sm{width:112px;text-align:center}
+.field{margin-top:12px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.note{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
+.opts{display:flex;gap:8px}
+.opt{flex:1;height:44px;border-radius:12px;border:1px solid var(--line2);color:var(--text2);font-weight:600;text-align:center;display:flex;align-items:center;justify-content:center}
+.opt.on{background:var(--accent-soft);border-color:var(--accent-strong);color:var(--accent)}
+.swatches{display:flex;gap:10px}
+.swatch{width:44px;height:44px;border-radius:22px;border:2px solid transparent}
+.swatch.on{border-color:var(--text)}
+.msg{margin-top:10px;font-size:13px;font-weight:600}
+.msg.ok{color:var(--accent)}
+.msg.ko{color:var(--danger)}
+.btnrow{display:flex;gap:10px;margin-top:14px}
+.btnrow .btn{flex:1}
+
+.btn{height:44px;padding:0 16px;border-radius:14px;border:1px solid var(--accent-strong);color:var(--accent);font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;text-align:center}
+.btn.solid{background:var(--accent);color:#031116;border-color:var(--accent)}
+.btn.danger{border-color:rgba(255,90,82,.6);color:var(--danger)}
+.btn.wide{width:100%;margin:8px 0 6px}
+
+.cams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cam{position:relative;border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--accent-line);aspect-ratio:16/9;display:block;width:100%}
+.cam.wide{grid-column:1/-1}
+.cam img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.cam img:not([src]){visibility:hidden}
+.cam .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)}
+.cam .ph[hidden]{display:none}
+.cam .lab{position:absolute;left:10px;bottom:8px;font-size:13px;font-weight:600;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+.backdrop.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:var(--card);border-top:1px solid var(--accent-line);border-radius:22px 22px 0 0;padding:10px 18px calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateY(105%);transition:transform .25s;z-index:41;max-height:80vh;overflow-y:auto}
+.sheet.show{transform:none}
+.sheet-handle{width:46px;height:4px;border-radius:3px;background:var(--line2);margin:0 auto 12px}
+.sheet h3{font-family:var(--ft);font-size:22px;font-weight:600;margin-bottom:6px}
+.dim-val{font-family:var(--ft);font-size:44px;font-weight:700;color:var(--accent);margin:6px 0}
+.range{width:100%;accent-color:var(--accent);height:44px}
+
+.overlay{position:fixed;inset:0;max-width:480px;margin:0 auto;background:var(--bg);z-index:50;display:none;flex-direction:column}
+.overlay.show{display:flex}
+.ov-bar{display:flex;align-items:center;gap:6px;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 8px;border-bottom:1px solid var(--accent-line)}
+.ov-back{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--accent)}
+.ov-title{font-family:var(--ft);font-size:20px;font-weight:600}
+.ov-body{flex:1;min-height:0;display:flex;flex-direction:column}
+.ov-frame{flex:1;width:100%;border:0;background:#fff}
+.camfull{flex:1;position:relative;display:flex;align-items:center;justify-content:center;background:#000}
+.camfull video,.camfull img{width:100%;max-height:100%;object-fit:contain}
+.camfull [hidden]{display:none}
+.camnote{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);text-align:center;font-size:13px;color:var(--muted)}
+
+.toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);max-width:448px;margin:0 auto;background:var(--card2);border:1px solid var(--accent-line);border-radius:14px;padding:12px 14px;font-size:14px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s;z-index:60}
+.toast.show{opacity:1;transform:none}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <main class="views" id="views"></main>
+  <nav class="tabbar" id="tabbar" aria-label="Navigation"></nav>
+</div>
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet" role="dialog"></div>
+<div class="overlay" id="overlay"></div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+(function (M) {
+  'use strict';
+
+  // Toutes les entités Home Assistant utilisées par l'app (issues du tableau de bord J.A.R.V.I.S.)
+  const E = {
+    weather: 'weather.forecast_maison',
+    salonTemp: 'sensor.bthome_sensor_cb2e_temperature',
+    power: 'sensor.lixee_zlinky_tic_puissance_apparente',
+    powerMax: 'input_number.seuil_puissance_max',
+    powerMin: 'input_number.seuil_puissance_min',
+    poele: 'switch.poele',
+    consigne: 'input_number.temp_desiree_direct',
+    maintenance: 'input_boolean.maintenance_poele',
+    tmaxJour: 'sensor.plo_max_du_jour',
+    confortJour: 'input_number.temp_confort_jour',
+    ecoNuit: 'input_number.temp_eco_nuit',
+    debutJour: 'input_datetime.heure_debut_jour',
+    debutNuit: 'input_datetime.heure_debut_nuit',
+    hysteresis: 'input_number.chauffage_hysteresis',
+    ballon: 'switch.shelly1_e8db84d684f4',
+    ballonForce: 'input_boolean.chauffe_eau_force',
+    filtration: 'switch.switch_filtration',
+    filtrationTemp: 'sensor.switch_filtration_temperature',
+    modeEnfant: 'input_boolean.mode_enfant',
+    jourNuit: 'input_boolean.etat_jour_nuit',
+    lumExt: 'light.lumieres_exterieures',
+    borne: 'switch.borne_tesla_switch',
+    debutRecharge: 'input_datetime.debut_recharge_tesla',
+    finRecharge: 'input_datetime.fin_recharge_tesla',
+    courantRecharge: 'number.tesla_model_y_courant_de_recharge',
+    teslaBatt: 'sensor.tesla_model_y_niveau_de_la_batterie',
+    teslaCharge: 'sensor.tesla_model_y_charge',
+    teslaTemps: 'sensor.tesla_model_y_temps_avant_la_charge_complete',
+    tv: 'switch.shellyplugmg3_d885ac176d60',
+    tvPower: 'sensor.shellyplugmg3_d885ac176d60_puissance',
+    calendar: 'calendar.tmbb'
+  };
+
+  const DAYS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'].map(function (d) {
+    return { letter: d.charAt(0).toUpperCase(), name: d, entity: 'input_boolean.chauffe_eau_' + d };
+  });
+
+  const TEMPO = [
+    ['Bleu HP', 'input_number.tarif_tempo_bleu_hp'],
+    ['Bleu HC', 'input_number.tarif_tempo_bleu_hc'],
+    ['Blanc HP', 'input_number.tarif_tempo_blanc_hp'],
+    ['Blanc HC', 'input_number.tarif_tempo_blanc_hc'],
+    ['Rouge HP', 'input_number.tarif_tempo_rouge_hp'],
+    ['Rouge HC', 'input_number.tarif_tempo_rouge_hc']
+  ].map(function (t) { return { name: t[0], entity: t[1] }; });
+
+  // Capteurs d'ouverture (Aqara) : état "on" = porte ouverte
+  const DOORS = [
+    { name: "Porte d'entrée", entity: 'binary_sensor.lumi_cn_lumi_158d0001ab3e4e_aq2_contact_state_p_2_1' },
+    { name: 'Chambre parents', entity: 'binary_sensor.lumi_cn_lumi_158d0001dad253_aq2_contact_state_p_2_1' },
+    { name: 'WC', entity: 'binary_sensor.lumi_cn_lumi_158d0001dad637_aq2_contact_state_p_2_1' }
+  ];
+
+  const LIGHTS_IN = [
+    { name: 'Salon', entity: 'light.shelly1g3_e4b063eacb60' },
+    { name: 'Entrée', entity: 'input_boolean.lumieres_entree_virtuelle' },
+    { name: 'Cuisine', entity: 'switch.shelly1_483fda829e7e' },
+    { name: 'Épicerie', entity: 'light.epicerie' },
+    { name: 'Chambre parents', entity: 'light.lumiere_chambre_parents' },
+    { name: 'Bar', entity: 'light.lumieres_bar' },
+    { name: 'Toilettes', entity: 'light.yeelight_color_0x3720fa5' }
+  ];
+
+  const LIGHTS_OUT = [
+    { name: 'Extérieures', entity: 'light.lumieres_exterieures' },
+    { name: 'Dehors', entity: 'light.dehors' },
+    { name: 'Plancha', entity: 'light.plancha' },
+    { name: 'Guirlande terrasse', entity: 'light.guirlande_terrasse' },
+    { name: 'Carport', entity: 'light.lumiere_carport' },
+    { name: 'Entrée ext.', entity: 'light.lumiere_exterieur_entree' },
+    { name: 'Portail', entity: 'light.lumiere_exterieur_portail' },
+    { name: 'Projecteur parking', entity: 'light.camera_parking_floodlight_timed' },
+    { name: 'Projecteur terrasse', entity: 'light.terrasse_floodlight_timed' }
+  ];
+
+  // « Portail » filme le portail ; « Entrée » (caméra de la terrasse) filme la porte d'entrée
+  const CAMERAS = [
+    { name: 'Portail', entity: 'camera.entree', wide: false },
+    { name: 'Entrée', entity: 'camera.terrasse_hd_stream', wide: false },
+    { name: 'Parking', entity: 'camera.camera_parking_hd_stream', wide: true },
+    { name: 'Grange', entity: 'camera.ipcam_mainprofile', wide: true }
+  ];
+
+  const ALL_LIGHTS = LIGHTS_IN.concat(LIGHTS_OUT).map(function (l) { return l.entity; });
+
+  const all = [];
+  Object.keys(E).forEach(function (k) { if (k !== 'calendar') all.push(E[k]); });
+  DAYS.concat(TEMPO, DOORS, LIGHTS_IN, LIGHTS_OUT).forEach(function (x) { all.push(x.entity); });
+  const ALL_ENTITIES = all.filter(function (v, i) { return all.indexOf(v) === i; });
+
+  M.E = E;
+  M.DAYS = DAYS;
+  M.TEMPO = TEMPO;
+  M.DOORS = DOORS;
+  M.LIGHTS_IN = LIGHTS_IN;
+  M.LIGHTS_OUT = LIGHTS_OUT;
+  M.CAMERAS = CAMERAS;
+  M.ALL_LIGHTS = ALL_LIGHTS;
+  M.ALL_ENTITIES = ALL_ENTITIES;
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+
+  // Même clé que l'app Tesla : l'adresse et le jeton sont partagés avec l'onglet Voiture
+  var KEY = 'ha-config';
+
+  function readJson(k) {
+    try { return JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) { return {}; }
+  }
+
+  var HA = M.HA = {
+    baseUrl: '', token: '', store: {}, status: 'idle',
+    ws: null, msgId: 0, pending: {}, subId: null, failCount: 0,
+    wantConnect: false, pollTimer: null, reconnectTimer: null,
+    listeners: [], statusListeners: []
+  };
+
+  HA.loadConfig = function () {
+    var c = readJson(KEY);
+    HA.baseUrl = String(c.baseUrl || '').trim().replace(/\/+$/, '');
+    HA.token = String(c.token || '').trim();
+  };
+
+  HA.saveConfig = function (baseUrl, token) {
+    var c = readJson(KEY);
+    c.baseUrl = String(baseUrl || '').trim().replace(/\/+$/, '');
+    c.token = String(token || '').trim();
+    localStorage.setItem(KEY, JSON.stringify(c));
+    HA.loadConfig();
+  };
+
+  HA.configured = function () { return !!(HA.baseUrl && HA.token); };
+
+  // ---------- Lecture de l'état ----------
+  HA.s = function (id) { var o = HA.store[id]; return o ? o.state : undefined; };
+  HA.a = function (id, k) { var o = HA.store[id]; return o && o.attributes ? o.attributes[k] : undefined; };
+  HA.isOn = function (id) { return HA.s(id) === 'on'; };
+  HA.avail = function (id) { var s = HA.s(id); return s !== undefined && s !== 'unavailable' && s !== 'unknown'; };
+  HA.num = function (id) {
+    var s = HA.s(id);
+    if (s === undefined || s === 'unavailable' || s === 'unknown') return null;
+    var v = parseFloat(s);
+    return isNaN(v) ? null : v;
+  };
+
+  HA.onChange = function (cb) { HA.listeners.push(cb); };
+  HA.onStatus = function (cb) { HA.statusListeners.push(cb); };
+
+  function setStatus(s) {
+    if (HA.status === s) return;
+    HA.status = s;
+    HA.statusListeners.forEach(function (f) { try { f(s); } catch (e) { console.error(e); } });
+  }
+
+  var pendingIds = {}, scheduled = false;
+  function notify(ids) {
+    (ids || []).forEach(function (i) { pendingIds[i] = true; });
+    if (scheduled) return;
+    scheduled = true;
+    setTimeout(function () {
+      scheduled = false;
+      var arr = Object.keys(pendingIds);
+      pendingIds = {};
+      HA.listeners.forEach(function (f) { try { f(arr); } catch (e) { console.error(e); } });
+    }, 150);
+  }
+
+  // ---------- REST ----------
+  HA.rest = async function (path, opts) {
+    opts = opts || {};
+    if (!HA.configured()) throw new Error('Home Assistant non configuré');
+    var headers = Object.assign({ 'Authorization': 'Bearer ' + HA.token, 'Content-Type': 'application/json' }, opts.headers || {});
+    var res = await fetch(HA.baseUrl + path, Object.assign({}, opts, { headers: headers }));
+    if (!res.ok) {
+      var d = '';
+      try { d = (await res.text()).slice(0, 160); } catch (e) { /* rien */ }
+      throw new Error('HA ' + res.status + (d ? ' — ' + d : ''));
+    }
+    var t = await res.text();
+    return t ? JSON.parse(t) : null;
+  };
+
+  HA.call = function (domain, service, data) {
+    return HA.rest('/api/services/' + domain + '/' + service, { method: 'POST', body: JSON.stringify(data || {}) });
+  };
+
+  // Appel de service ; si le temps réel n'est pas actif, on relit l'état juste après
+  HA.act = async function (domain, service, data, ids) {
+    await HA.call(domain, service, data);
+    if (HA.status !== 'connected') setTimeout(function () { HA.refresh(ids); }, 700);
+  };
+
+  HA.refresh = async function (ids) {
+    var list = ids || [];
+    for (var i = 0; i < list.length; i++) {
+      try {
+        var o = await HA.rest('/api/states/' + encodeURIComponent(list[i]));
+        HA.store[list[i]] = { state: o.state, attributes: o.attributes || {} };
+      } catch (e) { /* ignoré */ }
+    }
+    notify(list);
+  };
+
+  HA.calendar = function (entity, start, end) {
+    return HA.rest('/api/calendars/' + entity + '?start=' + encodeURIComponent(start.toISOString()) + '&end=' + encodeURIComponent(end.toISOString()));
+  };
+
+  HA.cameraBlobUrl = async function (entity) {
+    var res = await fetch(HA.baseUrl + '/api/camera_proxy/' + entity + '?t=' + Date.now(), { headers: { 'Authorization': 'Bearer ' + HA.token } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return URL.createObjectURL(await res.blob());
+  };
+
+  HA.streamUrl = async function (entity) {
+    var r = await HA.wsRequest({ type: 'camera/stream', entity_id: entity, format: 'hls' });
+    return HA.baseUrl + r.url;
+  };
+
+  // ---------- WebSocket (temps réel) ----------
+  HA.nextId = function () { HA.msgId += 1; return HA.msgId; };
+
+  HA.wsRequest = function (payload) {
+    return new Promise(function (resolve, reject) {
+      if (!HA.ws || HA.ws.readyState !== 1) { reject(new Error('WebSocket indisponible')); return; }
+      var id = HA.nextId();
+      HA.pending[id] = { res: resolve, rej: reject };
+      HA.ws.send(JSON.stringify(Object.assign({ id: id }, payload)));
+      setTimeout(function () {
+        if (HA.pending[id]) { delete HA.pending[id]; reject(new Error('Délai dépassé')); }
+      }, 15000);
+    });
+  };
+
+  function rejectPending() {
+    Object.keys(HA.pending).forEach(function (id) {
+      var p = HA.pending[id];
+      delete HA.pending[id];
+      p.rej(new Error('Connexion perdue'));
+    });
+  }
+
+  function closeWs() {
+    clearTimeout(HA.reconnectTimer);
+    if (HA.ws) {
+      var w = HA.ws;
+      HA.ws = null;
+      try { w.close(); } catch (e) { /* rien */ }
+    }
+  }
+
+  function applyEvent(ev) {
+    var changed = [];
+    if (ev.a) {
+      Object.keys(ev.a).forEach(function (id) {
+        var s = ev.a[id];
+        HA.store[id] = { state: s.s, attributes: s.a || {} };
+        changed.push(id);
+      });
+    }
+    if (ev.c) {
+      Object.keys(ev.c).forEach(function (id) {
+        var d = ev.c[id];
+        var cur = HA.store[id] || (HA.store[id] = { state: 'unknown', attributes: {} });
+        var plus = d['+'];
+        if (plus) {
+          if (Object.prototype.hasOwnProperty.call(plus, 's')) cur.state = plus.s;
+          if (plus.a) cur.attributes = Object.assign({}, cur.attributes, plus.a);
+        }
+        var minus = d['-'];
+        if (minus && minus.a) minus.a.forEach(function (k) { delete cur.attributes[k]; });
+        changed.push(id);
+      });
+    }
+    if (ev.r) {
+      ev.r.forEach(function (id) { delete HA.store[id]; changed.push(id); });
+    }
+    notify(changed);
+  }
+
+  function scheduleReconnect() {
+    clearTimeout(HA.reconnectTimer);
+    var delay = Math.min(30000, 3000 * Math.pow(1.6, HA.failCount));
+    HA.reconnectTimer = setTimeout(function () { if (HA.wantConnect) HA.connect(); }, delay);
+  }
+
+  function stopPolling() {
+    if (HA.pollTimer) { clearInterval(HA.pollTimer); HA.pollTimer = null; }
+  }
+
+  // Repli si le temps réel est indisponible : relecture complète toutes les 20 s
+  function startPolling() {
+    if (HA.pollTimer) return;
+    var poll = async function () {
+      try {
+        var all = await HA.rest('/api/states');
+        var want = {};
+        M.ALL_ENTITIES.forEach(function (e) { want[e] = true; });
+        var changed = [];
+        all.forEach(function (o) {
+          if (want[o.entity_id]) {
+            HA.store[o.entity_id] = { state: o.state, attributes: o.attributes || {} };
+            changed.push(o.entity_id);
+          }
+        });
+        setStatus(HA.ws ? 'connected' : 'polling');
+        notify(changed);
+      } catch (e) {
+        if (!HA.ws) setStatus('offline');
+      }
+    };
+    poll();
+    HA.pollTimer = setInterval(poll, 20000);
+  }
+
+  HA.connect = function () {
+    HA.wantConnect = true;
+    if (!HA.configured()) { closeWs(); stopPolling(); setStatus('unconfigured'); return; }
+    closeWs();
+    setStatus('connecting');
+    var ws;
+    try {
+      ws = new WebSocket(HA.baseUrl.replace(/^http/, 'ws') + '/api/websocket');
+    } catch (e) {
+      HA.failCount++;
+      startPolling();
+      scheduleReconnect();
+      return;
+    }
+    HA.ws = ws;
+
+    ws.onmessage = function (m) {
+      var msg;
+      try { msg = JSON.parse(m.data); } catch (e) { return; }
+      if (msg.type === 'auth_required') {
+        ws.send(JSON.stringify({ type: 'auth', access_token: HA.token }));
+      } else if (msg.type === 'auth_ok') {
+        HA.failCount = 0;
+        stopPolling();
+        setStatus('connected');
+        HA.subId = HA.nextId();
+        ws.send(JSON.stringify({ id: HA.subId, type: 'subscribe_entities', entity_ids: M.ALL_ENTITIES }));
+      } else if (msg.type === 'auth_invalid') {
+        HA.wantConnect = false;
+        setStatus('auth_error');
+        closeWs();
+      } else if (msg.type === 'result') {
+        var p = HA.pending[msg.id];
+        if (p) {
+          delete HA.pending[msg.id];
+          if (msg.success) p.res(msg.result); else p.rej(new Error((msg.error && msg.error.message) || 'Erreur HA'));
+        } else if (msg.id === HA.subId && !msg.success) {
+          startPolling();
+        }
+      } else if (msg.type === 'event' && msg.id === HA.subId) {
+        applyEvent(msg.event || {});
+      }
+    };
+
+    ws.onclose = function () {
+      if (HA.ws !== ws) return;
+      HA.ws = null;
+      rejectPending();
+      if (HA.status === 'auth_error') return;
+      if (HA.status !== 'polling') setStatus('offline');
+      HA.failCount++;
+      if (HA.failCount >= 3) startPolling();
+      if (HA.wantConnect) scheduleReconnect();
+    };
+    ws.onerror = function () { /* onclose suit */ };
+  };
+
+  HA.reconnect = function () { HA.failCount = 0; HA.connect(); };
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+  var HA = M.HA;
+
+  // ---------- Réglages propres à l'app (hors connexion HA) ----------
+  var CFG_KEY = 'maison-config';
+  var DEFAULTS = {
+    scheduleUrl: 'https://pattetra.github.io/Manon/schedule.json',
+    ecoleUrl: 'https://pattetra.github.io/Manon/',
+    jourQuandActive: true,
+    accent: '#22d3ee'
+  };
+
+  M.loadCfg = function () {
+    var s = {};
+    try { s = JSON.parse(localStorage.getItem(CFG_KEY) || '{}') || {}; } catch (e) { s = {}; }
+    M.cfg = Object.assign({}, DEFAULTS, s);
+  };
+  M.saveCfg = function (patch) {
+    Object.assign(M.cfg, patch);
+    localStorage.setItem(CFG_KEY, JSON.stringify(M.cfg));
+  };
+  M.applyAccent = function () {
+    var a = M.cfg.accent || DEFAULTS.accent;
+    var st = document.documentElement.style;
+    st.setProperty('--accent', a);
+    st.setProperty('--accent-soft', a + '26');
+    st.setProperty('--accent-line', a + '40');
+    st.setProperty('--accent-strong', a + '80');
+  };
+
+  // ---------- Icônes (aplats monochromes) ----------
+  var P = {
+    bulb: 'M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2zM9.5 20h5a.5.5 0 0 1 .5.5v.5a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-.5a.5.5 0 0 1 .5-.5z',
+    home: 'M12 3 2 12h3v8h5v-5h4v5h5v-8h3z',
+    camera: 'M4 6h10a2 2 0 0 1 2 2v1.6l5-2.6v10l-5-2.6V16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z',
+    car: 'M5.2 10 6.9 5.8A2 2 0 0 1 8.8 4.5h6.4a2 2 0 0 1 1.9 1.3L18.8 10H19a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-1.2v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H8.2v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H4a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2zM8.1 7.4 7.3 10h9.4l-.8-2.6a.5.5 0 0 0-.5-.4H8.6a.5.5 0 0 0-.5.4zM6.5 12.2a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6zm11 0a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z',
+    grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+    flame: 'M12 2c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.3 2-4.5.2 1.2.8 2 1.6 2.3C10.2 7.2 10.6 4.4 12 2z',
+    drop: 'M12 2.5S5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5z',
+    waves: 'M2 9Q4.5 5.5 7 9T12 9T17 9T22 9V13Q19.5 16.5 17 13T12 13T7 13T2 13ZM2 16Q4.5 12.5 7 16T12 16T17 16T22 16V20Q19.5 23.5 17 20T12 20T7 20T2 20Z',
+    door: 'M5 21V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v18h2v1.5H3V21zM7.5 4.5V21h9V4.5zM13.5 11.5v2h2v-2z',
+    sun: 'M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM11 1h2v3h-2zM11 20h2v3h-2zM1 11h3v2H1zM20 11h3v2h-3z',
+    moon: 'M21 14.5A9 9 0 0 1 9.5 3a9 9 0 1 0 11.5 11.5z',
+    smile: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM8.5 9a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm7 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zM7.5 14h9a4.5 4.5 0 0 1-9 0z',
+    bolt: 'M13 2 4 14h6l-1 8 9-12h-6z',
+    cal: 'M7 2h2v2h6V2h2v2h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3zM5 9v10h14V9z',
+    cap: 'M12 4 1 9.5l11 5.5 9-4.5V16h2V9.5zM5 13.6v3.2c0 1.7 3.1 3.2 7 3.2s7-1.5 7-3.2v-3.2l-7 3.5z',
+    chevd: 'M6.5 9.5 12 15l5.5-5.5-1.4-1.4L12 12.2 7.9 8.1z',
+    chevr: 'M9.5 6.5 15 12l-5.5 5.5L8.1 16.1 12.2 12 8.1 7.9z',
+    back: 'M15.5 5.5 9 12l6.5 6.5-1.4 1.4L6.2 12l7.9-7.9z',
+    tv: 'M3 5h18a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-7v2h3v2H7v-2h3v-2H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
+    gear: 'M10.6 2h2.8l.5 2.4 1.8.8 2-1.4 2 2-1.4 2 .8 1.8 2.4.5v2.8l-2.4.5-.8 1.8 1.4 2-2 2-2-1.4-1.8.8-.5 2.4h-2.8l-.5-2.4-1.8-.8-2 1.4-2-2 1.4-2-.8-1.8L2 13.4v-2.8l2.4-.5.8-1.8-1.4-2 2-2 2 1.4 1.8-.8zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',
+    warn: 'M12 2 1 21h22zM11 9h2v6h-2zM11 17h2v2h-2z'
+  };
+
+  M.icon = function (name, size) {
+    var s = size || 22;
+    return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" fill-rule="evenodd"><path d="' + P[name] + '"/></svg>';
+  };
+
+  M.esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+
+  M.fmt = function (n, d) {
+    if (n == null || isNaN(n)) return '—';
+    d = d || 0;
+    return Number(n).toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+  };
+
+  M.cap = function (s) { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); };
+
+  M.hm = function (d) { return d.getHours() + 'h' + String(d.getMinutes()).padStart(2, '0'); };
+
+  M.dayLabel = function (d) {
+    var now = new Date();
+    var a = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var b = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var diff = Math.round((b - a) / 86400000);
+    var day;
+    if (diff === 0) day = "Aujourd'hui";
+    else if (diff === 1) day = 'Demain';
+    else day = M.cap(d.toLocaleDateString('fr-FR', { weekday: 'long' }));
+    return day + ' ' + M.hm(d);
+  };
+
+  M.views = {};
+  M.registerView = function (name, v) { v.name = name; M.views[name] = v; };
+
+  // ---------- Notifications, feuille du bas, plein écran ----------
+  function $(id) { return document.getElementById(id); }
+
+  var toastTimer;
+  M.toast = function (msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3000);
+  };
+
+  M.openSheet = function (html, mount) {
+    var s = $('sheet');
+    s.innerHTML = '<div class="sheet-handle"></div>' + html;
+    $('backdrop').classList.add('show');
+    s.classList.add('show');
+    if (mount) mount(s);
+  };
+  M.closeSheet = function () {
+    $('backdrop').classList.remove('show');
+    $('sheet').classList.remove('show');
+  };
+
+  M.openOverlay = function (title, html, mount) {
+    var o = $('overlay');
+    o.innerHTML = '<div class="ov-bar"><button class="ov-back" aria-label="Retour">' + M.icon('back', 24) + '</button><span class="ov-title">' + M.esc(title) + '</span></div><div class="ov-body">' + html + '</div>';
+    o.classList.add('show');
+    var cleanup = null;
+    if (mount) cleanup = mount(o);
+    var close = function () {
+      if (cleanup) { try { cleanup(); } catch (e) { /* rien */ } }
+      o.classList.remove('show');
+      o.innerHTML = '';
+    };
+    o.querySelector('.ov-back').onclick = close;
+    M.closeOverlay = close;
+  };
+
+  // Évite de reconstruire une vue pendant que l'utilisateur saisit dans un champ
+  M.skipRender = function (root) {
+    var a = document.activeElement;
+    return !!(a && root.contains(a) && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName));
+  };
+
+  // ---------- Actions Home Assistant avec message d'erreur ----------
+  M.act = function (domain, service, data, ids) {
+    return HA.act(domain, service, data, ids).catch(function (e) {
+      M.toast('Action impossible : ' + e.message);
+    });
+  };
+
+  M.stepEntity = function (ent, dir) {
+    var cur = HA.num(ent);
+    var step = parseFloat(HA.a(ent, 'step')) || 1;
+    var dec = step < 1 ? (String(step).split('.')[1] || '').length : 0;
+    var v = (cur == null ? 0 : cur) + dir * step;
+    var min = HA.a(ent, 'min'), max = HA.a(ent, 'max');
+    if (typeof min === 'number' && v < min) v = min;
+    if (typeof max === 'number' && v > max) v = max;
+    v = Number(v.toFixed(dec));
+    M.act(ent.split('.')[0], 'set_value', { entity_id: ent, value: v }, [ent]);
+  };
+
+  M.stepper = function (ent, unit) {
+    var v = HA.num(ent);
+    var step = parseFloat(HA.a(ent, 'step')) || 1;
+    var dec = step < 1 ? (String(step).split('.')[1] || '').length : 0;
+    return '<div class="stepper"><button class="sb" data-step="' + ent + '|-" aria-label="Diminuer">−</button>' +
+      '<span class="sv">' + (v == null ? '—' : M.fmt(v, dec)) + (unit ? '<small>' + unit + '</small>' : '') + '</span>' +
+      '<button class="sb" data-step="' + ent + '|+" aria-label="Augmenter">+</button></div>';
+  };
+
+  M.sw = function (ent, label, cls) {
+    var on = HA.isOn(ent);
+    return '<button class="sw ' + (cls || '') + (on ? ' on' : '') + '" data-toggle="' + ent + '" role="switch" aria-checked="' + on + '" aria-label="' + M.esc(label) + '"></button>';
+  };
+
+  M.timeVal = function (ent) {
+    var s = HA.s(ent);
+    return s && /^\d\d:\d\d/.test(s) ? s.slice(0, 5) : '';
+  };
+
+  // Branche les commandes génériques (data-toggle, data-step, data-time, data-num, data-go)
+  M.bindActions = function (root) {
+    root.querySelectorAll('[data-toggle]').forEach(function (b) {
+      b.onclick = function () {
+        var e = b.dataset.toggle;
+        M.act('homeassistant', 'toggle', { entity_id: e }, [e]);
+      };
+    });
+    root.querySelectorAll('[data-step]').forEach(function (b) {
+      b.onclick = function () {
+        var p = b.dataset.step.split('|');
+        M.stepEntity(p[0], p[1] === '+' ? 1 : -1);
+      };
+    });
+    root.querySelectorAll('input[data-time]').forEach(function (i) {
+      i.onchange = function () {
+        if (!i.value) return;
+        var e = i.dataset.time;
+        M.act('input_datetime', 'set_datetime', { entity_id: e, time: i.value + ':00' }, [e]);
+      };
+    });
+    root.querySelectorAll('input[data-num]').forEach(function (i) {
+      i.onchange = function () {
+        var v = parseFloat(String(i.value).replace(',', '.'));
+        if (isNaN(v)) return;
+        var e = i.dataset.num;
+        M.act(e.split('.')[0], 'set_value', { entity_id: e, value: v }, [e]);
+      };
+    });
+    root.querySelectorAll('[data-go]').forEach(function (b) {
+      b.onclick = function () {
+        var p = b.dataset.go.split('|');
+        M.go(p[0], p[1]);
+      };
+    });
+  };
+
+  M.statusText = function () {
+    switch (HA.status) {
+      case 'connected': return 'Connecté (temps réel)';
+      case 'polling': return 'Connecté (actualisation toutes les 20 s)';
+      case 'connecting': return 'Connexion en cours…';
+      case 'offline': return 'Hors ligne — nouvelle tentative…';
+      case 'auth_error': return 'Jeton refusé par Home Assistant';
+      case 'unconfigured': return 'Non configuré';
+      default: return '…';
+    }
+  };
+
+  M.statusPill = function () {
+    switch (HA.status) {
+      case 'unconfigured': return '<span class="stat err">Non configuré</span>';
+      case 'auth_error': return '<span class="stat err">Jeton refusé</span>';
+      case 'offline': return '<span class="stat">Hors ligne</span>';
+      case 'connecting': return '<span class="stat">Connexion…</span>';
+      default: return '';
+    }
+  };
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+
+  // Lit le même schedule.json que l'app de Manon (exporté par Home Assistant vers GitHub)
+  var S = M.school = { data: null, error: null, next: null, todo: [], loading: false };
+
+  var WEEKS = ['semaine_courante', 'semaine_suivante', 'semaine_apres_suivante'];
+  var BUCKETS = ['aujourd_hui', 'demain', 'semaine_courante', 'semaine_suivante', 'semaine_apres_suivante'];
+
+  function pick(o, cands) {
+    var keys = Object.keys(o || {});
+    for (var i = 0; i < cands.length; i++) {
+      var f = keys.find(function (x) { return x.toLowerCase() === cands[i].toLowerCase(); });
+      if (f !== undefined && o[f] !== null && o[f] !== '') return o[f];
+    }
+    return null;
+  }
+
+  function findSchedule(a) {
+    a = a || {};
+    var names = ['Emploi du temps', 'emploi_du_temps', 'emploi du temps'];
+    for (var i = 0; i < names.length; i++) if (Array.isArray(a[names[i]])) return a[names[i]];
+    for (var k in a) if (Array.isArray(a[k]) && a[k].length && a[k][0] && a[k][0].start) return a[k];
+    return [];
+  }
+
+  function findDevoirs(a) {
+    a = a || {};
+    var names = ['Devoirs', 'devoirs'];
+    for (var i = 0; i < names.length; i++) if (Array.isArray(a[names[i]])) return a[names[i]];
+    for (var k in a) if (Array.isArray(a[k])) return a[k];
+    return [];
+  }
+
+  function strip(s) {
+    return typeof s === 'string' ? s.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim() : '';
+  }
+
+  function itemId(it) {
+    var id = pick(it, ['devoir_id', 'id']);
+    if (id !== null) return 'id_' + id;
+    return 'fallback_' + (pick(it, ['matiere']) || '') + '_' + (pick(it, ['date']) || '');
+  }
+
+  // Coches faites dans l'app de Manon (même navigateur) : elles priment, comme dans son app
+  function localOverrides() {
+    try { return JSON.parse(localStorage.getItem('devoirs_done_overrides') || '{}') || {}; } catch (e) { return {}; }
+  }
+
+  function pd(s) {
+    if (!s) return null;
+    var d = new Date(String(s).replace(' ', 'T'));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  S.compute = function (data) {
+    var now = new Date();
+    var best = null;
+    WEEKS.forEach(function (k) {
+      findSchedule(data[k]).forEach(function (sl) {
+        if (sl.is_annule === true || sl.is_annule === 1) return;
+        var st = pd(sl.start || sl.start_at);
+        if (!st || st <= now) return;
+        if (!best || st < best.start) {
+          best = { start: st, lesson: sl.lesson || sl.name || 'Cours', prof: sl.prof || '', salle: sl.salle || '' };
+        }
+      });
+    });
+    S.next = best;
+
+    var seen = {}, merged = [];
+    var dv = data.devoirs || {};
+    BUCKETS.forEach(function (k) {
+      findDevoirs(dv[k]).forEach(function (it) {
+        var id = itemId(it);
+        if (!seen[id]) { seen[id] = true; merged.push(it); }
+      });
+    });
+    var ov = Object.assign({}, data.devoirs_overrides || {}, localOverrides());
+    S.todo = merged.filter(function (it) {
+      var id = itemId(it);
+      if (Object.prototype.hasOwnProperty.call(ov, id)) return !ov[id];
+      var d = pick(it, ['effectue', 'fait', 'done', 'termine']);
+      return !(d === true || d === 1 || d === 'true');
+    }).map(function (it) {
+      return {
+        matiere: pick(it, ['matiere', 'matière', 'subject', 'nom_matiere']) || 'Devoir',
+        texte: strip(pick(it, ['description', 'short_description', 'contenu', 'enonce', 'text']) || ''),
+        date: pd(pick(it, ['date', 'pour_le', 'date_a_rendre', 'echeance']))
+      };
+    }).sort(function (a, b) {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return a.date - b.date;
+    });
+  };
+
+  S.load = async function () {
+    if (S.loading) return;
+    S.loading = true;
+    try {
+      var url = M.cfg.scheduleUrl;
+      var res = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) throw new Error('Planning introuvable (' + res.status + ')');
+      var data = await res.json();
+      S.data = data;
+      S.error = null;
+      S.compute(data);
+    } catch (e) {
+      S.error = e.message || 'Planning indisponible';
+    } finally {
+      S.loading = false;
+    }
+    var v = M.views && M.views[M.current];
+    if (v && v.live && v.render) v.render();
+  };
+
+  M.openSchoolApp = function () {
+    var url = M.cfg.ecoleUrl;
+    M.openOverlay('École de Manon', '<iframe class="ov-frame" src="' + M.esc(url) + '" title="École de Manon"></iframe>');
+  };
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+  var HA = M.HA, E = M.E;
+
+  M.open = M.open || { agenda: false, ecole: false };
+  var ag = M.agenda = { events: null, error: null, at: 0, loading: false };
+
+  function evStart(ev) {
+    var s = ev.start;
+    if (s && typeof s === 'object') return s.dateTime || s.date;
+    return s;
+  }
+  function evEnd(ev) {
+    var e = ev.end;
+    if (e && typeof e === 'object') return e.dateTime || e.date;
+    return e;
+  }
+
+  M.loadAgenda = async function (force) {
+    if (!HA.configured() || ag.loading) return;
+    if (!force && ag.events && Date.now() - ag.at < 300000) return;
+    ag.loading = true;
+    try {
+      var a = new Date(); a.setHours(0, 0, 0, 0);
+      var b = new Date(); b.setHours(23, 59, 59, 999);
+      var list = await HA.calendar(E.calendar, a, b);
+      ag.events = (list || []).map(function (ev) {
+        var s = evStart(ev), e = evEnd(ev);
+        var allDay = typeof s === 'string' && s.length <= 10;
+        return {
+          title: ev.summary || 'Sans titre',
+          where: ev.location || '',
+          allDay: allDay,
+          start: new Date(String(s).replace(' ', 'T')),
+          end: new Date(String(e).replace(' ', 'T'))
+        };
+      }).sort(function (x, y) { return x.start - y.start; });
+      ag.error = null;
+      ag.at = Date.now();
+    } catch (e) {
+      ag.error = e.message;
+    } finally {
+      ag.loading = false;
+    }
+    if (M.current === 'accueil') M.views.accueil.render();
+  };
+
+  function isDay() {
+    return HA.isOn(E.jourNuit) === !!M.cfg.jourQuandActive;
+  }
+
+  function lightsOn() {
+    var all = M.LIGHTS_IN.concat(M.LIGHTS_OUT), seen = {}, out = [];
+    all.forEach(function (l) {
+      if (seen[l.entity]) return;
+      seen[l.entity] = true;
+      if (HA.isOn(l.entity)) out.push(l);
+    });
+    return out;
+  }
+
+  function tile(cls, icon, label, val, sub, go, chev) {
+    return '<button class="tile ' + cls + '" data-go="' + go + '"><div class="tile-top">' + M.icon(icon, 22) +
+      '<span class="tile-lab">' + M.esc(label) + '</span>' + (chev ? M.icon('chevr', 18) : '') + '</div>' +
+      '<div class="tile-val">' + M.esc(val) + '</div><div class="tile-sub">' + M.esc(sub || '') + '</div></button>';
+  }
+
+  function shortcut(ent, icon, label, on) {
+    return '<button class="sc' + (on ? ' on' : '') + '" data-toggle="' + ent + '" aria-pressed="' + !!on + '">' + M.icon(icon, 24) + '<span>' + M.esc(label) + '</span></button>';
+  }
+
+  function teslaSub() {
+    var st = String(HA.s(E.teslaCharge) || '').toLowerCase();
+    var charging = /charg|en charge/.test(st) && !/not|no_|stopp|disconn|déconn|complete|termin/.test(st);
+    if (!charging) return st && st !== 'unavailable' && st !== 'unknown' ? M.cap(HA.s(E.teslaCharge)) : '';
+    var t = HA.s(E.teslaTemps);
+    var d = t ? new Date(t) : null;
+    if (d && !isNaN(d.getTime()) && /T|-/.test(String(t))) return 'En charge · fin ' + M.hm(d);
+    var h = parseFloat(t);
+    if (!isNaN(h)) return 'En charge · ' + M.fmt(h, 1) + ' h restantes';
+    return 'En charge';
+  }
+
+  function agendaBody() {
+    if (ag.error) return '<div class="empty">Agenda indisponible : ' + M.esc(ag.error) + '</div>';
+    if (!ag.events) return '<div class="empty">Chargement…</div>';
+    var now = new Date();
+    var list = ag.events.filter(function (e) { return e.allDay || e.end >= now; });
+    if (!list.length) return '<div class="empty">Rien de prévu pour le reste de la journée.</div>';
+    return list.map(function (e) {
+      return '<div class="evt"><span class="evt-t">' + (e.allDay ? 'Jour' : M.hm(e.start)) + '</span><span class="evt-n">' + M.esc(e.title) +
+        (e.where ? '<small>' + M.esc(e.where) + '</small>' : '') + '</span></div>';
+    }).join('');
+  }
+
+  function agendaSub() {
+    if (!ag.events) return '';
+    var now = new Date();
+    var n = ag.events.filter(function (e) { return e.allDay || e.end >= now; }).length;
+    return n ? n + (n > 1 ? ' événements' : ' événement') : 'Rien de prévu';
+  }
+
+  function ecoleSub() {
+    var S = M.school;
+    if (!S.data) return '';
+    return S.todo.length ? S.todo.length + ' à faire' : 'rien à faire';
+  }
+
+  function ecoleBody() {
+    var S = M.school, h = '';
+    if (S.error && !S.data) h += '<div class="empty">' + M.esc(S.error) + '</div>';
+    else if (!S.data) h += '<div class="empty">Chargement…</div>';
+    else {
+      if (S.next) {
+        h += '<div class="hw"><b>Prochain cours : ' + M.esc(S.next.lesson) + '</b><span>' + M.esc(M.dayLabel(S.next.start)) +
+          (S.next.salle ? ' · salle ' + M.esc(S.next.salle) : '') + (S.next.prof ? ' · ' + M.esc(S.next.prof) : '') + '</span></div>';
+      }
+      if (!S.todo.length) h += '<div class="empty">Aucun devoir à faire.</div>';
+      S.todo.slice(0, 6).forEach(function (t) {
+        var txt = t.texte.length > 90 ? t.texte.slice(0, 90) + '…' : t.texte;
+        h += '<div class="hw"><b>' + M.esc(t.matiere) + '</b><span>' + (t.date ? 'Pour le ' + M.esc(t.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })) : '') +
+          (txt ? ' — ' + M.esc(txt) : '') + '</span></div>';
+      });
+      if (S.todo.length > 6) h += '<div class="empty">+ ' + (S.todo.length - 6) + ' autres devoirs</div>';
+    }
+    h += '<button class="btn solid wide" data-school="1">Ouvrir l\'app de Manon</button>';
+    return h;
+  }
+
+  function acc(key, icon, title, sub, body) {
+    var open = M.open[key];
+    return '<div class="acc' + (open ? ' open' : '') + '"><button class="acc-head" data-acc="' + key + '" aria-expanded="' + !!open + '">' +
+      '<span class="acc-ic">' + M.icon(icon, 20) + '</span><span class="acc-t">' + M.esc(title) + '</span><span class="acc-s">' + M.esc(sub) + '</span>' +
+      '<span class="chev">' + M.icon('chevd', 22) + '</span></button>' + (open ? '<div class="acc-body">' + body + '</div>' : '') + '</div>';
+  }
+
+  function render() {
+    var el = M.views.accueil.el;
+    if (M.skipRender(el)) return;
+    var top = el.scrollTop;
+    var now = new Date();
+    var hr = now.getHours();
+    var hello = hr >= 18 || hr < 5 ? 'Bonsoir' : 'Bonjour';
+    var date = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    var tmp = HA.a(E.weather, 'temperature');
+    var h = '<div class="stack">';
+
+    h += '<div class="hdr"><div><div class="dateline">' + M.esc(date) + (typeof tmp === 'number' ? ' · ' + M.fmt(tmp) + '°' : '') + '</div><h1 class="hello">' + hello + '</h1></div>' + M.statusPill() + '</div>';
+
+    if (!HA.configured()) {
+      h += '<div class="banner"><span>Renseigne l\'adresse et le jeton de Home Assistant.</span><button class="btn" data-go="reglages">Réglages</button></div>';
+    }
+
+    h += '<div class="shortcuts">' +
+      shortcut(E.modeEnfant, 'smile', 'Mode enfant', HA.isOn(E.modeEnfant)) +
+      shortcut(E.lumExt, 'bulb', 'Lumières ext.', HA.isOn(E.lumExt)) +
+      shortcut(E.jourNuit, isDay() ? 'sun' : 'moon', isDay() ? 'Mode jour' : 'Mode nuit', isDay()) + '</div>';
+
+    var pw = HA.num(E.power);
+    h += '<div class="power"><span class="pw-l">Puissance compteur</span><span class="pw-v">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span></div>';
+
+    var poele = HA.isOn(E.poele);
+    var salon = HA.num(E.salonTemp), cons = HA.num(E.consigne);
+    var lon = lightsOn();
+    var doorsOpen = M.DOORS.filter(function (d) { return HA.isOn(d.entity); });
+    var batt = HA.num(E.teslaBatt);
+    var ft = HA.num(E.filtrationTemp);
+
+    h += '<div class="grid2">' +
+      tile(poele ? 'on' : '', 'flame', 'Chauffage', salon == null ? '—' : M.fmt(salon, 1) + '°',
+        HA.isOn(E.maintenance) ? 'maintenance poêle' : (poele ? 'poêle allumé' : 'poêle éteint') + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°'), 'maison') +
+      tile(HA.isOn(E.ballon) ? 'on' : '', 'drop', 'Ballon', HA.isOn(E.ballon) ? 'Chauffe' : 'Arrêté', HA.isOn(E.ballonForce) ? 'marche forcée' : '', 'maison') +
+      tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', ft == null ? '' : 'eau ' + M.fmt(ft, 1) + ' °C', 'maison') +
+      tile(lon.length ? 'on' : '', 'bulb', 'Lumières', lon.length ? lon.length + (lon.length > 1 ? ' allumées' : ' allumée') : 'Éteintes',
+        lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''), 'lumieres') +
+      tile(doorsOpen.length ? 'warn' : '', 'door', 'Portes', doorsOpen.length ? doorsOpen.length + (doorsOpen.length > 1 ? ' ouvertes' : ' ouverte') : 'Fermées',
+        doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison') +
+      tile(batt == null ? 'na' : '', 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true) +
+      '</div>';
+
+    h += acc('agenda', 'cal', 'Agenda du jour', agendaSub(), agendaBody());
+    h += acc('ecole', 'cap', 'École de Manon', ecoleSub(), ecoleBody());
+    h += '</div>';
+
+    el.innerHTML = h;
+    M.bindActions(el);
+    el.querySelectorAll('[data-acc]').forEach(function (b) {
+      b.onclick = function () {
+        var k = b.dataset.acc;
+        M.open[k] = !M.open[k];
+        if (M.open[k] && k === 'agenda') M.loadAgenda(true);
+        if (M.open[k] && k === 'ecole') M.school.load();
+        render();
+      };
+    });
+    el.querySelectorAll('[data-school]').forEach(function (b) { b.onclick = M.openSchoolApp; });
+    el.scrollTop = top;
+  }
+
+  M.registerView('accueil', { render: render, live: true });
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+  var HA = M.HA;
+
+  function canDim(ent) {
+    if (ent.split('.')[0] !== 'light') return false;
+    var modes = HA.a(ent, 'supported_color_modes');
+    if (Array.isArray(modes)) return modes.some(function (m) { return m !== 'onoff'; });
+    return HA.a(ent, 'brightness') !== undefined;
+  }
+
+  function tile(l) {
+    var on = HA.isOn(l.entity);
+    var na = !HA.avail(l.entity);
+    var br = HA.a(l.entity, 'brightness');
+    var sub = na ? 'indisponible' : (on ? (typeof br === 'number' ? Math.round(br / 2.55) + ' %' : 'allumée') : 'éteinte');
+    return '<button class="tile lt' + (on ? ' on' : '') + (na ? ' na' : '') + '" data-light="' + l.entity + '">' +
+      '<div class="tile-top">' + M.icon('bulb', 22) + '<span class="tile-lab">' + M.esc(l.name) + '</span></div>' +
+      '<div class="tile-sub">' + sub + '</div></button>';
+  }
+
+  function openDim(l) {
+    var br = HA.a(l.entity, 'brightness');
+    var pct = typeof br === 'number' ? Math.round(br / 2.55) : 100;
+    M.openSheet('<h3>' + M.esc(l.name) + '</h3><div class="dim-val" id="dimv">' + pct + ' %</div>' +
+      '<input class="range" id="dimr" type="range" min="1" max="100" value="' + pct + '">' +
+      '<div class="btnrow"><button class="btn" id="dimoff">Éteindre</button><button class="btn solid" id="dimok">OK</button></div>',
+      function (s) {
+        var r = s.querySelector('#dimr'), v = s.querySelector('#dimv');
+        r.oninput = function () { v.textContent = r.value + ' %'; };
+        r.onchange = function () {
+          M.act('light', 'turn_on', { entity_id: l.entity, brightness_pct: parseInt(r.value, 10) }, [l.entity]);
+        };
+        s.querySelector('#dimoff').onclick = function () {
+          M.act('light', 'turn_off', { entity_id: l.entity }, [l.entity]);
+          M.closeSheet();
+        };
+        s.querySelector('#dimok').onclick = M.closeSheet;
+      });
+  }
+
+  function render() {
+    var el = M.views.lumieres.el;
+    if (M.skipRender(el)) return;
+    var top = el.scrollTop;
+    var n = M.ALL_LIGHTS.filter(function (e) { return HA.isOn(e); }).length;
+    var h = '<div class="stack"><div class="hdr"><div><div class="dateline">Éclairage</div><h1 class="hello">Lumières</h1></div>' + M.statusPill() + '</div>' +
+      '<div class="pg-sub">' + (n ? n + (n > 1 ? ' allumées' : ' allumée') : 'Tout est éteint') + ' · appui long : intensité</div>';
+    h += '<div class="sec">Intérieur</div><div class="grid2">' + M.LIGHTS_IN.map(tile).join('') + '</div>';
+    h += '<div class="sec">Extérieur</div><div class="grid2">' + M.LIGHTS_OUT.map(tile).join('') + '</div>';
+    h += '<button class="btn danger wide" id="alloff">Tout éteindre</button></div>';
+    el.innerHTML = h;
+
+    var all = M.LIGHTS_IN.concat(M.LIGHTS_OUT);
+    el.querySelectorAll('[data-light]').forEach(function (b) {
+      var ent = b.dataset.light;
+      var l = all.filter(function (x) { return x.entity === ent; })[0];
+      var timer = null, long = false;
+      var start = function () {
+        long = false;
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          long = true;
+          if (canDim(ent)) { if (navigator.vibrate) navigator.vibrate(15); openDim(l); }
+        }, 500);
+      };
+      var cancel = function () { clearTimeout(timer); };
+      b.addEventListener('touchstart', start, { passive: true });
+      b.addEventListener('touchend', cancel);
+      b.addEventListener('touchmove', cancel, { passive: true });
+      b.addEventListener('mousedown', start);
+      b.addEventListener('mouseup', cancel);
+      b.addEventListener('mouseleave', cancel);
+      b.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+      b.addEventListener('click', function () {
+        if (long && canDim(ent)) { long = false; return; }
+        M.act('homeassistant', 'toggle', { entity_id: ent }, [ent]);
+      });
+    });
+    el.querySelector('#alloff').onclick = function () {
+      var on = M.ALL_LIGHTS.filter(function (e) { return HA.isOn(e); });
+      if (!on.length) { M.toast('Tout est déjà éteint'); return; }
+      M.act('homeassistant', 'turn_off', { entity_id: on }, on);
+    };
+    el.scrollTop = top;
+  }
+
+  M.registerView('lumieres', { render: render, live: true });
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+  var HA = M.HA;
+  var timer = null;
+  var urls = {};
+
+  function setImg(cam, img, ph) {
+    return HA.cameraBlobUrl(cam.entity).then(function (u) {
+      if (urls[cam.entity]) URL.revokeObjectURL(urls[cam.entity]);
+      urls[cam.entity] = u;
+      img.src = u;
+      ph.hidden = true;
+    }).catch(function () {
+      if (!img.getAttribute('src')) ph.textContent = 'Indisponible';
+    });
+  }
+
+  function refreshAll() {
+    var el = M.views.cameras.el;
+    if (M.current !== 'cameras' || document.hidden || !HA.configured()) return;
+    M.CAMERAS.forEach(function (c) {
+      var box = el.querySelector('[data-cam="' + c.entity + '"]');
+      if (box) setImg(c, box.querySelector('img'), box.querySelector('.ph'));
+    });
+  }
+
+  function openLive(cam) {
+    var snapTimer = null, hls = null;
+    M.openOverlay(cam.name,
+      '<div class="camfull"><video id="cv" playsinline autoplay muted controls hidden></video><img id="ci" alt="" hidden><div class="camnote" id="cn">Connexion au flux…</div></div>',
+      function (o) {
+        var v = o.querySelector('#cv'), img = o.querySelector('#ci'), note = o.querySelector('#cn');
+        var snap = function () {
+          img.hidden = false;
+          var go = function () {
+            HA.cameraBlobUrl(cam.entity).then(function (u) {
+              var old = img.src;
+              img.src = u;
+              if (old && old.indexOf('blob:') === 0) URL.revokeObjectURL(old);
+            }).catch(function () { /* ignoré */ });
+          };
+          go();
+          snapTimer = setInterval(go, 2000);
+        };
+        HA.streamUrl(cam.entity).then(function (url) {
+          v.hidden = false;
+          v.src = url;
+          note.textContent = '';
+          v.onerror = function () {
+            if (snapTimer) return;
+            v.hidden = true;
+            note.textContent = 'Flux indisponible — image actualisée toutes les 2 s';
+            snap();
+          };
+          var p = v.play();
+          if (p && p.catch) p.catch(function () { /* lecture manuelle */ });
+        }).catch(function () {
+          note.textContent = 'Flux indisponible — image actualisée toutes les 2 s';
+          snap();
+        });
+        return function () {
+          clearInterval(snapTimer);
+          try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) { /* rien */ }
+          if (img.src && img.src.indexOf('blob:') === 0) URL.revokeObjectURL(img.src);
+          hls = null;
+        };
+      });
+  }
+
+  function render() {
+    var el = M.views.cameras.el;
+    var h = '<div class="stack"><div class="hdr"><div><div class="dateline">Surveillance</div><h1 class="hello">Caméras</h1></div>' + M.statusPill() + '</div>' +
+      '<div class="pg-sub">Touche une caméra pour le direct</div><div class="cams">';
+    M.CAMERAS.forEach(function (c) {
+      h += '<button class="cam' + (c.wide ? ' wide' : '') + '" data-cam="' + c.entity + '"><img alt=""><span class="ph">Chargement…</span><span class="lab">' + M.esc(c.name) + '</span></button>';
+    });
+    h += '</div></div>';
+    el.innerHTML = h;
+    el.querySelectorAll('[data-cam]').forEach(function (b) {
+      var c = M.CAMERAS.filter(function (x) { return x.entity === b.dataset.cam; })[0];
+      b.onclick = function () { openLive(c); };
+    });
+    refreshAll();
+  }
+
+  M.registerView('cameras', {
+    render: render,
+    live: false,
+    onShow: function () {
+      render();
+      clearInterval(timer);
+      timer = setInterval(refreshAll, 10000);
+    },
+    onHide: function () { clearInterval(timer); timer = null; }
+  });
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+  var HA = M.HA, E = M.E;
+
+  M.open.adv = M.open.adv || false;
+  M.open.tempo = M.open.tempo || false;
+
+  function row(label, ctrl) { return '<div class="row"><span>' + label + '</span>' + ctrl + '</div>'; }
+  function chip(txt, cls) { return '<span class="chip ' + (cls || '') + '">' + txt + '</span>'; }
+  function sub(key, label, body) {
+    var o = M.open[key];
+    return '<button class="subhead' + (o ? ' open' : '') + '" data-sub="' + key + '"><span>' + label + '</span><span class="chev">' + M.icon('chevd', 20) + '</span></button>' + (o ? body : '');
+  }
+  function timeIn(ent) { return '<input class="inp sm" type="time" data-time="' + ent + '" value="' + M.timeVal(ent) + '">'; }
+  function numIn(ent, unit) {
+    var v = HA.num(ent);
+    return '<span><input class="inp sm" type="number" inputmode="decimal" step="any" data-num="' + ent + '" value="' + (v == null ? '' : v) + '"> ' + (unit || '') + '</span>';
+  }
+
+  function render() {
+    var el = M.views.maison.el;
+    if (M.skipRender(el)) return;
+    var top = el.scrollTop;
+    var h = '<div class="stack"><div class="hdr"><div><div class="dateline">Équipements</div><h1 class="hello">Maison</h1></div>' + M.statusPill() + '</div>';
+
+    // Chauffage
+    var salon = HA.num(E.salonTemp), tmax = HA.num(E.tmaxJour);
+    h += '<div class="card"><h2>Chauffage ' + (HA.isOn(E.poele) ? chip('Poêle allumé') : chip('Poêle éteint', 'off')) + '</h2>' +
+      row('Poêle', M.sw(E.poele, 'Poêle')) +
+      row('Température salon', '<span class="big">' + (salon == null ? '—' : M.fmt(salon, 1) + ' °C') + '</span>') +
+      row('Consigne', M.stepper(E.consigne, '°')) +
+      row('Maintenance poêle', M.sw(E.maintenance, 'Maintenance poêle', 'danger')) +
+      sub('adv', 'Réglages avancés',
+        row('Confort (jour)', M.stepper(E.confortJour, '°')) +
+        row('Éco (nuit)', M.stepper(E.ecoNuit, '°')) +
+        row('Début du jour', timeIn(E.debutJour)) +
+        row('Début de la nuit', timeIn(E.debutNuit)) +
+        row('Hystérésis', M.stepper(E.hysteresis, '°')) +
+        row('Seuil puissance max', numIn(E.powerMax, 'VA')) +
+        row('Seuil puissance min', numIn(E.powerMin, 'VA')) +
+        row('Température max du jour', '<span class="val">' + (tmax == null ? '—' : M.fmt(tmax, 1) + ' °C') + '</span>')) +
+      '</div>';
+
+    // Ballon
+    h += '<div class="card"><h2>Ballon d\'eau chaude ' + (HA.isOn(E.ballon) ? chip('Chauffe') : chip('Arrêté', 'off')) + '</h2>' +
+      row('Ballon', M.sw(E.ballon, 'Ballon')) +
+      row('Marche forcée', M.sw(E.ballonForce, 'Marche forcée')) +
+      '<div class="note">Jours de chauffe programmés</div><div class="days">' +
+      M.DAYS.map(function (d) {
+        return '<button class="day' + (HA.isOn(d.entity) ? ' on' : '') + '" data-toggle="' + d.entity + '" aria-label="' + d.name + '">' + d.letter + '</button>';
+      }).join('') + '</div></div>';
+
+    // Piscine
+    var ft = HA.num(E.filtrationTemp);
+    h += '<div class="card"><h2>Piscine ' + (HA.isOn(E.filtration) ? chip('En marche') : chip('Arrêtée', 'off')) + '</h2>' +
+      row('Filtration', M.sw(E.filtration, 'Filtration')) +
+      row('Température de l\'eau', '<span class="big">' + (ft == null ? '—' : M.fmt(ft, 1) + ' °C') + '</span>') + '</div>';
+
+    // Portes
+    var open = M.DOORS.filter(function (d) { return HA.isOn(d.entity); }).length;
+    h += '<div class="card"><h2>Portes ' + (open ? chip(open + ' ouverte' + (open > 1 ? 's' : ''), 'warn') : chip('Toutes fermées')) + '</h2>' +
+      M.DOORS.map(function (d) {
+        var o = HA.isOn(d.entity), na = !HA.avail(d.entity);
+        return row(M.esc(d.name), na ? chip('Indisponible', 'off') : (o ? chip('Ouverte', 'warn') : chip('Fermée', 'off')));
+      }).join('') + '</div>';
+
+    // Énergie
+    var pw = HA.num(E.power), tvp = HA.num(E.tvPower);
+    h += '<div class="card"><h2>Énergie</h2>' +
+      row('Puissance compteur', '<span class="big">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span>') +
+      row('Prise TV' + (tvp == null ? '' : ' · ' + M.fmt(tvp) + ' W'), M.sw(E.tv, 'Prise TV')) +
+      sub('tempo', 'Tarifs Tempo (€/kWh)',
+        M.TEMPO.map(function (t) { return row(M.esc(t.name), numIn(t.entity, '€')); }).join('')) +
+      '</div></div>';
+
+    el.innerHTML = h;
+    M.bindActions(el);
+    el.querySelectorAll('[data-sub]').forEach(function (b) {
+      b.onclick = function () { M.open[b.dataset.sub] = !M.open[b.dataset.sub]; render(); };
+    });
+    el.scrollTop = top;
+  }
+
+  M.registerView('maison', { render: render, live: true });
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+  var HA = M.HA;
+  var COLORS = ['#22d3ee', '#4ade80', '#a78bfa', '#fb923c', '#f472b6'];
+  var testMsg = null;
+
+  function render() {
+    var el = M.views.reglages.el;
+    if (M.skipRender(el)) return;
+    var top = el.scrollTop;
+    var c = M.cfg;
+    var h = '<div class="stack"><div class="hdr"><div><div class="dateline">Application</div><h1 class="hello">Réglages</h1></div></div>';
+
+    h += '<div class="card"><h2>Home Assistant</h2>' +
+      '<div class="field"><label for="s-url">Adresse (Nabu Casa ou locale)</label><input class="inp" id="s-url" type="url" inputmode="url" autocapitalize="off" autocorrect="off" placeholder="https://xxxx.ui.nabu.casa" value="' + M.esc(HA.baseUrl) + '"></div>' +
+      '<div class="field"><label for="s-tok">Jeton d\'accès longue durée</label><input class="inp" id="s-tok" type="password" autocapitalize="off" autocorrect="off" placeholder="eyJ…" value="' + M.esc(HA.token) + '"></div>' +
+      '<div class="note">Stockés uniquement sur cet appareil (partagés avec l\'onglet Voiture).</div>' +
+      '<div class="btnrow"><button class="btn solid" id="s-save">Enregistrer et tester</button></div>' +
+      '<div class="msg ' + (testMsg ? testMsg.cls : '') + '" id="s-msg">' + M.esc(testMsg ? testMsg.text : M.statusText()) + '</div></div>';
+
+    h += '<div class="card"><h2>Mode jour / nuit</h2>' +
+      '<div class="note">Quand <b>input_boolean.etat_jour_nuit</b> est activé, c\'est :</div>' +
+      '<div class="opts" style="margin-top:8px"><button class="opt' + (c.jourQuandActive ? ' on' : '') + '" data-jn="1">Le jour</button><button class="opt' + (!c.jourQuandActive ? ' on' : '') + '" data-jn="0">La nuit</button></div></div>';
+
+    h += '<div class="card"><h2>École de Manon</h2>' +
+      '<div class="field"><label for="s-sch">Adresse du planning (schedule.json)</label><input class="inp" id="s-sch" type="url" autocapitalize="off" autocorrect="off" value="' + M.esc(c.scheduleUrl) + '"></div>' +
+      '<div class="field"><label for="s-eco">Adresse de l\'app complète</label><input class="inp" id="s-eco" type="url" autocapitalize="off" autocorrect="off" value="' + M.esc(c.ecoleUrl) + '"></div>' +
+      '<div class="btnrow"><button class="btn" id="s-sch-save">Enregistrer</button></div></div>';
+
+    h += '<div class="card"><h2>Couleur</h2><div class="swatches" style="margin-top:8px">' +
+      COLORS.map(function (col) { return '<button class="swatch' + (col === c.accent ? ' on' : '') + '" data-col="' + col + '" style="background:' + col + '" aria-label="' + col + '"></button>'; }).join('') +
+      '</div></div>';
+
+    h += '<div class="card"><h2>Données locales</h2><div class="note">Efface l\'adresse, le jeton et les réglages enregistrés sur cet appareil.</div>' +
+      '<div class="btnrow"><button class="btn danger" id="s-reset">Tout effacer</button></div></div>';
+    h += '<div class="hint">Maison · pattetra.github.io/maison</div></div>';
+
+    el.innerHTML = h;
+
+    el.querySelector('#s-save').onclick = async function () {
+      var url = el.querySelector('#s-url').value.trim();
+      var tok = el.querySelector('#s-tok').value.trim();
+      if (!/^https?:\/\//.test(url)) { testMsg = { cls: 'ko', text: "L'adresse doit commencer par https://" }; render(); return; }
+      HA.saveConfig(url, tok);
+      testMsg = { cls: '', text: 'Test en cours…' };
+      el.querySelector('#s-msg').textContent = testMsg.text;
+      try {
+        await HA.rest('/api/');
+        testMsg = { cls: 'ok', text: 'Connexion réussie' };
+        HA.store = {};
+        HA.reconnect();
+        M.school.load();
+        M.loadAgenda(true);
+      } catch (e) {
+        var m = String(e.message || e);
+        testMsg = { cls: 'ko', text: /401|403/.test(m) ? 'Jeton refusé' : /Failed to fetch|Load failed|NetworkError/i.test(m) ? 'Adresse injoignable ou accès refusé (CORS : ajoute https://pattetra.github.io dans cors_allowed_origins)' : m };
+      }
+      render();
+    };
+    el.querySelectorAll('[data-jn]').forEach(function (b) {
+      b.onclick = function () { M.saveCfg({ jourQuandActive: b.dataset.jn === '1' }); render(); };
+    });
+    el.querySelectorAll('[data-col]').forEach(function (b) {
+      b.onclick = function () { M.saveCfg({ accent: b.dataset.col }); M.applyAccent(); render(); };
+    });
+    el.querySelector('#s-sch-save').onclick = function () {
+      M.saveCfg({ scheduleUrl: el.querySelector('#s-sch').value.trim(), ecoleUrl: el.querySelector('#s-eco').value.trim() });
+      M.school.load();
+      M.toast('Enregistré');
+    };
+    el.querySelector('#s-reset').onclick = function () {
+      if (!confirm('Effacer toutes les données locales ?')) return;
+      try { localStorage.removeItem('ha-config'); localStorage.removeItem('maison-config'); } catch (e) { /* rien */ }
+      location.reload();
+    };
+    el.scrollTop = top;
+  }
+
+  M.registerView('reglages', { render: render, live: false, onShow: function () { testMsg = null; render(); } });
+  HA.onStatus(function () { if (M.current === 'reglages' && !testMsg) render(); });
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+  var HA = M.HA;
+
+  M.current = null;
+
+  var TABS = [
+    ['accueil', 'Accueil', 'home'],
+    ['lumieres', 'Lumières', 'bulb'],
+    ['cameras', 'Caméras', 'camera'],
+    ['maison', 'Maison', 'grid'],
+    ['voiture', 'Voiture', 'car'],
+    ['reglages', 'Réglages', 'gear']
+  ];
+
+  // Voiture = ton app Tesla, chargée telle quelle dans un cadre
+  M.registerView('voiture', {
+    frame: true,
+    live: false,
+    render: function () {},
+    onShow: function () {
+      var v = M.views.voiture;
+      if (!v.el.firstChild) {
+        v.el.innerHTML = '<iframe src="voiture.html" title="Voiture"></iframe>';
+      }
+    }
+  });
+
+  M.go = function (name) {
+    if (!M.views[name] || M.current === name) {
+      if (M.views[name] && M.views[name].render) M.views[name].render();
+      return;
+    }
+    var prev = M.views[M.current];
+    if (prev && prev.onHide) prev.onHide();
+    M.current = name;
+    TABS.forEach(function (t) {
+      var v = M.views[t[0]];
+      v.el.classList.toggle('active', t[0] === name);
+      v.tab.classList.toggle('active', t[0] === name);
+      v.tab.setAttribute('aria-current', t[0] === name ? 'page' : 'false');
+    });
+    var v = M.views[name];
+    if (v.onShow) v.onShow(); else if (v.render) v.render();
+    if (name === 'accueil') { M.loadAgenda(false); M.school.load(); }
+  };
+
+  function build() {
+    var views = document.getElementById('views');
+    var bar = document.getElementById('tabbar');
+    TABS.forEach(function (t) {
+      var v = M.views[t[0]];
+      v.el = document.createElement('section');
+      v.el.className = 'view' + (v.frame ? ' frameview' : '');
+      v.el.id = 'view-' + t[0];
+      views.appendChild(v.el);
+      v.tab = document.createElement('button');
+      v.tab.className = 'tab';
+      v.tab.innerHTML = '<span class="pill">' + M.icon(t[2], 22) + '</span><span>' + t[1] + '</span>';
+      v.tab.onclick = function () { M.go(t[0]); };
+      bar.appendChild(v.tab);
+    });
+  }
+
+  function init() {
+    M.loadCfg();
+    M.applyAccent();
+    HA.loadConfig();
+    build();
+    document.getElementById('backdrop').onclick = M.closeSheet;
+
+    HA.onChange(function () {
+      var v = M.views[M.current];
+      if (v && v.live) v.render();
+    });
+    HA.onStatus(function () {
+      var v = M.views[M.current];
+      if (v && v.live) v.render();
+    });
+
+    M.go(HA.configured() ? 'accueil' : 'reglages');
+    HA.connect();
+    M.school.load();
+    M.loadAgenda(false);
+
+    setInterval(function () {
+      if (document.hidden) return;
+      M.school.load();
+      M.loadAgenda(false);
+      var v = M.views[M.current];
+      if (v && v.live) v.render();
+    }, 600000);
+
+    // Au retour sur l'app (iOS suspend les connexions), on relance le temps réel
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) return;
+      if (HA.configured() && HA.status !== 'connected' && HA.status !== 'polling') HA.reconnect();
+      M.school.load();
+      M.loadAgenda(false);
+      var v = M.views[M.current];
+      if (v && v.live) v.render();
+    });
+    window.addEventListener('pageshow', function (e) { if (e.persisted && HA.configured()) HA.reconnect(); });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})(window.M = window.M || {});
+
+</script>
+</body>
+</html>
