@@ -219,7 +219,8 @@
 
   .toast{position:fixed; top:calc(var(--safe-top) + 10px); left:50%; transform:translateX(-50%) translateY(-150%); background:#2a2d33; color:var(--text); font-size:14px;
     padding:11px 18px; border-radius:14px; z-index:30; transition:transform .25s ease; max-width:88%; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,.5);}
-  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast{opacity:0; pointer-events:none; transition:transform .25s ease, opacity .2s ease;}
+  .toast.show{transform:translateX(-50%) translateY(0); opacity:1;}
 </style>
 </head>
 <body>
