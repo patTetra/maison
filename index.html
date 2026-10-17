@@ -1063,12 +1063,12 @@ svg{flex:none}
   }
 
   function move(delta) {
-    var label = (delta > 0 ? '+' : '') + delta;
+    var label = (delta > 0 ? 'achat +' : 'prise ') + delta;
     run(function (d) {
       var old = typeof d.stock === 'number' ? d.stock : 0;
       var now = Math.max(0, old + delta);
       d.stock = now;
-      d.historique.unshift({ date: new Date().toISOString(), delta: now - old, stock: now });
+      d.historique.unshift({ date: new Date().toISOString(), delta: now - old, stock: now, type: delta > 0 ? 'achat' : 'prise' });
       d.historique = d.historique.slice(0, 50);
     }, label, function (s) { return (delta < 0 ? 'Retiré' : 'Ajouté') + ' · stock : ' + s + ' ' + plural(s); });
   }
@@ -1102,7 +1102,7 @@ svg{flex:none}
     if (hist.length) {
       h += '<div class="sec" style="margin-top:14px">Derniers mouvements</div>' + hist.map(function (x) {
         var dl = typeof x.delta === 'number' ? (x.delta > 0 ? '+' : x.delta < 0 ? '−' : '') + Math.abs(x.delta) : '';
-        return '<div class="row"><span>' + M.esc(when(x.date)) + (x.type ? ' · correction' : '') + '</span><span class="val">' + dl + ' → ' + x.stock + '</span></div>';
+        return '<div class="row"><span>' + M.esc(when(x.date)) + (x.type ? ' · ' + x.type : '') + '</span><span class="val">' + dl + ' → ' + x.stock + '</span></div>';
       }).join('');
     }
     M.openSheet(h, function (sh) {
