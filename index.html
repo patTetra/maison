@@ -190,6 +190,10 @@ svg{flex:none}
 .range{accent-color:var(--light)}
 .evt-t small{display:block;font-family:'Barlow',sans-serif;font-size:12px;font-weight:500;color:var(--muted);line-height:1.1}
 .evt{min-height:46px}
+.pel-val{font-family:var(--ft);font-size:44px;font-weight:700;color:var(--accent);margin:4px 0 8px}
+.pel-val small{font-size:16px;font-weight:500;color:var(--muted)}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.tile.wide{min-height:78px}
 
 </style>
 </head>
@@ -612,6 +616,9 @@ svg{flex:none}
     scheduleUrl: 'https://pattetra.github.io/Manon/schedule.json',
     ecoleUrl: 'https://pattetra.github.io/Manon/ecole.html',
     jourQuandActive: true,
+    pelletRepo: 'pattetra/maison',
+    pelletPath: 'pellets.json',
+    pelletToken: '',
     accent: '#22d3ee'
   };
 
@@ -656,6 +663,7 @@ svg{flex:none}
     back: 'M15.5 5.5 9 12l6.5 6.5-1.4 1.4L6.2 12l7.9-7.9z',
     tv: 'M3 5h18a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-7v2h3v2H7v-2h3v-2H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
     gear: 'M10.6 2h2.8l.5 2.4 1.8.8 2-1.4 2 2-1.4 2 .8 1.8 2.4.5v2.8l-2.4.5-.8 1.8 1.4 2-2 2-2-1.4-1.8.8-.5 2.4h-2.8l-.5-2.4-1.8-.8-2 1.4-2-2 1.4-2-.8-1.8L2 13.4v-2.8l2.4-.5.8-1.8-1.4-2 2-2 2 1.4 1.8-.8zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',
+    bag: 'M8.5 2h7l-1.2 3.2C17.600 6.700 20 9.800 20 13.800V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6.200c0-4 2.400-7.100 5.700-8.600zM8 14h8v2H8z',
     warn: 'M12 2 1 21h22zM11 9h2v6h-2zM11 17h2v2h-2z'
   };
 
@@ -964,6 +972,171 @@ svg{flex:none}
 
 (function (M) {
   'use strict';
+
+  // Stock de pellets : un fichier JSON dans un dépôt GitHub, lu et écrit via l'API GitHub
+  var P = M.pellets = { data: null, sha: null, error: null, busy: false, msg: null };
+  var CACHE = 'maison-pellets';
+  var qty = 1;
+
+  try { P.data = JSON.parse(localStorage.getItem(CACHE) || 'null'); } catch (e) { P.data = null; }
+
+  function url() {
+    var c = M.cfg;
+    return 'https://api.github.com/repos/' + String(c.pelletRepo).trim() + '/contents/' + String(c.pelletPath).trim().replace(/^\/+/, '');
+  }
+  function headers(write) {
+    var h = { 'Accept': 'application/vnd.github+json' };
+    var t = String(M.cfg.pelletToken || '').trim();
+    if (t) h.Authorization = 'Bearer ' + t;
+    if (write) h['Content-Type'] = 'application/json';
+    return h;
+  }
+  function enc(s) { return btoa(unescape(encodeURIComponent(s))); }
+  function dec(b) { return decodeURIComponent(escape(atob(String(b).replace(/\s/g, '')))); }
+  function persist() { try { localStorage.setItem(CACHE, JSON.stringify(P.data)); } catch (e) { /* rien */ } }
+  function plural(n) { return Math.abs(n) > 1 ? 'sacs' : 'sac'; }
+
+  P.stock = function () { return P.data && typeof P.data.stock === 'number' ? P.data.stock : null; };
+
+  P.load = async function () {
+    var res = await fetch(url() + '?t=' + Date.now(), { headers: headers(false), cache: 'no-store' });
+    if (res.status === 404) {
+      P.sha = null;
+      if (!P.data) P.data = { stock: null, historique: [] };
+      P.error = null;
+      return;
+    }
+    if (!res.ok) throw new Error(res.status === 401 || res.status === 403 ? 'Jeton GitHub refusé' : 'GitHub ' + res.status);
+    var j = await res.json();
+    P.data = JSON.parse(dec(j.content));
+    if (!Array.isArray(P.data.historique)) P.data.historique = [];
+    P.sha = j.sha;
+    P.error = null;
+    persist();
+  };
+
+  P.refresh = async function () {
+    try { await P.load(); } catch (e) { P.error = e.message || 'Stock indisponible'; }
+    refreshViews();
+  };
+
+  function refreshViews() {
+    var v = M.views[M.current];
+    if (v && v.live && v.render) v.render();
+    if (document.getElementById('sheet').classList.contains('show') && document.getElementById('sheet').dataset.pellets) show();
+  }
+
+  // Relit le fichier juste avant d'écrire pour ne jamais écraser un changement fait ailleurs
+  async function write(mut, label, tries) {
+    if (!String(M.cfg.pelletToken || '').trim()) throw new Error('Ajoute le jeton GitHub dans Réglages');
+    await P.load();
+    var d = JSON.parse(JSON.stringify(P.data || { stock: null, historique: [] }));
+    if (!Array.isArray(d.historique)) d.historique = [];
+    mut(d);
+    d.updated = new Date().toISOString();
+    var body = { message: 'Pellets : ' + label, content: enc(JSON.stringify(d, null, 2) + '\n') };
+    if (P.sha) body.sha = P.sha;
+    var res = await fetch(url(), { method: 'PUT', headers: headers(true), body: JSON.stringify(body) });
+    if ((res.status === 409 || res.status === 422) && (tries || 0) < 2) return write(mut, label, (tries || 0) + 1);
+    if (res.status === 401 || res.status === 403) throw new Error('Jeton GitHub refusé ou sans droit d\'écriture');
+    if (res.status === 404) throw new Error('Dépôt ou fichier introuvable : vérifie Réglages');
+    if (!res.ok) throw new Error('GitHub ' + res.status);
+    var j = await res.json();
+    P.sha = j.content && j.content.sha;
+    P.data = d;
+    persist();
+  }
+
+  async function run(mut, label, okMsg) {
+    if (P.busy) return;
+    P.busy = true; P.msg = { cls: '', text: 'Enregistrement…' };
+    show();
+    try {
+      await write(mut, label);
+      P.msg = { cls: 'ok', text: okMsg(P.stock()) };
+    } catch (e) {
+      P.msg = { cls: 'ko', text: e.message || 'Échec' };
+    }
+    P.busy = false;
+    show();
+    refreshViews();
+  }
+
+  function move(delta) {
+    var label = (delta > 0 ? '+' : '') + delta;
+    run(function (d) {
+      var old = typeof d.stock === 'number' ? d.stock : 0;
+      var now = Math.max(0, old + delta);
+      d.stock = now;
+      d.historique.unshift({ date: new Date().toISOString(), delta: now - old, stock: now });
+      d.historique = d.historique.slice(0, 50);
+    }, label, function (s) { return (delta < 0 ? 'Retiré' : 'Ajouté') + ' · stock : ' + s + ' ' + plural(s); });
+  }
+
+  function setStock(n) {
+    run(function (d) {
+      var old = typeof d.stock === 'number' ? d.stock : 0;
+      d.stock = n;
+      d.historique.unshift({ date: new Date().toISOString(), delta: n - old, stock: n, type: 'correction' });
+      d.historique = d.historique.slice(0, 50);
+    }, 'correction à ' + n, function (s) { return 'Stock corrigé : ' + s + ' ' + plural(s); });
+  }
+
+  function when(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return M.dayLabel(d).replace(/ \d+h\d+$/, '') + ' ' + M.hm(d);
+  }
+
+  function show() {
+    var s = P.stock();
+    var hist = (P.data && P.data.historique || []).slice(0, 5);
+    var h = '<h3>Pellets</h3>' +
+      '<div class="pel-val">' + (s == null ? '—' : s + ' <small>' + plural(s) + ' en stock</small>') + '</div>' +
+      (P.error ? '<div class="msg ko">' + M.esc(P.error) + '</div>' : '') +
+      '<div class="row"><span>Nombre de sacs</span><div class="stepper"><button class="sb" data-q="-1" aria-label="Moins">−</button><span class="sv">' + qty + '</span><button class="sb" data-q="1" aria-label="Plus">+</button></div></div>' +
+      '<div class="btnrow"><button class="btn solid" id="p-take"' + (P.busy ? ' disabled' : '') + '>Prendre ' + qty + ' ' + plural(qty) + '</button>' +
+      '<button class="btn" id="p-add"' + (P.busy ? ' disabled' : '') + '>Ajouter ' + qty + ' ' + plural(qty) + '</button></div>' +
+      (P.msg ? '<div class="msg ' + P.msg.cls + '">' + M.esc(P.msg.text) + '</div>' : '') +
+      '<div class="field"><label for="p-set">Corriger le stock (après inventaire)</label><div class="btnrow" style="margin-top:0"><input class="inp" id="p-set" type="number" inputmode="numeric" min="0" step="1" value="' + (s == null ? '' : s) + '"><button class="btn" id="p-setb" style="flex:none">Corriger</button></div></div>';
+    if (hist.length) {
+      h += '<div class="sec" style="margin-top:14px">Derniers mouvements</div>' + hist.map(function (x) {
+        var dl = typeof x.delta === 'number' ? (x.delta > 0 ? '+' : x.delta < 0 ? '−' : '') + Math.abs(x.delta) : '';
+        return '<div class="row"><span>' + M.esc(when(x.date)) + (x.type ? ' · correction' : '') + '</span><span class="val">' + dl + ' → ' + x.stock + '</span></div>';
+      }).join('');
+    }
+    M.openSheet(h, function (sh) {
+      sh.dataset.pellets = '1';
+      sh.querySelectorAll('[data-q]').forEach(function (b) {
+        b.onclick = function () { qty = Math.max(1, Math.min(99, qty + parseInt(b.dataset.q, 10))); show(); };
+      });
+      sh.querySelector('#p-take').onclick = function () { move(-qty); };
+      sh.querySelector('#p-add').onclick = function () { move(qty); };
+      sh.querySelector('#p-setb').onclick = function () {
+        var n = parseInt(sh.querySelector('#p-set').value, 10);
+        if (isNaN(n) || n < 0) { M.toast('Nombre invalide'); return; }
+        setStock(n);
+      };
+    });
+  }
+
+  M.openPellets = function () {
+    qty = 1;
+    P.msg = null;
+    show();
+    P.refresh();
+  };
+
+  // Le sheet générique est partagé : on oublie le marqueur à sa fermeture
+  var closeSheet = M.closeSheet;
+  M.closeSheet = function () {
+    document.getElementById('sheet').dataset.pellets = '';
+    closeSheet();
+  };
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
   var HA = M.HA, E = M.E;
 
   M.open = M.open || { agenda: false, ecole: false };
@@ -1140,6 +1313,7 @@ svg{flex:none}
       tile(doorsOpen.length ? 'warn' : '', 'door', 'Portes', doorsOpen.length ? doorsOpen.length + (doorsOpen.length > 1 ? ' ouvertes' : ' ouverte') : 'Fermées',
         doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison') +
       tile(batt == null ? 'na' : '', 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true) +
+      '<button class="tile wide" data-pellet="1"><div class="tile-top">' + M.icon('bag', 22) + '<span class="tile-lab">Pellets</span>' + M.icon('chevr', 18) + '</div><div class="tile-val">' + (M.pellets.stock() == null ? '—' : M.pellets.stock() + (M.pellets.stock() > 1 ? ' sacs' : ' sac')) + '</div><div class="tile-sub">Touche pour décompter ou ajouter des sacs</div></button>' +
       '</div>';
 
     h += acc('agenda', 'cal', 'Agenda du jour', agendaSub(), agendaBody());
@@ -1157,6 +1331,7 @@ svg{flex:none}
         render();
       };
     });
+    el.querySelectorAll('[data-pellet]').forEach(function (b) { b.onclick = M.openPellets; });
     el.querySelectorAll('[data-school]').forEach(function (b) { b.onclick = M.openSchoolApp; });
     el.scrollTop = top;
   }
@@ -1382,6 +1557,7 @@ svg{flex:none}
       row('Poêle', M.sw(E.poele, 'Poêle')) +
       row('Température salon', '<span class="big">' + (salon == null ? '—' : M.fmt(salon, 1) + ' °C') + '</span>') +
       row('Consigne', M.stepper(E.consigne, '°')) +
+      row('Stock de pellets', '<button class="btn" data-pellet="1">' + (M.pellets.stock() == null ? '—' : M.pellets.stock() + ' sac' + (M.pellets.stock() > 1 ? 's' : '')) + '</button>') +
       row('Maintenance poêle', M.sw(E.maintenance, 'Maintenance poêle', 'danger')) +
       sub('adv', 'Réglages avancés',
         row('Confort (jour)', M.stepper(E.confortJour, '°')) +
@@ -1428,6 +1604,7 @@ svg{flex:none}
 
     el.innerHTML = h;
     M.bindActions(el);
+    el.querySelectorAll('[data-pellet]').forEach(function (b) { b.onclick = M.openPellets; });
     el.querySelectorAll('[data-sub]').forEach(function (b) {
       b.onclick = function () { M.open[b.dataset.sub] = !M.open[b.dataset.sub]; render(); };
     });
@@ -1465,6 +1642,13 @@ svg{flex:none}
       '<div class="field"><label for="s-sch">Adresse du planning (schedule.json)</label><input class="inp" id="s-sch" type="url" autocapitalize="off" autocorrect="off" value="' + M.esc(c.scheduleUrl) + '"></div>' +
       '<div class="field"><label for="s-eco">Adresse de l\'app complète</label><input class="inp" id="s-eco" type="url" autocapitalize="off" autocorrect="off" value="' + M.esc(c.ecoleUrl) + '"></div>' +
       '<div class="btnrow"><button class="btn" id="s-sch-save">Enregistrer</button></div></div>';
+
+    h += '<div class="card"><h2>Stock de pellets</h2>' +
+      '<div class="field"><label for="s-prepo">Dépôt GitHub (propriétaire/nom)</label><input class="inp" id="s-prepo" autocapitalize="off" autocorrect="off" value="' + M.esc(c.pelletRepo) + '"></div>' +
+      '<div class="field"><label for="s-ppath">Fichier JSON</label><input class="inp" id="s-ppath" autocapitalize="off" autocorrect="off" value="' + M.esc(c.pelletPath) + '"></div>' +
+      '<div class="field"><label for="s-ptok">Jeton GitHub (droit « Contents : lecture et écriture »)</label><input class="inp" id="s-ptok" type="password" autocapitalize="off" autocorrect="off" value="' + M.esc(c.pelletToken) + '"></div>' +
+      '<div class="note">Le fichier est créé automatiquement au premier mouvement. Le jeton reste sur cet appareil.</div>' +
+      '<div class="btnrow"><button class="btn" id="s-pel-save">Enregistrer</button></div></div>';
 
     h += '<div class="card"><h2>Couleur</h2><div class="swatches" style="margin-top:8px">' +
       COLORS.map(function (col) { return '<button class="swatch' + (col === c.accent ? ' on' : '') + '" data-col="' + col + '" style="background:' + col + '" aria-label="' + col + '"></button>'; }).join('') +
@@ -1507,9 +1691,18 @@ svg{flex:none}
       M.school.load();
       M.toast('Enregistré');
     };
+    el.querySelector('#s-pel-save').onclick = function () {
+      M.saveCfg({
+        pelletRepo: el.querySelector('#s-prepo').value.trim(),
+        pelletPath: el.querySelector('#s-ppath').value.trim(),
+        pelletToken: el.querySelector('#s-ptok').value.trim()
+      });
+      M.pellets.refresh();
+      M.toast('Enregistré');
+    };
     el.querySelector('#s-reset').onclick = function () {
       if (!confirm('Effacer toutes les données locales ?')) return;
-      try { localStorage.removeItem('ha-config'); localStorage.removeItem('maison-config'); } catch (e) { /* rien */ }
+      try { localStorage.removeItem('ha-config'); localStorage.removeItem('maison-config'); localStorage.removeItem('maison-pellets'); localStorage.removeItem('maison-cache'); } catch (e) { /* rien */ }
       location.reload();
     };
     el.scrollTop = top;
@@ -1604,6 +1797,7 @@ svg{flex:none}
     HA.connect();
     M.school.load();
     M.loadAgenda(false);
+    M.pellets.refresh();
 
     setInterval(function () {
       if (document.hidden) return;
