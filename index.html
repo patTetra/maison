@@ -238,6 +238,9 @@ svg{flex:none}
 .hdr.top{align-items:center}
 .jarvis{display:flex;justify-content:space-between;width:74%;margin:2px auto 0;font-family:var(--ft);font-size:clamp(34px,11.5vw,50px);line-height:1.05;font-weight:700;color:var(--text);text-shadow:0 0 6px color-mix(in srgb,var(--accent) 90%,transparent),0 0 16px color-mix(in srgb,var(--accent) 70%,transparent),0 0 34px color-mix(in srgb,var(--accent) 45%,transparent)}
 
+@keyframes flashcard{0%{box-shadow:0 0 0 2px var(--accent),0 0 18px var(--accent-soft)}100%{box-shadow:0 0 0 0 transparent}}
+.card.flash{animation:flashcard 1.4s ease-out}
+
 </style>
 </head>
 <body>
@@ -1495,21 +1498,21 @@ svg{flex:none}
 
     h += '<div class="grid2">' +
       tile(poele ? 'on' : '', 'flame', 'Chauffage', salon == null ? '—' : M.fmt(salon, 1) + '°',
-        HA.isOn(E.maintenance) ? 'maintenance poêle' : (poele ? 'poêle allumé' : 'poêle éteint') + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°'), 'maison') +
+        HA.isOn(E.maintenance) ? 'maintenance poêle' : (poele ? 'poêle allumé' : 'poêle éteint') + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°'), 'maison|chauffage') +
       '<button class="tile" data-pellet="1"><div class="tile-top">' + M.icon('bag', 22) + '<span class="tile-lab">Pellets</span></div><div class="tile-val">' +
         (stock == null ? '—' : stock + (stock > 1 ? ' sacs' : ' sac')) + '</div></button>' +
-      tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', ft == null ? '' : 'eau ' + M.fmt(ft, 1) + ' °C', 'maison') +
+      tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', ft == null ? '' : 'eau ' + M.fmt(ft, 1) + ' °C', 'maison|piscine') +
       tile(lon.length ? 'on lit' : '', 'bulb', 'Lumières', lon.length ? lon.length + (lon.length > 1 ? ' allumées' : ' allumée') : 'Éteintes',
         lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''), 'lumieres') +
       tile(doorsOpen.length ? 'warn' : '', 'door', 'Portes', doorsOpen.length ? doorsOpen.length + (doorsOpen.length > 1 ? ' ouvertes' : ' ouverte') : 'Fermées',
-        doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison') +
+        doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison|portes') +
       (isCharging() && batt != null
         ? batteryBar(tile('on', 'car', 'Tesla', 'En charge', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°'), { batt: batt, charging: true })
         : tile(batt == null ? 'na' : '', 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°')) +
       '</div>';
 
     h += '<div class="row2">' +
-      tile(HA.isOn(E.ballon) ? 'on' : '', 'drop', 'Ballon', HA.isOn(E.ballon) ? 'Chauffe' : 'Arrêté', HA.isOn(E.ballonForce) ? 'forcé' : '', 'maison') +
+      tile(HA.isOn(E.ballon) ? 'on' : '', 'drop', 'Ballon', HA.isOn(E.ballon) ? 'Chauffe' : 'Arrêté', HA.isOn(E.ballonForce) ? 'forcé' : '', 'maison|ballon') +
       batteryBar(tile(ms.cls, 'mower', 'Tondeuse', ms.label, ms.sub, ''), ms) + '</div>';
 
     h += acc('agenda', 'cal', 'Agenda du jour', agendaSub(), agendaBody());
@@ -1750,7 +1753,7 @@ svg{flex:none}
 
     // Chauffage
     var salon = HA.num(E.salonTemp), tmax = HA.num(E.tmaxJour);
-    h += '<div class="card"><h2>Chauffage ' + (HA.isOn(E.poele) ? chip('Poêle allumé') : chip('Poêle éteint', 'off')) + '</h2>' +
+    h += '<div class="card" data-anchor="chauffage"><h2>Chauffage ' + (HA.isOn(E.poele) ? chip('Poêle allumé') : chip('Poêle éteint', 'off')) + '</h2>' +
       row('Poêle', M.sw(E.poele, 'Poêle')) +
       row('Température salon', '<span class="big">' + (salon == null ? '—' : M.fmt(salon, 1) + ' °C') + '</span>') +
       row('Consigne', M.stepper(E.consigne, '°')) +
@@ -1768,7 +1771,7 @@ svg{flex:none}
       '</div>';
 
     // Ballon
-    h += '<div class="card"><h2>Ballon d\'eau chaude ' + (HA.isOn(E.ballon) ? chip('Chauffe') : chip('Arrêté', 'off')) + '</h2>' +
+    h += '<div class="card" data-anchor="ballon"><h2>Ballon d\'eau chaude ' + (HA.isOn(E.ballon) ? chip('Chauffe') : chip('Arrêté', 'off')) + '</h2>' +
       row('Ballon', M.sw(E.ballon, 'Ballon')) +
       row('Marche forcée', M.sw(E.ballonForce, 'Marche forcée')) +
       '<div class="note">Jours de chauffe programmés</div><div class="days">' +
@@ -1778,13 +1781,13 @@ svg{flex:none}
 
     // Piscine
     var ft = HA.num(E.filtrationTemp);
-    h += '<div class="card"><h2>Piscine ' + (HA.isOn(E.filtration) ? chip('En marche') : chip('Arrêtée', 'off')) + '</h2>' +
+    h += '<div class="card" data-anchor="piscine"><h2>Piscine ' + (HA.isOn(E.filtration) ? chip('En marche') : chip('Arrêtée', 'off')) + '</h2>' +
       row('Filtration', M.sw(E.filtration, 'Filtration')) +
       row('Température de l\'eau', '<span class="big">' + (ft == null ? '—' : M.fmt(ft, 1) + ' °C') + '</span>') + '</div>';
 
     // Portes
     var open = M.DOORS.filter(function (d) { return HA.isOn(d.entity); }).length;
-    h += '<div class="card"><h2>Portes ' + (open ? chip(open + ' ouverte' + (open > 1 ? 's' : ''), 'warn') : chip('Toutes fermées')) + '</h2>' +
+    h += '<div class="card" data-anchor="portes"><h2>Portes ' + (open ? chip(open + ' ouverte' + (open > 1 ? 's' : ''), 'warn') : chip('Toutes fermées')) + '</h2>' +
       M.DOORS.map(function (d) {
         var o = HA.isOn(d.entity), na = !HA.avail(d.entity);
         return row(M.esc(d.name), na ? chip('Indisponible', 'off') : (o ? chip('Ouverte', 'warn') : chip('Fermée', 'off')));
@@ -1792,7 +1795,7 @@ svg{flex:none}
 
     // Énergie
     var pw = HA.num(E.power), tvp = HA.num(E.tvPower);
-    h += '<div class="card"><h2>Énergie</h2>' +
+    h += '<div class="card" data-anchor="energie"><h2>Énergie</h2>' +
       row('Puissance compteur', '<span class="big">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span>') +
       row('Prise TV' + (tvp == null ? '' : ' · ' + M.fmt(tvp) + ' W'), M.sw(E.tv, 'Prise TV')) +
       sub('tempo', 'Tarifs Tempo (€/kWh)',
@@ -1937,9 +1940,20 @@ svg{flex:none}
     }
   });
 
-  M.go = function (name) {
+  // Fait défiler la vue jusqu'à la rubrique demandée (data-anchor)
+  function scrollToAnchor(name, anchor) {
+    if (!anchor) return;
+    var el = M.views[name].el;
+    var t = el.querySelector('[data-anchor="' + anchor + '"]');
+    if (!t) return;
+    el.scrollTop = Math.max(0, t.offsetTop - 12);
+    t.classList.remove('flash'); void t.offsetWidth; t.classList.add('flash');
+  }
+
+  M.go = function (name, anchor) {
     if (!M.views[name] || M.current === name) {
       if (M.views[name] && M.views[name].render) M.views[name].render();
+      scrollToAnchor(name, anchor);
       return;
     }
     var prev = M.views[M.current];
@@ -1954,6 +1968,7 @@ svg{flex:none}
     var v = M.views[name];
     if (v.onShow) v.onShow(); else if (v.render) v.render();
     if (name === 'accueil') { M.loadAgenda(false); M.school.load(); }
+    scrollToAnchor(name, anchor);
   };
 
   function build() {
