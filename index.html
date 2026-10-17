@@ -235,6 +235,9 @@ svg{flex:none}
 .cd b{font-family:var(--ft);font-size:15px;font-weight:700;color:var(--text);line-height:1.05}
 .cd b.buy{font-size:11px;color:var(--light)}
 
+.hdr.top{align-items:center}
+.jarvis{display:flex;justify-content:space-between;width:100%;margin:-2px 0 0;font-family:var(--ft);font-size:clamp(40px,14.5vw,64px);line-height:1;font-weight:700;color:var(--text);text-shadow:0 0 18px var(--accent-soft)}
+
 </style>
 </head>
 <body>
@@ -1464,7 +1467,8 @@ svg{flex:none}
     var tmp = HA.a(E.weather, 'temperature');
     var h = '<div class="stack">';
 
-    h += '<div class="hdr"><div><div class="dateline">' + M.esc(date) + (typeof tmp === 'number' ? ' · ' + M.fmt(tmp) + '°' : '') + '</div><h1 class="hello">' + hello + '</h1></div>' + M.statusPill() + '</div>';
+    h += '<div class="hdr top"><div class="dateline">' + M.esc(date) + (typeof tmp === 'number' ? ' · ' + M.fmt(tmp) + '°' : '') + '</div>' + M.statusPill() + '</div>' +
+      '<h1 class="jarvis" aria-label="J.A.R.V.I.S.">' + 'JARVIS'.split('').map(function (l) { return '<span>' + l + '</span>'; }).join('') + '</h1>';
 
     if (!HA.configured()) {
       h += '<div class="banner"><span>Renseigne l\'adresse et le jeton de Home Assistant.</span><button class="btn" data-go="reglages">Réglages</button></div>';
