@@ -201,6 +201,9 @@ svg{flex:none}
 .bar.chg i{background:#1fd68a}
 .bar.low i{background:var(--warn)}
 .row2 .tile{min-height:92px}
+.barrow{display:flex;align-items:center;gap:10px;width:100%;margin-top:auto}
+.barrow .bar{flex:1;margin-top:0}
+.barpct{font-family:var(--ft);font-size:18px;font-weight:700;color:var(--text2)}
 
 </style>
 </head>
@@ -1295,7 +1298,7 @@ svg{flex:none}
     if (ms.batt == null) return html;
     var w = Math.max(0, Math.min(100, ms.batt));
     var cls = ms.charging ? ' chg' : (w < 20 ? ' low' : '');
-    return html.replace(/<\/button>$/, '<div class="bar' + cls + '" role="progressbar" aria-label="Batterie" aria-valuenow="' + w + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + w + '%"></i></div></button>');
+    return html.replace(/<\/button>$/, '<div class="barrow"><div class="bar' + cls + '" role="progressbar" aria-label="Batterie" aria-valuenow="' + w + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + w + '%"></i></div><span class="barpct">' + M.fmt(w) + ' %</span></div></button>');
   }
 
   function mowerInfo() {
