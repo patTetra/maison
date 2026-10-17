@@ -1,11 +1,17 @@
 {
-  "stock": 0,
+  "stock": 70,
   "historique": [
+    {
+      "date": "2026-10-17T10:13:54.961Z",
+      "delta": 70,
+      "stock": 70,
+      "type": "correction"
+    },
     {
       "date": "2026-10-17T10:09:37.624Z",
       "delta": 0,
       "stock": 0
     }
   ],
-  "updated": "2026-10-17T10:09:37.624Z"
+  "updated": "2026-10-17T10:13:54.961Z"
 }
