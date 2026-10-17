@@ -214,6 +214,10 @@ svg{flex:none}
 .pcol .m{font-size:10px;color:var(--muted);margin-bottom:-18px;position:relative;top:18px}
 .pchart{margin-bottom:34px}
 
+.pcol[data-month]{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pcol.sel .m{color:var(--accent);font-weight:700}
+.pcol.sel .pbar{background:var(--accent)}
+
 </style>
 </head>
 <body>
@@ -1008,6 +1012,7 @@ svg{flex:none}
   var qty = 1;
   var seasonOffset = 0;   // 0 = saison en cours, -1 = la précédente…
   var statsOpen = false;
+  var monthSel = null;    // index dans MONTHS du mois détaillé
 
   try { P.data = JSON.parse(localStorage.getItem(CACHE) || 'null'); } catch (e) { P.data = null; }
 
@@ -1144,6 +1149,40 @@ svg{flex:none}
     return { year: y, used: used, bought: bought, any: any };
   }
 
+  var MONTH_FULL = ['septembre', 'octobre', 'novembre', 'décembre', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin'];
+
+  // Détail des mouvements d'un mois de la saison affichée
+  function monthDetail(y, i) {
+    var m = MONTHS[i], yr = m >= 8 ? y : y + 1;
+    var list = (P.data && P.data.historique || []).filter(function (x) {
+      var d = new Date(x.date);
+      return !isNaN(d.getTime()) && d.getFullYear() === yr && d.getMonth() === m && typeof x.delta === 'number';
+    });
+    var used = 0, bought = 0;
+    list.forEach(function (x) { if (x.type === 'correction') return; if (x.delta < 0) used += -x.delta; else bought += x.delta; });
+    var h = '<div class="sec" style="margin-top:12px">' + MONTH_FULL[i].charAt(0).toUpperCase() + MONTH_FULL[i].slice(1) + ' ' + yr + '</div>';
+    if (!list.length) return h + '<div class="empty">Aucun mouvement ce mois-ci.</div>';
+    h += '<div class="row"><span>Consommés</span><span class="val">' + used + ' ' + plural(used) + '</span></div>' +
+      '<div class="row"><span>Achetés</span><span class="val">' + bought + ' ' + plural(bought) + '</span></div>';
+    // regroupe par jour (du plus récent au plus ancien)
+    var days = [], idx = {};
+    list.forEach(function (x) {
+      var d = new Date(x.date), k = d.getDate();
+      if (!(k in idx)) { idx[k] = days.length; days.push({ day: k, d: d, items: [] }); }
+      days[idx[k]].items.push(x);
+    });
+    h += days.map(function (g) {
+      var net = g.items.reduce(function (a, x) { return a + x.delta; }, 0);
+      var txt = g.items.map(function (x) {
+        var t = x.type === 'correction' ? 'correction ' + (x.delta > 0 ? '+' : '−') + Math.abs(x.delta) : (x.delta > 0 ? '+' : '−') + Math.abs(x.delta);
+        return t;
+      }).join(', ');
+      var lab = g.d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+      return '<div class="row"><span>' + M.esc(lab) + '</span><span class="val">' + M.esc(txt) + '</span></div>';
+    }).join('');
+    return h;
+  }
+
   function statsHtml() {
     var st = seasonStats();
     var total = st.used.reduce(function (a, b) { return a + b; }, 0);
@@ -1156,17 +1195,20 @@ svg{flex:none}
       '<button class="sb" data-season="1" aria-label="Saison suivante"' + (seasonOffset >= 0 ? ' disabled' : '') + '>›</button></div>';
     if (!st.any) return h + '<div class="empty">Aucun mouvement enregistré sur cette saison.</div>';
     h += '<div class="pchart">' + st.used.map(function (v, i) {
-      return '<div class="pcol' + (isCur && i === curM ? ' cur' : '') + '"><b>' + (v || '') + '</b><div class="pbar" style="height:' + Math.round(v / max * 80) + 'px' + (v ? '' : ';opacity:.25;min-height:2px') + '"></div><span class="m">' + MONTH_LABELS[i] + '</span></div>';
+      return '<div class="pcol' + (isCur && i === curM ? ' cur' : '') + (monthSel === i ? ' sel' : '') + '" data-month="' + i + '" role="button" tabindex="0"><b>' + (v || '') + '</b><div class="pbar" style="height:' + Math.round(v / max * 80) + 'px' + (v ? '' : ';opacity:.25;min-height:2px') + '"></div><span class="m">' + MONTH_LABELS[i] + '</span></div>';
     }).join('') + '</div>';
     h += '<div class="row"><span>Consommés sur la saison</span><span class="big">' + total + ' ' + plural(total) + '</span></div>' +
       '<div class="row"><span>Moyenne par mois' + (active ? ' (mois utilisés)' : '') + '</span><span class="val">' + (active ? M.fmt(total / active, 1) + ' sacs' : '—') + '</span></div>' +
       '<div class="row"><span>Achetés sur la saison</span><span class="val">' + st.bought + ' ' + plural(st.bought) + '</span></div>';
+    if (monthSel !== null) h += monthDetail(st.year, monthSel);
+    else h += '<div class="note" style="margin-top:8px">Touche un mois pour voir le détail.</div>';
     return h;
   }
 
   function show() {
     var s = P.stock();
-    var hist = (P.data && P.data.historique || []).slice(0, 5);
+    var cur = new Date(new Date().getMonth() >= 8 ? new Date().getFullYear() : new Date().getFullYear() - 1, 8, 1);
+    var hist = (P.data && P.data.historique || []).filter(function (x) { var d = new Date(x.date); return !isNaN(d.getTime()) && d >= cur; }).slice(0, 5);
     var statsBlk = '<button class="subhead' + (statsOpen ? ' open' : '') + '" id="p-stats" style="margin-top:10px"><span>Consommation par saison</span><span class="chev">' + M.icon('chevd', 20) + '</span></button>' + (statsOpen ? statsHtml() : '');
     var h = '<h3>Pellets</h3>' +
       '<div class="pel-val">' + (s == null ? '—' : s + ' <small>' + plural(s) + ' en stock</small>') + '</div>' +
@@ -1177,6 +1219,7 @@ svg{flex:none}
       (P.msg ? '<div class="msg ' + P.msg.cls + '">' + M.esc(P.msg.text) + '</div>' : '') +
       statsBlk +
       '<div class="field"><label for="p-set">Corriger le stock (après inventaire)</label><div class="btnrow" style="margin-top:0"><input class="inp" id="p-set" type="number" inputmode="numeric" min="0" step="1" value="' + (s == null ? '' : s) + '"><button class="btn" id="p-setb" style="flex:none">Corriger</button></div></div>';
+    if (!hist.length) h += '<div class="sec" style="margin-top:14px">Derniers mouvements</div><div class="empty">Aucun mouvement cette saison.</div>';
     if (hist.length) {
       h += '<div class="sec" style="margin-top:14px">Derniers mouvements</div>' + hist.map(function (x) {
         var dl = typeof x.delta === 'number' ? (x.delta > 0 ? '+' : x.delta < 0 ? '−' : '') + Math.abs(x.delta) : '';
@@ -1190,7 +1233,10 @@ svg{flex:none}
       });
       sh.querySelector('#p-stats').onclick = function () { statsOpen = !statsOpen; show(); };
       sh.querySelectorAll('[data-season]').forEach(function (b) {
-        b.onclick = function () { seasonOffset = Math.min(0, seasonOffset + parseInt(b.dataset.season, 10)); show(); };
+        b.onclick = function () { seasonOffset = Math.min(0, seasonOffset + parseInt(b.dataset.season, 10)); monthSel = null; show(); };
+      });
+      sh.querySelectorAll('[data-month]').forEach(function (c) {
+        c.onclick = function () { var i = parseInt(c.dataset.month, 10); monthSel = monthSel === i ? null : i; show(); };
       });
       sh.querySelector('#p-take').onclick = function () { move(-qty); };
       sh.querySelector('#p-add').onclick = function () { move(qty); };
@@ -1205,6 +1251,7 @@ svg{flex:none}
   M.openPellets = function () {
     qty = 1;
     seasonOffset = 0;
+    monthSel = null;
     P.msg = null;
     show();
     P.refresh();
