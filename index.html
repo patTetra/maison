@@ -1217,16 +1217,18 @@ svg{flex:none}
     return '<button class="sc' + (on ? ' on' : '') + (on && cls ? ' ' + cls : '') + '" data-toggle="' + ent + '" aria-pressed="' + !!on + '">' + M.icon(icon, 24) + '<span>' + M.esc(label) + '</span></button>';
   }
 
+  // État de charge : « charging » côté Home Assistant ; le temps restant est en minutes
+  function isCharging() { return HA.s(E.teslaCharge) === 'charging'; }
+
   function teslaSub() {
-    var st = String(HA.s(E.teslaCharge) || '').toLowerCase();
-    var charging = /charg|en charge/.test(st) && !/not|no_|stopp|disconn|déconn|complete|termin/.test(st);
-    if (!charging) return st && st !== 'unavailable' && st !== 'unknown' ? M.cap(HA.s(E.teslaCharge)) : '';
-    var t = HA.s(E.teslaTemps);
-    var d = t ? new Date(t) : null;
-    if (d && !isNaN(d.getTime()) && /T|-/.test(String(t))) return 'En charge · fin ' + M.hm(d);
-    var h = parseFloat(t);
-    if (!isNaN(h)) return 'En charge · ' + M.fmt(h, 1) + ' h restantes';
-    return 'En charge';
+    var st = HA.s(E.teslaCharge);
+    if (st === 'charging') {
+      var min = parseFloat(HA.s(E.teslaTemps));
+      if (!isNaN(min)) return 'En charge · fin ' + M.hm(new Date(Date.now() + min * 60000));
+      return 'En charge';
+    }
+    if (st === 'disconnected') return 'Débranchée';
+    return st && st !== 'unavailable' && st !== 'unknown' ? M.cap(String(st).replace(/_/g, ' ')) : '';
   }
 
   function agendaBody() {
@@ -1345,7 +1347,7 @@ svg{flex:none}
         lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''), 'lumieres') +
       tile(doorsOpen.length ? 'warn' : '', 'door', 'Portes', doorsOpen.length ? doorsOpen.length + (doorsOpen.length > 1 ? ' ouvertes' : ' ouverte') : 'Fermées',
         doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison') +
-      tile(batt == null ? 'na' : '', 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°') +
+      tile(batt == null ? 'na' : (isCharging() ? 'on' : ''), 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°') +
       '</div>';
 
     h += '<div class="row2">' +
