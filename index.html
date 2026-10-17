@@ -196,6 +196,11 @@ svg{flex:none}
 .tile.wide{min-height:78px}
 .row2{display:grid;grid-template-columns:2fr 3fr;gap:10px}
 .tile-in{font-size:12px;font-weight:500;color:var(--muted)}
+.bar{width:100%;height:10px;border-radius:5px;background:var(--card2);margin-top:auto;padding:0;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:5px;background:var(--accent)}
+.bar.chg i{background:#1fd68a}
+.bar.low i{background:var(--warn)}
+.row2 .tile{min-height:92px}
 
 </style>
 </head>
@@ -1284,6 +1289,14 @@ svg{flex:none}
       '<span class="chev">' + M.icon('chevd', 22) + '</span></button>' + (open ? '<div class="acc-body">' + body + '</div>' : '') + '</div>';
   }
 
+  // Bande de progression de la batterie, en bas de la tuile
+  function batteryBar(html, ms) {
+    if (ms.batt == null) return html;
+    var w = Math.max(0, Math.min(100, ms.batt));
+    var cls = ms.charging ? ' chg' : (w < 20 ? ' low' : '');
+    return html.replace(/<\/button>$/, '<div class="bar' + cls + '" role="progressbar" aria-label="Batterie" aria-valuenow="' + w + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + w + '%"></i></div></button>');
+  }
+
   function mowerInfo() {
     var st = HA.s(E.mower);
     var names = { mowing: 'Tonte', docked: 'À la base', returning: 'Retour', paused: 'En pause', error: 'Erreur', idle: 'Inactive' };
@@ -1295,10 +1308,11 @@ svg{flex:none}
       if (typeof a === 'number') batt = a;
     }
     var prog = E.mowerProgress ? HA.num(E.mowerProgress) : null;
-    var parts = [];
-    if (batt != null) parts.push('batt. ' + M.fmt(batt) + ' %');
-    if (prog != null && st === 'mowing') parts.push(M.fmt(prog) + ' % fait');
-    return { label: label, sub: parts.join(' · '), cls: st === 'mowing' ? 'on' : (st === 'error' ? 'warn' : '') };
+    // À la base avec une batterie incomplète : la tondeuse est en train de se recharger
+    var charging = st === 'docked' && batt != null && batt < 100;
+    if (charging) label = 'En charge';
+    var sub = prog != null && st === 'mowing' ? M.fmt(prog) + ' % fait' : '';
+    return { label: label, sub: sub, batt: batt, charging: charging, cls: st === 'mowing' ? 'on' : (st === 'error' ? 'warn' : '') };
   }
 
   function render() {
@@ -1352,7 +1366,7 @@ svg{flex:none}
 
     h += '<div class="row2">' +
       tile(HA.isOn(E.ballon) ? 'on' : '', 'drop', 'Ballon', HA.isOn(E.ballon) ? 'Chauffe' : 'Arrêté', HA.isOn(E.ballonForce) ? 'forcé' : '', 'maison') +
-      tile(ms.cls, 'mower', 'Tondeuse', ms.label, ms.sub, '') + '</div>';
+      batteryBar(tile(ms.cls, 'mower', 'Tondeuse', ms.label, ms.sub, ''), ms) + '</div>';
 
     h += acc('agenda', 'cal', 'Agenda du jour', agendaSub(), agendaBody());
     h += acc('ecole', 'cap', 'École de Manon', ecoleSub(), ecoleBody());
