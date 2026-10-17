@@ -1233,8 +1233,8 @@ svg{flex:none}
     var st = HA.s(E.teslaCharge);
     if (st === 'charging') {
       var min = parseFloat(HA.s(E.teslaTemps));
-      if (!isNaN(min)) return 'En charge · fin ' + M.hm(new Date(Date.now() + min * 60000));
-      return 'En charge';
+      if (!isNaN(min)) return 'fin ' + M.hm(new Date(Date.now() + min * 60000));
+      return '';
     }
     if (st === 'disconnected') return 'Débranchée';
     return st && st !== 'unavailable' && st !== 'unknown' ? M.cap(String(st).replace(/_/g, ' ')) : '';
@@ -1365,7 +1365,9 @@ svg{flex:none}
         lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''), 'lumieres') +
       tile(doorsOpen.length ? 'warn' : '', 'door', 'Portes', doorsOpen.length ? doorsOpen.length + (doorsOpen.length > 1 ? ' ouvertes' : ' ouverte') : 'Fermées',
         doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison') +
-      tile(batt == null ? 'na' : (isCharging() ? 'on' : ''), 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°') +
+      (isCharging() && batt != null
+        ? batteryBar(tile('on', 'car', 'Tesla', 'En charge', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°'), { batt: batt, charging: true })
+        : tile(batt == null ? 'na' : '', 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°')) +
       '</div>';
 
     h += '<div class="row2">' +
