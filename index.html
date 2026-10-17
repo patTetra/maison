@@ -295,6 +295,9 @@ svg{flex:none}
     { name: 'Grange', entity: 'camera.ipcam_mainprofile', wide: true }
   ];
 
+  // Autres prises pilotables depuis l'onglet Lumières (hors décompte « lumières allumées »)
+  const OTHERS = [{ name: 'Télé', entity: E.tv, icon: 'tv' }];
+
   const ALL_LIGHTS = LIGHTS_IN.concat(LIGHTS_OUT).map(function (l) { return l.entity; });
 
   const all = [];
@@ -309,6 +312,7 @@ svg{flex:none}
   M.LIGHTS_IN = LIGHTS_IN;
   M.LIGHTS_OUT = LIGHTS_OUT;
   M.CAMERAS = CAMERAS;
+  M.OTHERS = OTHERS;
   M.ALL_LIGHTS = ALL_LIGHTS;
   M.ALL_ENTITIES = ALL_ENTITIES;
 })(window.M = window.M || {});
@@ -1354,9 +1358,9 @@ svg{flex:none}
     var on = HA.isOn(l.entity);
     var na = !HA.avail(l.entity);
     var br = HA.a(l.entity, 'brightness');
-    var sub = na ? 'indisponible' : (on ? (typeof br === 'number' ? Math.round(br / 2.55) + ' %' : 'allumée') : 'éteinte');
-    return '<button class="tile lt' + (on ? ' on lit' : '') + (na ? ' na' : '') + '" data-light="' + l.entity + '">' +
-      '<div class="tile-top">' + M.icon('bulb', 22) + '<span class="tile-lab">' + M.esc(l.name) + '</span></div>' +
+    var sub = na ? 'indisponible' : (on ? (typeof br === 'number' ? Math.round(br / 2.55) + ' %' : (l.icon ? 'allumée' : 'allumée')) : 'éteinte');
+    return '<button class="tile lt' + (on ? (l.icon ? ' on' : ' on lit') : '') + (na ? ' na' : '') + '" data-light="' + l.entity + '">' +
+      '<div class="tile-top">' + M.icon(l.icon || 'bulb', 22) + '<span class="tile-lab">' + M.esc(l.name) + '</span></div>' +
       '<div class="tile-sub">' + sub + '</div></button>';
   }
 
@@ -1387,12 +1391,13 @@ svg{flex:none}
     var n = M.ALL_LIGHTS.filter(function (e) { return HA.isOn(e); }).length;
     var h = '<div class="stack"><div class="hdr"><div><div class="dateline">Éclairage</div><h1 class="hello">Lumières</h1></div>' + M.statusPill() + '</div>' +
       '<div class="pg-sub">' + (n ? n + (n > 1 ? ' allumées' : ' allumée') : 'Tout est éteint') + ' · appui long : intensité</div>';
+    h += '<div class="grid2">' + M.OTHERS.map(tile).join('') + '</div>';
     h += '<div class="sec">Intérieur</div><div class="grid2">' + M.LIGHTS_IN.map(tile).join('') + '</div>';
     h += '<div class="sec">Extérieur</div><div class="grid2">' + M.LIGHTS_OUT.map(tile).join('') + '</div>';
     h += '<button class="btn danger wide" id="alloff">Tout éteindre</button></div>';
     el.innerHTML = h;
 
-    var all = M.LIGHTS_IN.concat(M.LIGHTS_OUT);
+    var all = M.LIGHTS_IN.concat(M.LIGHTS_OUT, M.OTHERS);
     el.querySelectorAll('[data-light]').forEach(function (b) {
       var ent = b.dataset.light;
       var l = all.filter(function (x) { return x.entity === ent; })[0];
