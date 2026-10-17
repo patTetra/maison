@@ -218,6 +218,15 @@ svg{flex:none}
 .pcol.sel .m{color:var(--accent);font-weight:700}
 .pcol.sel .pbar{background:var(--accent)}
 
+.dchart{display:flex;align-items:flex-end;gap:2px;height:96px;padding-top:6px;border-bottom:1px solid var(--card2);margin-bottom:22px}
+.dcol{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px}
+.dcol b{font-size:9px;font-weight:600;color:var(--text2);min-height:11px;line-height:11px}
+.dbar{width:100%;border-radius:2px 2px 0 0;background:var(--accent)}
+.dbar.buy{background:var(--text2)}
+.dcol .m{font-size:9px;color:var(--muted);height:0;position:relative;top:12px;line-height:10px}
+.dot-buy,.dot-use{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:-1px}
+.dot-buy{background:var(--text2)}.dot-use{background:var(--accent)}
+
 </style>
 </head>
 <body>
@@ -1164,22 +1173,25 @@ svg{flex:none}
     if (!list.length) return h + '<div class="empty">Aucun mouvement ce mois-ci.</div>';
     h += '<div class="row"><span>Consommés</span><span class="val">' + used + ' ' + plural(used) + '</span></div>' +
       '<div class="row"><span>Achetés</span><span class="val">' + bought + ' ' + plural(bought) + '</span></div>';
-    // regroupe par jour (du plus récent au plus ancien)
-    var days = [], idx = {};
+    // histogramme jour par jour (consommés en couleur, achats en clair)
+    var nd = new Date(yr, m + 1, 0).getDate();
+    var du = [], db = [];
+    for (var k = 0; k <= nd; k++) { du.push(0); db.push(0); }
     list.forEach(function (x) {
-      var d = new Date(x.date), k = d.getDate();
-      if (!(k in idx)) { idx[k] = days.length; days.push({ day: k, d: d, items: [] }); }
-      days[idx[k]].items.push(x);
+      if (x.type === 'correction') return;
+      var day = new Date(x.date).getDate();
+      if (x.delta < 0) du[day] += -x.delta; else db[day] += x.delta;
     });
-    h += days.map(function (g) {
-      var net = g.items.reduce(function (a, x) { return a + x.delta; }, 0);
-      var txt = g.items.map(function (x) {
-        var t = x.type === 'correction' ? 'correction ' + (x.delta > 0 ? '+' : '−') + Math.abs(x.delta) : (x.delta > 0 ? '+' : '−') + Math.abs(x.delta);
-        return t;
-      }).join(', ');
-      var lab = g.d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
-      return '<div class="row"><span>' + M.esc(lab) + '</span><span class="val">' + M.esc(txt) + '</span></div>';
-    }).join('');
+    var mx = 1;
+    for (var j = 1; j <= nd; j++) mx = Math.max(mx, du[j], db[j]);
+    h += '<div class="dchart">';
+    for (var d = 1; d <= nd; d++) {
+      var v = du[d] || db[d], buy = !du[d] && db[d] > 0;
+      h += '<div class="dcol"><b>' + (v || '') + '</b><div class="dbar' + (buy ? ' buy' : '') + '" style="height:' + (v ? Math.max(3, Math.round(v / mx * 64)) : 0) + 'px"></div>' +
+        '<span class="m">' + (d === 1 || d % 5 === 0 ? d : '') + '</span></div>';
+    }
+    h += '</div>';
+    if (bought) h += '<div class="note" style="margin-top:18px"><span class="dot-buy"></span> achats · <span class="dot-use"></span> consommation</div>';
     return h;
   }
 
