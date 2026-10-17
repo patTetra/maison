@@ -204,6 +204,15 @@ svg{flex:none}
 .barrow{display:flex;align-items:center;gap:10px;width:100%;margin-top:auto}
 .barrow .bar{flex:1;margin-top:0}
 .barpct{font-family:var(--ft);font-size:18px;font-weight:700;color:var(--text2)}
+.pseason{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0 4px}
+.sb[disabled]{opacity:.35;pointer-events:none}
+.pchart{display:flex;align-items:flex-end;gap:5px;height:128px;padding:6px 0 0;border-bottom:1px solid var(--card2)}
+.pcol{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px}
+.pcol b{font-family:var(--ft);font-size:14px;font-weight:700;color:var(--text2);min-height:16px}
+.pbar{width:100%;border-radius:4px 4px 0 0;background:var(--accent-strong)}
+.pcol.cur .pbar{background:var(--accent)}
+.pcol .m{font-size:10px;color:var(--muted);margin-bottom:-18px;position:relative;top:18px}
+.pchart{margin-bottom:34px}
 
 </style>
 </head>
@@ -997,6 +1006,8 @@ svg{flex:none}
   var P = M.pellets = { data: null, sha: null, error: null, busy: false, msg: null };
   var CACHE = 'maison-pellets';
   var qty = 1;
+  var seasonOffset = 0;   // 0 = saison en cours, -1 = la précédente…
+  var statsOpen = false;
 
   try { P.data = JSON.parse(localStorage.getItem(CACHE) || 'null'); } catch (e) { P.data = null; }
 
@@ -1089,7 +1100,7 @@ svg{flex:none}
       var now = Math.max(0, old + delta);
       d.stock = now;
       d.historique.unshift({ date: new Date().toISOString(), delta: now - old, stock: now, type: delta > 0 ? 'achat' : 'prise' });
-      d.historique = d.historique.slice(0, 50);
+      d.historique = d.historique.slice(0, 1500);
     }, label, function (s) { return (delta < 0 ? 'Retiré' : 'Ajouté') + ' · stock : ' + s + ' ' + plural(s); });
   }
 
@@ -1098,7 +1109,7 @@ svg{flex:none}
       var old = typeof d.stock === 'number' ? d.stock : 0;
       d.stock = n;
       d.historique.unshift({ date: new Date().toISOString(), delta: n - old, stock: n, type: 'correction' });
-      d.historique = d.historique.slice(0, 50);
+      d.historique = d.historique.slice(0, 1500);
     }, 'correction à ' + n, function (s) { return 'Stock corrigé : ' + s + ' ' + plural(s); });
   }
 
@@ -1108,9 +1119,55 @@ svg{flex:none}
     return M.dayLabel(d).replace(/ \d+h\d+$/, '') + ' ' + M.hm(d);
   }
 
+
+  var MONTHS = [8, 9, 10, 11, 0, 1, 2, 3, 4, 5];            // septembre → juin
+  var MONTH_LABELS = ['sep', 'oct', 'nov', 'déc', 'jan', 'fév', 'mar', 'avr', 'mai', 'juin'];
+
+  function seasonStartYear() {
+    var now = new Date();
+    return (now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1) + seasonOffset;
+  }
+
+  // Sacs consommés et achetés par mois sur une saison (1er septembre → 30 juin)
+  function seasonStats() {
+    var y = seasonStartYear();
+    var used = MONTHS.map(function () { return 0; }), bought = 0, any = false;
+    var from = new Date(y, 8, 1), to = new Date(y + 1, 6, 1);
+    (P.data && P.data.historique || []).forEach(function (x) {
+      var d = new Date(x.date);
+      if (isNaN(d.getTime()) || d < from || d >= to || typeof x.delta !== 'number') return;
+      var i = MONTHS.indexOf(d.getMonth());
+      if (i < 0 || x.type === 'correction') return;
+      any = true;
+      if (x.delta < 0) used[i] += -x.delta; else bought += x.delta;
+    });
+    return { year: y, used: used, bought: bought, any: any };
+  }
+
+  function statsHtml() {
+    var st = seasonStats();
+    var total = st.used.reduce(function (a, b) { return a + b; }, 0);
+    var max = Math.max.apply(null, st.used.concat([1]));
+    var curM = MONTHS.indexOf(new Date().getMonth());
+    var isCur = seasonOffset === 0;
+    var active = st.used.filter(function (v) { return v > 0; }).length;
+    var h = '<div class="pseason"><button class="sb" data-season="-1" aria-label="Saison précédente">‹</button>' +
+      '<span class="sv" style="min-width:150px">Saison ' + st.year + '-' + (st.year + 1) + '</span>' +
+      '<button class="sb" data-season="1" aria-label="Saison suivante"' + (seasonOffset >= 0 ? ' disabled' : '') + '>›</button></div>';
+    if (!st.any) return h + '<div class="empty">Aucun mouvement enregistré sur cette saison.</div>';
+    h += '<div class="pchart">' + st.used.map(function (v, i) {
+      return '<div class="pcol' + (isCur && i === curM ? ' cur' : '') + '"><b>' + (v || '') + '</b><div class="pbar" style="height:' + Math.round(v / max * 80) + 'px' + (v ? '' : ';opacity:.25;min-height:2px') + '"></div><span class="m">' + MONTH_LABELS[i] + '</span></div>';
+    }).join('') + '</div>';
+    h += '<div class="row"><span>Consommés sur la saison</span><span class="big">' + total + ' ' + plural(total) + '</span></div>' +
+      '<div class="row"><span>Moyenne par mois' + (active ? ' (mois utilisés)' : '') + '</span><span class="val">' + (active ? M.fmt(total / active, 1) + ' sacs' : '—') + '</span></div>' +
+      '<div class="row"><span>Achetés sur la saison</span><span class="val">' + st.bought + ' ' + plural(st.bought) + '</span></div>';
+    return h;
+  }
+
   function show() {
     var s = P.stock();
     var hist = (P.data && P.data.historique || []).slice(0, 5);
+    var statsBlk = '<button class="subhead' + (statsOpen ? ' open' : '') + '" id="p-stats" style="margin-top:10px"><span>Consommation par saison</span><span class="chev">' + M.icon('chevd', 20) + '</span></button>' + (statsOpen ? statsHtml() : '');
     var h = '<h3>Pellets</h3>' +
       '<div class="pel-val">' + (s == null ? '—' : s + ' <small>' + plural(s) + ' en stock</small>') + '</div>' +
       (P.error ? '<div class="msg ko">' + M.esc(P.error) + '</div>' : '') +
@@ -1118,6 +1175,7 @@ svg{flex:none}
       '<div class="btnrow"><button class="btn solid" id="p-take"' + (P.busy ? ' disabled' : '') + '>Prendre ' + qty + ' ' + plural(qty) + '</button>' +
       '<button class="btn" id="p-add"' + (P.busy ? ' disabled' : '') + '>Ajouter ' + qty + ' ' + plural(qty) + '</button></div>' +
       (P.msg ? '<div class="msg ' + P.msg.cls + '">' + M.esc(P.msg.text) + '</div>' : '') +
+      statsBlk +
       '<div class="field"><label for="p-set">Corriger le stock (après inventaire)</label><div class="btnrow" style="margin-top:0"><input class="inp" id="p-set" type="number" inputmode="numeric" min="0" step="1" value="' + (s == null ? '' : s) + '"><button class="btn" id="p-setb" style="flex:none">Corriger</button></div></div>';
     if (hist.length) {
       h += '<div class="sec" style="margin-top:14px">Derniers mouvements</div>' + hist.map(function (x) {
@@ -1129,6 +1187,10 @@ svg{flex:none}
       sh.dataset.pellets = '1';
       sh.querySelectorAll('[data-q]').forEach(function (b) {
         b.onclick = function () { qty = Math.max(1, Math.min(99, qty + parseInt(b.dataset.q, 10))); show(); };
+      });
+      sh.querySelector('#p-stats').onclick = function () { statsOpen = !statsOpen; show(); };
+      sh.querySelectorAll('[data-season]').forEach(function (b) {
+        b.onclick = function () { seasonOffset = Math.min(0, seasonOffset + parseInt(b.dataset.season, 10)); show(); };
       });
       sh.querySelector('#p-take').onclick = function () { move(-qty); };
       sh.querySelector('#p-add').onclick = function () { move(qty); };
@@ -1142,6 +1204,7 @@ svg{flex:none}
 
   M.openPellets = function () {
     qty = 1;
+    seasonOffset = 0;
     P.msg = null;
     show();
     P.refresh();
