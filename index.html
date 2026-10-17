@@ -180,6 +180,14 @@ svg{flex:none}
 .toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);max-width:448px;margin:0 auto;background:var(--card2);border:1px solid var(--accent-line);border-radius:14px;padding:12px 14px;font-size:14px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s;z-index:60}
 .toast.show{opacity:1;transform:none}
 
+:root{--light:#ff8a3d}
+.tile.on.lit{background:rgba(255,138,61,.14);border-color:rgba(255,138,61,.55)}
+.tile.on.lit .tile-top>svg:first-child,.tile.on.lit .tile-val{color:var(--light)}
+.sc.on.lit{background:rgba(255,138,61,.14);border-color:rgba(255,138,61,.55)}
+.sc.on.lit svg{color:var(--light)}
+.dim-val{color:var(--light)}
+.range{accent-color:var(--light)}
+
 </style>
 </head>
 <body>
@@ -581,7 +589,7 @@ svg{flex:none}
   var DEFAULTS = {
     scheduleUrl: 'https://pattetra.github.io/Manon/schedule.json',
     ecoleUrl: 'https://pattetra.github.io/Manon/',
-    jourQuandActive: true,
+    jourQuandActive: false,
     accent: '#22d3ee'
   };
 
@@ -998,8 +1006,8 @@ svg{flex:none}
       '<div class="tile-val">' + M.esc(val) + '</div><div class="tile-sub">' + M.esc(sub || '') + '</div></button>';
   }
 
-  function shortcut(ent, icon, label, on) {
-    return '<button class="sc' + (on ? ' on' : '') + '" data-toggle="' + ent + '" aria-pressed="' + !!on + '">' + M.icon(icon, 24) + '<span>' + M.esc(label) + '</span></button>';
+  function shortcut(ent, icon, label, on, cls) {
+    return '<button class="sc' + (on ? ' on' : '') + (on && cls ? ' ' + cls : '') + '" data-toggle="' + ent + '" aria-pressed="' + !!on + '">' + M.icon(icon, 24) + '<span>' + M.esc(label) + '</span></button>';
   }
 
   function teslaSub() {
@@ -1086,8 +1094,8 @@ svg{flex:none}
 
     h += '<div class="shortcuts">' +
       shortcut(E.modeEnfant, 'smile', 'Mode enfant', HA.isOn(E.modeEnfant)) +
-      shortcut(E.lumExt, 'bulb', 'Lumières ext.', HA.isOn(E.lumExt)) +
-      shortcut(E.jourNuit, isDay() ? 'sun' : 'moon', isDay() ? 'Mode jour' : 'Mode nuit', isDay()) + '</div>';
+      shortcut(E.lumExt, 'bulb', 'Lumières ext.', HA.isOn(E.lumExt), 'lit') +
+      shortcut(E.jourNuit, isDay() ? 'sun' : 'moon', isDay() ? 'Mode jour' : 'Mode nuit', HA.isOn(E.jourNuit)) + '</div>';
 
     var pw = HA.num(E.power);
     h += '<div class="power"><span class="pw-l">Puissance compteur</span><span class="pw-v">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span></div>';
@@ -1104,7 +1112,7 @@ svg{flex:none}
         HA.isOn(E.maintenance) ? 'maintenance poêle' : (poele ? 'poêle allumé' : 'poêle éteint') + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°'), 'maison') +
       tile(HA.isOn(E.ballon) ? 'on' : '', 'drop', 'Ballon', HA.isOn(E.ballon) ? 'Chauffe' : 'Arrêté', HA.isOn(E.ballonForce) ? 'marche forcée' : '', 'maison') +
       tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', ft == null ? '' : 'eau ' + M.fmt(ft, 1) + ' °C', 'maison') +
-      tile(lon.length ? 'on' : '', 'bulb', 'Lumières', lon.length ? lon.length + (lon.length > 1 ? ' allumées' : ' allumée') : 'Éteintes',
+      tile(lon.length ? 'on lit' : '', 'bulb', 'Lumières', lon.length ? lon.length + (lon.length > 1 ? ' allumées' : ' allumée') : 'Éteintes',
         lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''), 'lumieres') +
       tile(doorsOpen.length ? 'warn' : '', 'door', 'Portes', doorsOpen.length ? doorsOpen.length + (doorsOpen.length > 1 ? ' ouvertes' : ' ouverte') : 'Fermées',
         doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison') +
@@ -1149,7 +1157,7 @@ svg{flex:none}
     var na = !HA.avail(l.entity);
     var br = HA.a(l.entity, 'brightness');
     var sub = na ? 'indisponible' : (on ? (typeof br === 'number' ? Math.round(br / 2.55) + ' %' : 'allumée') : 'éteinte');
-    return '<button class="tile lt' + (on ? ' on' : '') + (na ? ' na' : '') + '" data-light="' + l.entity + '">' +
+    return '<button class="tile lt' + (on ? ' on lit' : '') + (na ? ' na' : '') + '" data-light="' + l.entity + '">' +
       '<div class="tile-top">' + M.icon('bulb', 22) + '<span class="tile-lab">' + M.esc(l.name) + '</span></div>' +
       '<div class="tile-sub">' + sub + '</div></button>';
   }
