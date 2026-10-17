@@ -227,6 +227,14 @@ svg{flex:none}
 .dot-buy,.dot-use{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:-1px}
 .dot-buy{background:var(--text2)}.dot-use{background:var(--accent)}
 
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:8px 0 4px}
+.cal i{font-style:normal;text-align:center;font-size:10px;color:var(--muted)}
+.cd{aspect-ratio:1/1;border-radius:8px;background:var(--card2);position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;min-width:0}
+.cd.empty{background:none}
+.cd span{position:absolute;top:2px;left:4px;font-size:9px;color:var(--muted)}
+.cd b{font-family:var(--ft);font-size:15px;font-weight:700;color:var(--text);line-height:1.05}
+.cd b.buy{font-size:11px;color:var(--light)}
+
 </style>
 </head>
 <body>
@@ -1173,7 +1181,7 @@ svg{flex:none}
     if (!list.length) return h + '<div class="empty">Aucun mouvement ce mois-ci.</div>';
     h += '<div class="row"><span>Consommés</span><span class="val">' + used + ' ' + plural(used) + '</span></div>' +
       '<div class="row"><span>Achetés</span><span class="val">' + bought + ' ' + plural(bought) + '</span></div>';
-    // histogramme jour par jour (consommés en couleur, achats en clair)
+    // calendrier du mois (lundi en premier) : sacs utilisés ou achetés dans chaque case
     var nd = new Date(yr, m + 1, 0).getDate();
     var du = [], db = [];
     for (var k = 0; k <= nd; k++) { du.push(0); db.push(0); }
@@ -1183,15 +1191,19 @@ svg{flex:none}
       if (x.delta < 0) du[day] += -x.delta; else db[day] += x.delta;
     });
     var mx = 1;
-    for (var j = 1; j <= nd; j++) mx = Math.max(mx, du[j], db[j]);
-    h += '<div class="dchart">';
+    for (var j = 1; j <= nd; j++) mx = Math.max(mx, du[j]);
+    var lead = (new Date(yr, m, 1).getDay() + 6) % 7;
+    h += '<div class="cal">' + ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(function (l) { return '<i>' + l + '</i>'; }).join('');
+    for (var e = 0; e < lead; e++) h += '<div class="cd empty"></div>';
     for (var d = 1; d <= nd; d++) {
-      var v = du[d] || db[d], buy = !du[d] && db[d] > 0;
-      h += '<div class="dcol"><b>' + (v || '') + '</b><div class="dbar' + (buy ? ' buy' : '') + '" style="height:' + (v ? Math.max(3, Math.round(v / mx * 64)) : 0) + 'px"></div>' +
-        '<span class="m">' + (d === 1 || d % 5 === 0 ? d : '') + '</span></div>';
+      var cell = '';
+      if (du[d]) cell += '<b>' + du[d] + '</b>';
+      if (db[d]) cell += '<b class="buy">+' + db[d] + '</b>';
+      var a2 = du[d] ? Math.round(15 + 55 * du[d] / mx) : 0;
+      h += '<div class="cd' + (du[d] || db[d] ? ' has' : '') + '" style="' + (du[d] ? 'background:color-mix(in srgb,var(--accent) ' + a2 + '%,transparent)' : '') + '"><span>' + d + '</span>' + cell + '</div>';
     }
     h += '</div>';
-    if (bought) h += '<div class="note" style="margin-top:18px"><span class="dot-buy"></span> achats · <span class="dot-use"></span> consommation</div>';
+    if (bought) h += '<div class="note" style="margin-top:8px">+N : sacs achetés</div>';
     return h;
   }
 
