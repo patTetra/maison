@@ -187,6 +187,8 @@ svg{flex:none}
 .sc.on.lit svg{color:var(--light)}
 .dim-val{color:var(--light)}
 .range{accent-color:var(--light)}
+.evt-t small{display:block;font-family:'Barlow',sans-serif;font-size:12px;font-weight:500;color:var(--muted);line-height:1.1}
+.evt{min-height:46px}
 
 </style>
 </head>
@@ -588,7 +590,7 @@ svg{flex:none}
   var CFG_KEY = 'maison-config';
   var DEFAULTS = {
     scheduleUrl: 'https://pattetra.github.io/Manon/schedule.json',
-    ecoleUrl: 'https://pattetra.github.io/Manon/',
+    ecoleUrl: 'https://pattetra.github.io/Manon/ecole.html',
     jourQuandActive: true,
     accent: '#22d3ee'
   };
@@ -597,6 +599,7 @@ svg{flex:none}
     var s = {};
     try { s = JSON.parse(localStorage.getItem(CFG_KEY) || '{}') || {}; } catch (e) { s = {}; }
     M.cfg = Object.assign({}, DEFAULTS, s);
+    if (M.cfg.ecoleUrl === 'https://pattetra.github.io/Manon/') M.cfg.ecoleUrl = DEFAULTS.ecoleUrl;
   };
   M.saveCfg = function (patch) {
     Object.assign(M.cfg, patch);
@@ -1029,7 +1032,7 @@ svg{flex:none}
     var list = ag.events.filter(function (e) { return e.allDay || e.end >= now; });
     if (!list.length) return '<div class="empty">Rien de prévu pour le reste de la journée.</div>';
     return list.map(function (e) {
-      return '<div class="evt"><span class="evt-t">' + (e.allDay ? 'Jour' : M.hm(e.start)) + '</span><span class="evt-n">' + M.esc(e.title) +
+      return '<div class="evt"><span class="evt-t">' + (e.allDay ? 'Jour' : M.hm(e.start) + '<small>' + M.hm(e.end) + '</small>') + '</span><span class="evt-n">' + M.esc(e.title) +
         (e.where ? '<small>' + M.esc(e.where) + '</small>' : '') + '</span></div>';
     }).join('');
   }
