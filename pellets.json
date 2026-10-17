@@ -1,306 +1,3108 @@
 {
-  "stock": 70,
-  "updated": "2026-10-17T13:26:29.542Z",
-  "historique": [
-    {
-      "date": "2026-10-17T13:26:29.542Z",
-      "delta": 70,
-      "stock": 70,
-      "type": "correction"
-    },
-    {
-      "date": "2026-05-01T12:00:00.000Z",
-      "delta": -1,
-      "stock": 0,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-26T12:00:00.000Z",
-      "delta": -1,
-      "stock": 1,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-26T12:00:00.000Z",
-      "delta": -1,
-      "stock": 2,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-23T12:00:00.000Z",
-      "delta": -1,
-      "stock": 3,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-21T12:00:00.000Z",
-      "delta": -1,
-      "stock": 4,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-20T12:00:00.000Z",
-      "delta": -4,
-      "stock": 5,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-20T12:00:00.000Z",
-      "delta": -1,
-      "stock": 9,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-19T12:00:00.000Z",
-      "delta": -1,
-      "stock": 10,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-06T12:00:00.000Z",
-      "delta": -1,
-      "stock": 11,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-05T12:00:00.000Z",
-      "delta": -1,
-      "stock": 12,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-03T12:00:00.000Z",
-      "delta": -1,
-      "stock": 13,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-03T12:00:00.000Z",
-      "delta": -1,
-      "stock": 14,
-      "type": "prise"
-    },
-    {
-      "date": "2026-04-01T12:00:00.000Z",
-      "delta": -1,
-      "stock": 15,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-30T12:00:00.000Z",
-      "delta": -1,
-      "stock": 16,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-29T12:00:00.000Z",
-      "delta": -1,
-      "stock": 17,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-28T12:00:00.000Z",
-      "delta": -1,
-      "stock": 18,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-27T12:00:00.000Z",
-      "delta": -1,
-      "stock": 19,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-26T12:00:00.000Z",
-      "delta": -1,
-      "stock": 20,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-25T12:00:00.000Z",
-      "delta": 20,
-      "stock": 21,
-      "type": "achat"
-    },
-    {
-      "date": "2026-03-25T12:00:00.000Z",
-      "delta": -1,
-      "stock": 1,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-24T12:00:00.000Z",
-      "delta": -1,
-      "stock": 2,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-23T12:00:00.000Z",
-      "delta": -1,
-      "stock": 3,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-22T12:00:00.000Z",
-      "delta": -1,
-      "stock": 4,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-20T12:00:00.000Z",
-      "delta": -1,
-      "stock": 5,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-17T12:00:00.000Z",
-      "delta": -2,
-      "stock": 6,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-17T12:00:00.000Z",
-      "delta": 7,
-      "stock": 8,
-      "type": "achat"
-    },
-    {
-      "date": "2026-03-17T12:00:00.000Z",
-      "delta": 1,
-      "stock": 1,
-      "type": "achat"
-    },
-    {
-      "date": "2026-03-17T12:00:00.000Z",
-      "delta": -6,
-      "stock": 0,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-17T12:00:00.000Z",
-      "delta": -1,
-      "stock": 6,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-15T12:00:00.000Z",
-      "delta": -1,
-      "stock": 7,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-12T12:00:00.000Z",
-      "delta": -2,
-      "stock": 8,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-09T12:00:00.000Z",
-      "delta": -2,
-      "stock": 10,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-09T12:00:00.000Z",
-      "delta": 6,
-      "stock": 12,
-      "type": "achat"
-    },
-    {
-      "date": "2026-03-06T12:00:00.000Z",
-      "delta": -1,
-      "stock": 6,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-07T12:00:00.000Z",
-      "delta": -1,
-      "stock": 7,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-03T12:00:00.000Z",
-      "delta": -2,
-      "stock": 8,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-03T12:00:00.000Z",
-      "delta": 5,
-      "stock": 10,
-      "type": "achat"
-    },
-    {
-      "date": "2026-03-01T12:00:00.000Z",
-      "delta": -1,
-      "stock": 5,
-      "type": "prise"
-    },
-    {
-      "date": "2026-03-01T12:00:00.000Z",
-      "delta": -1,
-      "stock": 6,
-      "type": "prise"
-    },
-    {
-      "date": "2026-02-26T12:00:00.000Z",
-      "delta": -1,
-      "stock": 7,
-      "type": "prise"
-    },
-    {
-      "date": "2026-02-24T12:00:00.000Z",
-      "delta": -1,
-      "stock": 8,
-      "type": "prise"
-    },
-    {
-      "date": "2026-02-23T12:00:00.000Z",
-      "delta": -1,
-      "stock": 9,
-      "type": "prise"
-    },
-    {
-      "date": "2026-02-20T12:00:00.000Z",
-      "delta": -1,
-      "stock": 10,
-      "type": "prise"
-    },
-    {
-      "date": "2026-02-19T12:00:00.000Z",
-      "delta": -1,
-      "stock": 11,
-      "type": "prise"
-    },
-    {
-      "date": "2026-02-17T12:00:00.000Z",
-      "delta": 6,
-      "stock": 12,
-      "type": "achat"
-    },
-    {
-      "date": "2026-02-17T12:00:00.000Z",
-      "delta": -2,
-      "stock": 6,
-      "type": "prise"
-    },
-    {
-      "date": "2026-02-16T12:00:00.000Z",
-      "delta": -1,
-      "stock": 8,
-      "type": "prise"
-    },
-    {
-      "date": "2026-02-15T12:00:00.000Z",
-      "delta": -1,
-      "stock": 9,
-      "type": "prise"
-    },
-    {
-      "date": "2026-02-14T12:00:00.000Z",
-      "delta": -1,
-      "stock": 10,
-      "type": "prise"
-    }
-  ]
+ "stock": 70,
+ "updated": "2026-10-17T13:26:29.542Z",
+ "historique": [
+  {
+   "date": "2026-10-17T13:26:29.542Z",
+   "delta": 70,
+   "stock": 70,
+   "type": "correction"
+  },
+  {
+   "date": "2026-05-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 0,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 1,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 2,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 3,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 4,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-20T12:00:00.000Z",
+   "delta": -4,
+   "stock": 5,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 9,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 10,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 11,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 12,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 13,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 14,
+   "type": "prise"
+  },
+  {
+   "date": "2026-04-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 15,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 16,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 17,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 18,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 19,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 20,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-25T12:00:00.000Z",
+   "delta": 20,
+   "stock": 21,
+   "type": "achat"
+  },
+  {
+   "date": "2026-03-25T12:00:00.000Z",
+   "delta": -1,
+   "stock": 1,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 2,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 3,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 4,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 5,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-17T12:00:00.000Z",
+   "delta": -2,
+   "stock": 6,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-17T12:00:00.000Z",
+   "delta": 7,
+   "stock": 8,
+   "type": "achat"
+  },
+  {
+   "date": "2026-03-17T12:00:00.000Z",
+   "delta": 1,
+   "stock": 1,
+   "type": "achat"
+  },
+  {
+   "date": "2026-03-17T12:00:00.000Z",
+   "delta": -6,
+   "stock": 0,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 6,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 7,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-12T12:00:00.000Z",
+   "delta": -2,
+   "stock": 8,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-09T12:00:00.000Z",
+   "delta": -2,
+   "stock": 10,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-09T12:00:00.000Z",
+   "delta": 6,
+   "stock": 12,
+   "type": "achat"
+  },
+  {
+   "date": "2026-03-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 6,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 7,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-03T12:00:00.000Z",
+   "delta": -2,
+   "stock": 8,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-03T12:00:00.000Z",
+   "delta": 5,
+   "stock": 10,
+   "type": "achat"
+  },
+  {
+   "date": "2026-03-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 5,
+   "type": "prise"
+  },
+  {
+   "date": "2026-03-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 6,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 7,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 8,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 9,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 10,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 11,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-17T12:00:00.000Z",
+   "delta": 6,
+   "stock": 12,
+   "type": "achat"
+  },
+  {
+   "date": "2026-02-17T12:00:00.000Z",
+   "delta": -2,
+   "stock": 6,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 8,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 9,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 10,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 11,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-12T12:00:00.000Z",
+   "delta": -4,
+   "stock": 12,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 16,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 17,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 18,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 19,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 20,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 21,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 22,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 23,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 24,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 25,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 26,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-02T12:00:00.000Z",
+   "delta": 4,
+   "stock": 27,
+   "type": "achat"
+  },
+  {
+   "date": "2026-02-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 23,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 24,
+   "type": "prise"
+  },
+  {
+   "date": "2026-02-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 25,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 26,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 27,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 28,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 29,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 30,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 31,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 32,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-24T12:00:00.000Z",
+   "delta": -2,
+   "stock": 33,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 35,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 36,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 37,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 38,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 39,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 40,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-18T12:00:00.000Z",
+   "delta": -21,
+   "stock": 41,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 62,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 63,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 64,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 65,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 66,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 67,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 68,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 69,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 70,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 71,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 72,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 73,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 74,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 75,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 76,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 77,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 78,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 79,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 80,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 81,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 82,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 83,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 84,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 85,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 86,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 87,
+   "type": "prise"
+  },
+  {
+   "date": "2026-01-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 88,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-31T12:00:00.000Z",
+   "delta": -1,
+   "stock": 89,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-31T12:00:00.000Z",
+   "delta": -1,
+   "stock": 90,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 91,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 92,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 93,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 94,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 95,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 96,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-24T12:00:00.000Z",
+   "delta": -2,
+   "stock": 97,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 99,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 100,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 101,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 102,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-20T12:00:00.000Z",
+   "delta": -2,
+   "stock": 103,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 105,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 106,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 107,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 108,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 109,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 110,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 111,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 112,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 113,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 114,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 115,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 116,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 117,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 118,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 119,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 120,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 121,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 122,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 123,
+   "type": "prise"
+  },
+  {
+   "date": "2025-12-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 124,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 125,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 126,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 127,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 128,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-25T12:00:00.000Z",
+   "delta": -2,
+   "stock": 129,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 131,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 132,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 133,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 134,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 135,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 136,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 137,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 138,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 139,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 140,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 141,
+   "type": "prise"
+  },
+  {
+   "date": "2025-11-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 142,
+   "type": "prise"
+  },
+  {
+   "date": "2025-10-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 143,
+   "type": "prise"
+  },
+  {
+   "date": "2025-10-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 144,
+   "type": "prise"
+  },
+  {
+   "date": "2025-10-25T12:00:00.000Z",
+   "delta": -1,
+   "stock": 145,
+   "type": "prise"
+  },
+  {
+   "date": "2025-10-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 146,
+   "type": "prise"
+  },
+  {
+   "date": "2025-10-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 147,
+   "type": "prise"
+  },
+  {
+   "date": "2025-10-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 148,
+   "type": "prise"
+  },
+  {
+   "date": "2025-10-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 149,
+   "type": "prise"
+  },
+  {
+   "date": "2025-10-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 150,
+   "type": "prise"
+  },
+  {
+   "date": "2025-10-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 151,
+   "type": "prise"
+  },
+  {
+   "date": "2025-10-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 152,
+   "type": "prise"
+  },
+  {
+   "date": "2025-09-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 153,
+   "type": "prise"
+  },
+  {
+   "date": "2025-09-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 154,
+   "type": "prise"
+  },
+  {
+   "date": "2025-09-23T12:00:00.000Z",
+   "delta": 2,
+   "stock": 155,
+   "type": "achat"
+  },
+  {
+   "date": "2025-09-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 153,
+   "type": "prise"
+  },
+  {
+   "date": "2025-05-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 154,
+   "type": "prise"
+  },
+  {
+   "date": "2025-05-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 155,
+   "type": "prise"
+  },
+  {
+   "date": "2025-05-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 156,
+   "type": "prise"
+  },
+  {
+   "date": "2025-05-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 157,
+   "type": "prise"
+  },
+  {
+   "date": "2025-05-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 158,
+   "type": "prise"
+  },
+  {
+   "date": "2025-04-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 159,
+   "type": "prise"
+  },
+  {
+   "date": "2025-04-25T12:00:00.000Z",
+   "delta": -1,
+   "stock": 160,
+   "type": "prise"
+  },
+  {
+   "date": "2025-04-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 161,
+   "type": "prise"
+  },
+  {
+   "date": "2025-04-18T12:00:00.000Z",
+   "delta": -2,
+   "stock": 162,
+   "type": "prise"
+  },
+  {
+   "date": "2025-04-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 164,
+   "type": "prise"
+  },
+  {
+   "date": "2025-04-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 165,
+   "type": "prise"
+  },
+  {
+   "date": "2025-04-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 166,
+   "type": "prise"
+  },
+  {
+   "date": "2025-04-09T12:00:00.000Z",
+   "delta": 150,
+   "stock": 167,
+   "type": "achat"
+  },
+  {
+   "date": "2025-04-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 17,
+   "type": "prise"
+  },
+  {
+   "date": "2025-04-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 18,
+   "type": "prise"
+  },
+  {
+   "date": "2025-04-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 19,
+   "type": "prise"
+  },
+  {
+   "date": "2025-04-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 20,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-31T12:00:00.000Z",
+   "delta": -1,
+   "stock": 21,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-31T12:00:00.000Z",
+   "delta": 11,
+   "stock": 22,
+   "type": "achat"
+  },
+  {
+   "date": "2025-03-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 11,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 12,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-25T12:00:00.000Z",
+   "delta": -1,
+   "stock": 13,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 14,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 15,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 16,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 17,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 18,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 19,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 20,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 21,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 22,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-14T12:00:00.000Z",
+   "delta": 3,
+   "stock": 23,
+   "type": "achat"
+  },
+  {
+   "date": "2025-03-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 20,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 21,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 22,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 23,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 24,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 25,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 26,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 27,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 28,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 29,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 30,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 31,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 32,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 33,
+   "type": "prise"
+  },
+  {
+   "date": "2025-03-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 34,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-28T12:00:00.000Z",
+   "delta": 6,
+   "stock": 35,
+   "type": "achat"
+  },
+  {
+   "date": "2025-02-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 29,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 30,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 31,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-25T12:00:00.000Z",
+   "delta": -1,
+   "stock": 32,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 33,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 34,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 35,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 36,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 37,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 38,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 39,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 40,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 41,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-14T12:00:00.000Z",
+   "delta": 9,
+   "stock": 42,
+   "type": "achat"
+  },
+  {
+   "date": "2025-02-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 33,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 34,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 35,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 36,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 37,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 38,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 39,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 40,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 41,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 42,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 43,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-04T12:00:00.000Z",
+   "delta": 3,
+   "stock": 44,
+   "type": "achat"
+  },
+  {
+   "date": "2025-02-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 41,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 42,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 43,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 44,
+   "type": "prise"
+  },
+  {
+   "date": "2025-02-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 45,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 46,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 47,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 48,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 49,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 50,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 51,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 52,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 53,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 54,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 55,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 56,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 57,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 58,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 59,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-18T12:00:00.000Z",
+   "delta": 3,
+   "stock": 60,
+   "type": "achat"
+  },
+  {
+   "date": "2025-01-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 57,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 58,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 59,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 60,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 61,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 62,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 63,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 64,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 65,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 66,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 67,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 68,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 69,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 70,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 71,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 72,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 73,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 74,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 75,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 76,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 77,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-02T12:00:00.000Z",
+   "delta": 5,
+   "stock": 78,
+   "type": "achat"
+  },
+  {
+   "date": "2025-01-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 73,
+   "type": "prise"
+  },
+  {
+   "date": "2025-01-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 74,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-31T12:00:00.000Z",
+   "delta": -2,
+   "stock": 75,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 77,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 78,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 79,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 80,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-25T12:00:00.000Z",
+   "delta": -1,
+   "stock": 81,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 82,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 83,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 84,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 85,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 86,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 87,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 88,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 89,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 90,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 91,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 92,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 93,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 94,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 95,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 96,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 97,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-04T12:00:00.000Z",
+   "delta": -2,
+   "stock": 98,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 100,
+   "type": "prise"
+  },
+  {
+   "date": "2024-12-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 101,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 102,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 103,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-25T12:00:00.000Z",
+   "delta": -1,
+   "stock": 104,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 105,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 106,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 107,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 108,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 109,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 110,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 111,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 112,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 113,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 114,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 115,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 116,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 117,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 118,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 119,
+   "type": "prise"
+  },
+  {
+   "date": "2024-11-01T12:00:00.000Z",
+   "delta": -2,
+   "stock": 120,
+   "type": "prise"
+  },
+  {
+   "date": "2024-10-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 122,
+   "type": "prise"
+  },
+  {
+   "date": "2024-10-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 123,
+   "type": "prise"
+  },
+  {
+   "date": "2024-10-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 124,
+   "type": "prise"
+  },
+  {
+   "date": "2024-10-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 125,
+   "type": "prise"
+  },
+  {
+   "date": "2024-10-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 126,
+   "type": "prise"
+  },
+  {
+   "date": "2024-10-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 127,
+   "type": "prise"
+  },
+  {
+   "date": "2024-10-14T12:00:00.000Z",
+   "delta": 1,
+   "stock": 128,
+   "type": "achat"
+  },
+  {
+   "date": "2024-10-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 127,
+   "type": "prise"
+  },
+  {
+   "date": "2024-10-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 128,
+   "type": "prise"
+  },
+  {
+   "date": "2024-10-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 129,
+   "type": "prise"
+  },
+  {
+   "date": "2024-10-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 130,
+   "type": "prise"
+  },
+  {
+   "date": "2024-10-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 131,
+   "type": "prise"
+  },
+  {
+   "date": "2024-09-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 132,
+   "type": "prise"
+  },
+  {
+   "date": "2024-09-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 133,
+   "type": "prise"
+  },
+  {
+   "date": "2024-09-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 134,
+   "type": "prise"
+  },
+  {
+   "date": "2024-09-27T12:00:00.000Z",
+   "delta": 123,
+   "stock": 135,
+   "type": "achat"
+  },
+  {
+   "date": "2024-05-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 12,
+   "type": "prise"
+  },
+  {
+   "date": "2024-05-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 13,
+   "type": "prise"
+  },
+  {
+   "date": "2024-05-02T12:00:00.000Z",
+   "delta": 7,
+   "stock": 14,
+   "type": "achat"
+  },
+  {
+   "date": "2024-05-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 7,
+   "type": "prise"
+  },
+  {
+   "date": "2024-05-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 8,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 9,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-30T12:00:00.000Z",
+   "delta": 4,
+   "stock": 10,
+   "type": "achat"
+  },
+  {
+   "date": "2024-04-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 6,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 7,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 8,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 9,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 10,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 11,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 12,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 13,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 14,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 15,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 16,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 17,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 18,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 19,
+   "type": "prise"
+  },
+  {
+   "date": "2024-04-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 20,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 21,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 22,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 23,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 24,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-26T12:00:00.000Z",
+   "delta": 6,
+   "stock": 25,
+   "type": "achat"
+  },
+  {
+   "date": "2024-03-25T12:00:00.000Z",
+   "delta": -1,
+   "stock": 19,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-25T12:00:00.000Z",
+   "delta": -1,
+   "stock": 20,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 21,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 22,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 23,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 24,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 25,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-15T12:00:00.000Z",
+   "delta": 4,
+   "stock": 26,
+   "type": "achat"
+  },
+  {
+   "date": "2024-03-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 22,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 23,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 24,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 25,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 26,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 27,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 28,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 29,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 30,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-04T12:00:00.000Z",
+   "delta": -2,
+   "stock": 31,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 33,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 34,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-02T12:00:00.000Z",
+   "delta": 5,
+   "stock": 35,
+   "type": "achat"
+  },
+  {
+   "date": "2024-03-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 30,
+   "type": "prise"
+  },
+  {
+   "date": "2024-03-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 31,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 32,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 33,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 34,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 35,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-25T12:00:00.000Z",
+   "delta": -2,
+   "stock": 36,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 38,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 39,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 40,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 41,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 42,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 43,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 44,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 45,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 46,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 47,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 48,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 49,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 50,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 51,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-05T12:00:00.000Z",
+   "delta": -2,
+   "stock": 52,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 54,
+   "type": "prise"
+  },
+  {
+   "date": "2024-02-01T12:00:00.000Z",
+   "delta": -1,
+   "stock": 55,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 56,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-30T12:00:00.000Z",
+   "delta": 5,
+   "stock": 57,
+   "type": "achat"
+  },
+  {
+   "date": "2024-01-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 52,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 53,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 54,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 55,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-25T12:00:00.000Z",
+   "delta": -1,
+   "stock": 56,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 57,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 58,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 59,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 60,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 61,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 62,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 63,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 64,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 65,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 66,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 67,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 68,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 69,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 70,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 71,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 72,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 73,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 74,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 75,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 76,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 77,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 78,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 79,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 80,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 81,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 82,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 83,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 84,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 85,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 86,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 87,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 88,
+   "type": "prise"
+  },
+  {
+   "date": "2024-01-02T12:00:00.000Z",
+   "delta": -1,
+   "stock": 89,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 90,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 91,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 92,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 93,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 94,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 95,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-23T12:00:00.000Z",
+   "delta": -1,
+   "stock": 96,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 97,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 98,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-20T12:00:00.000Z",
+   "delta": -1,
+   "stock": 99,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 100,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 101,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 102,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 103,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-15T12:00:00.000Z",
+   "delta": -1,
+   "stock": 104,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 105,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-13T12:00:00.000Z",
+   "delta": -1,
+   "stock": 106,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 107,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 108,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-08T12:00:00.000Z",
+   "delta": -2,
+   "stock": 109,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 111,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-06T12:00:00.000Z",
+   "delta": -1,
+   "stock": 112,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 113,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 114,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 115,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-04T12:00:00.000Z",
+   "delta": -1,
+   "stock": 116,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-03T12:00:00.000Z",
+   "delta": -1,
+   "stock": 117,
+   "type": "prise"
+  },
+  {
+   "date": "2023-12-01T12:00:00.000Z",
+   "delta": -2,
+   "stock": 118,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-30T12:00:00.000Z",
+   "delta": -1,
+   "stock": 120,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 121,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-29T12:00:00.000Z",
+   "delta": -1,
+   "stock": 122,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 123,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 124,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 125,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-26T12:00:00.000Z",
+   "delta": -1,
+   "stock": 126,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-24T12:00:00.000Z",
+   "delta": -1,
+   "stock": 127,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-22T12:00:00.000Z",
+   "delta": -1,
+   "stock": 128,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-21T12:00:00.000Z",
+   "delta": -1,
+   "stock": 129,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-19T12:00:00.000Z",
+   "delta": -1,
+   "stock": 130,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-18T12:00:00.000Z",
+   "delta": -1,
+   "stock": 131,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-17T12:00:00.000Z",
+   "delta": -1,
+   "stock": 132,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-16T12:00:00.000Z",
+   "delta": -1,
+   "stock": 133,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-14T12:00:00.000Z",
+   "delta": -1,
+   "stock": 134,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-12T12:00:00.000Z",
+   "delta": -1,
+   "stock": 135,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-11T12:00:00.000Z",
+   "delta": -1,
+   "stock": 136,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-10T12:00:00.000Z",
+   "delta": -1,
+   "stock": 137,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-09T12:00:00.000Z",
+   "delta": -1,
+   "stock": 138,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-08T12:00:00.000Z",
+   "delta": -1,
+   "stock": 139,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-07T12:00:00.000Z",
+   "delta": -1,
+   "stock": 140,
+   "type": "prise"
+  },
+  {
+   "date": "2023-11-05T12:00:00.000Z",
+   "delta": -1,
+   "stock": 141,
+   "type": "prise"
+  },
+  {
+   "date": "2023-10-31T12:00:00.000Z",
+   "delta": -1,
+   "stock": 142,
+   "type": "prise"
+  },
+  {
+   "date": "2023-10-28T12:00:00.000Z",
+   "delta": -1,
+   "stock": 143,
+   "type": "prise"
+  },
+  {
+   "date": "2023-10-27T12:00:00.000Z",
+   "delta": -1,
+   "stock": 144,
+   "type": "prise"
+  }
+ ]
 }
