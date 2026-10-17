@@ -589,7 +589,7 @@ svg{flex:none}
   var DEFAULTS = {
     scheduleUrl: 'https://pattetra.github.io/Manon/schedule.json',
     ecoleUrl: 'https://pattetra.github.io/Manon/',
-    jourQuandActive: false,
+    jourQuandActive: true,
     accent: '#22d3ee'
   };
 
@@ -1095,7 +1095,7 @@ svg{flex:none}
     h += '<div class="shortcuts">' +
       shortcut(E.modeEnfant, 'smile', 'Mode enfant', HA.isOn(E.modeEnfant)) +
       shortcut(E.lumExt, 'bulb', 'Lumières ext.', HA.isOn(E.lumExt), 'lit') +
-      shortcut(E.jourNuit, isDay() ? 'sun' : 'moon', isDay() ? 'Mode jour' : 'Mode nuit', HA.isOn(E.jourNuit)) + '</div>';
+      shortcut(E.jourNuit, isDay() ? 'sun' : 'moon', isDay() ? 'Mode jour' : 'Mode nuit', !isDay()) + '</div>';
 
     var pw = HA.num(E.power);
     h += '<div class="power"><span class="pw-l">Puissance compteur</span><span class="pw-v">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span></div>';
