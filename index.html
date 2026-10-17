@@ -12,7 +12,8 @@
 <title>Maison</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
   --bg:#050b10; --card:#0c1a22; --card2:#17303b; --line2:#1b3440;
@@ -371,6 +372,7 @@ svg{flex:none}
       scheduled = false;
       var arr = Object.keys(pendingIds);
       pendingIds = {};
+      saveCache();
       HA.listeners.forEach(function (f) { try { f(arr); } catch (e) { console.error(e); } });
     }, 150);
   }
@@ -497,23 +499,40 @@ svg{flex:none}
     if (HA.pollTimer) { clearInterval(HA.pollTimer); HA.pollTimer = null; }
   }
 
+  // Dernier état connu : affiché tout de suite à l'ouverture, avant la connexion
+  var CACHE_KEY = 'maison-cache';
+  function saveCache() {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(HA.store)); } catch (e) { /* plein ou bloqué */ }
+  }
+  HA.loadCache = function () {
+    try {
+      var c = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+      if (c && typeof c === 'object') HA.store = c;
+    } catch (e) { /* rien */ }
+  };
+
+  // Lecture complète en une requête (plus rapide que d'attendre le WebSocket)
+  async function fetchStates() {
+    var all = await HA.rest('/api/states');
+    var want = {};
+    M.ALL_ENTITIES.forEach(function (e) { want[e] = true; });
+    var changed = [];
+    all.forEach(function (o) {
+      if (want[o.entity_id]) {
+        HA.store[o.entity_id] = { state: o.state, attributes: o.attributes || {} };
+        changed.push(o.entity_id);
+      }
+    });
+    notify(changed);
+  }
+
   // Repli si le temps réel est indisponible : relecture complète toutes les 20 s
   function startPolling() {
     if (HA.pollTimer) return;
     var poll = async function () {
       try {
-        var all = await HA.rest('/api/states');
-        var want = {};
-        M.ALL_ENTITIES.forEach(function (e) { want[e] = true; });
-        var changed = [];
-        all.forEach(function (o) {
-          if (want[o.entity_id]) {
-            HA.store[o.entity_id] = { state: o.state, attributes: o.attributes || {} };
-            changed.push(o.entity_id);
-          }
-        });
+        await fetchStates();
         setStatus(HA.ws ? 'connected' : 'polling');
-        notify(changed);
       } catch (e) {
         if (!HA.ws) setStatus('offline');
       }
@@ -527,6 +546,7 @@ svg{flex:none}
     if (!HA.configured()) { closeWs(); stopPolling(); setStatus('unconfigured'); return; }
     closeWs();
     setStatus('connecting');
+    fetchStates().catch(function () { /* le WebSocket ou le repli prendront le relais */ });
     var ws;
     try {
       ws = new WebSocket(HA.baseUrl.replace(/^http/, 'ws') + '/api/websocket');
@@ -1567,6 +1587,7 @@ svg{flex:none}
     M.loadCfg();
     M.applyAccent();
     HA.loadConfig();
+    HA.loadCache();
     build();
     document.getElementById('backdrop').onclick = M.closeSheet;
 
