@@ -1386,7 +1386,7 @@ svg{flex:none}
       '<div class="wheels">' + wheel('al-h', 24, hh) + '<span class="colon">:</span>' + wheel('al-m', 60, mm) + '</div>' +
       '<div class="btnrow"><button class="btn solid" id="al-go">Programmer</button>' +
       (active ? '<button class="btn" id="al-off">Désactiver</button>' : '') + '</div>' +
-      '<div class="note" style="margin-top:8px">Crée l\'alarme dans l\'app Horloge (via le raccourci « ' + M.esc(M.cfg.alarmShortcut) + ' ») et envoie l\'heure à Home Assistant.</div>';
+      '<div class="note" style="margin-top:8px">Crée ou désactive l\'alarme de l\'app Horloge (raccourci « ' + M.esc(M.cfg.alarmShortcut) + ' ») et prévient Home Assistant.</div>';
     M.openSheet(h, function (s) {
       bindWheel(s.querySelector('#al-h'), hh, function (i) { hh = i; });
       bindWheel(s.querySelector('#al-m'), mm, function (i) { mm = i; });
@@ -1417,7 +1417,11 @@ svg{flex:none}
       if (off) off.onclick = function () {
         M.act('input_boolean', 'turn_off', { entity_id: E.reveilActif }, [E.reveilActif]);
         M.closeSheet();
-        M.toast('Réveil désactivé dans Home Assistant');
+        M.toast('Réveil désactivé');
+        // Même raccourci, avec « off » : il désactive l'alarme de l'app Horloge
+        setTimeout(function () {
+          location.href = 'shortcuts://run-shortcut?name=' + encodeURIComponent(M.cfg.alarmShortcut) + '&input=text&text=off';
+        }, 350);
       };
     });
   };
