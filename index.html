@@ -252,6 +252,10 @@ svg{flex:none}
 .wheel div.sel{color:var(--text)}
 .wheels .colon{align-self:center;font-family:var(--ft);font-size:30px;font-weight:700;color:var(--text)}
 
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 0}
+.chip-btn{padding:8px 14px;border-radius:999px;background:var(--card2);border:1px solid var(--line2);color:var(--text);font-size:14px;font-weight:600}
+.chip-btn.sug{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
 </style>
 </head>
 <body>
@@ -1015,6 +1019,30 @@ svg{flex:none}
     });
   };
 
+  // Heure du premier cours du jour visé (demain si on est l'après-midi ou le soir, sinon aujourd'hui)
+  // Réveil conseillé = 2 h avant (8 h → 6 h, 9 h → 7 h)
+  S.wakeSuggestion = function () {
+    if (!S.data) return null;
+    var now = new Date();
+    var day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (now.getHours() >= 12 ? 1 : 0));
+    var best = null;
+    WEEKS.forEach(function (k) {
+      findSchedule(S.data[k]).forEach(function (sl) {
+        if (sl.is_annule === true || sl.is_annule === 1) return;
+        var st = pd(sl.start || sl.start_at);
+        if (!st || st <= now) return;
+        if (st.getFullYear() !== day.getFullYear() || st.getMonth() !== day.getMonth() || st.getDate() !== day.getDate()) return;
+        if (!best || st < best) best = st;
+      });
+    });
+    var label = now.getHours() >= 12 ? 'demain' : "aujourd'hui";
+    if (!best) return { none: true, label: label };
+    var mins = best.getHours() * 60 + best.getMinutes() - 120;
+    if (mins < 0) mins = 0;
+    mins = Math.floor(mins / 5) * 5;
+    return { start: best, label: label, h: Math.floor(mins / 60), m: mins % 60 };
+  };
+
   S.load = async function () {
     if (S.loading) return;
     S.loading = true;
@@ -1343,9 +1371,18 @@ svg{flex:none}
     var cur = current();
     var active = HA.isOn(E.reveilActif);
     var d = new Date();
+    var sug = M.school.wakeSuggestion ? M.school.wakeSuggestion() : null;
     var hh = cur ? cur.h : 7, mm = cur ? cur.m : 0;
+    if (!active && sug && !sug.none) { hh = sug.h; mm = sug.m; }   // pré-réglé selon l'emploi du temps de Manon
+    var sugTxt = '';
+    if (sug && !sug.none) sugTxt = 'Manon commence ' + sug.label + ' à ' + pad(sug.start.getHours()) + 'h' + pad(sug.start.getMinutes()) + ' · réveil conseillé ' + pad(sug.h) + ':' + pad(sug.m);
+    else if (sug && sug.none) sugTxt = 'Pas de cours pour Manon ' + sug.label;
     var h = '<h3>Réveil</h3>' +
       '<div class="pg-sub">' + (active && cur ? 'Prévu à ' + pad(cur.h) + ':' + pad(cur.m) : 'Aucun réveil programmé') + '</div>' +
+      '<div class="chips">' +
+      (sug && !sug.none ? '<button class="chip-btn sug" data-t="' + sug.h + ':' + sug.m + '">Manon · ' + pad(sug.h) + ':' + pad(sug.m) + '</button>' : '') +
+      '<button class="chip-btn" data-t="6:0">6 h</button><button class="chip-btn" data-t="7:0">7 h</button></div>' +
+      (sugTxt ? '<div class="note" style="margin-top:6px">' + M.esc(sugTxt) + '</div>' : '') +
       '<div class="wheels">' + wheel('al-h', 24, hh) + '<span class="colon">:</span>' + wheel('al-m', 60, mm) + '</div>' +
       '<div class="btnrow"><button class="btn solid" id="al-go">Programmer</button>' +
       (active ? '<button class="btn" id="al-off">Désactiver</button>' : '') + '</div>' +
@@ -1353,6 +1390,14 @@ svg{flex:none}
     M.openSheet(h, function (s) {
       bindWheel(s.querySelector('#al-h'), hh, function (i) { hh = i; });
       bindWheel(s.querySelector('#al-m'), mm, function (i) { mm = i; });
+      s.querySelectorAll('[data-t]').forEach(function (b) {
+        b.onclick = function () {
+          var p = b.dataset.t.split(':');
+          hh = parseInt(p[0], 10); mm = parseInt(p[1], 10);
+          s.querySelector('#al-h').scrollTo({ top: hh * H, behavior: 'smooth' });
+          s.querySelector('#al-m').scrollTo({ top: mm * H, behavior: 'smooth' });
+        };
+      });
       s.querySelector('#al-go').onclick = async function () {
         var t = pad(hh) + ':' + pad(mm);
         try {
