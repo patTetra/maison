@@ -241,6 +241,17 @@ svg{flex:none}
 @keyframes flashcard{0%{box-shadow:0 0 0 2px var(--accent),0 0 18px var(--accent-soft)}100%{box-shadow:0 0 0 0 transparent}}
 .card.flash{animation:flashcard 1.4s ease-out}
 
+.hdr-r{display:flex;align-items:center;gap:8px}
+.alarm-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:1px solid var(--line2);color:var(--text2)}
+.alarm-btn.on{color:var(--light);border-color:var(--light);box-shadow:0 0 12px rgba(251,146,60,.35)}
+.wheels{position:relative;display:flex;justify-content:center;gap:6px;height:200px;margin:8px 0 12px}
+.wheels:before{content:"";position:absolute;left:12%;right:12%;top:80px;height:40px;border-radius:10px;background:var(--accent-soft);pointer-events:none}
+.wheel{width:84px;height:200px;overflow-y:scroll;scroll-snap-type:y mandatory;padding:80px 0;box-sizing:border-box;scrollbar-width:none;-webkit-overflow-scrolling:touch;position:relative;-webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
+.wheel::-webkit-scrollbar{display:none}
+.wheel div{height:40px;line-height:40px;text-align:center;scroll-snap-align:center;font-family:var(--ft);font-size:30px;font-weight:600;color:var(--muted)}
+.wheel div.sel{color:var(--text)}
+.wheels .colon{align-self:center;font-family:var(--ft);font-size:30px;font-weight:700;color:var(--text)}
+
 </style>
 </head>
 <body>
@@ -286,6 +297,8 @@ svg{flex:none}
     teslaBatt: 'sensor.tesla_model_y_niveau_de_la_batterie',
     teslaCharge: 'sensor.tesla_model_y_charge',
     teslaInside: 'sensor.tesla_model_y_temperature_interieure',
+    reveil: 'input_datetime.reveil_chambre',
+    reveilActif: 'input_boolean.reveil_chambre_actif',
     mower: 'lawn_mower.tondeuse',
     mowerCharging: 'binary_sensor.luba_vp7yma7u_en_charge',
     mowerBatt: 'sensor.tondeuse_batterie',
@@ -674,6 +687,7 @@ svg{flex:none}
     pelletRepo: 'pattetra/maison',
     pelletPath: 'pellets.json',
     pelletToken: '',
+    alarmShortcut: 'Réveil',
     accent: '#22d3ee'
   };
 
@@ -720,7 +734,8 @@ svg{flex:none}
     gear: 'M10.6 2h2.8l.5 2.4 1.8.8 2-1.4 2 2-1.4 2 .8 1.8 2.4.5v2.8l-2.4.5-.8 1.8 1.4 2-2 2-2-1.4-1.8.8-.5 2.4h-2.8l-.5-2.4-1.8-.8-2 1.4-2-2 1.4-2-.8-1.8L2 13.4v-2.8l2.4-.5.8-1.8-1.4-2 2-2 2 1.4 1.8-.8zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',
     bag: 'M8.5 2h7l-1.2 3.2C17.600 6.700 20 9.800 20 13.800V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6.200c0-4 2.400-7.100 5.700-8.600zM8 14h8v2H8z',
     mower: 'M3 12h10l1-4h4l1 4h2a1 1 0 0 1 1 1v3H3zM7 18.500a2.500 2.500 0 1 0 0 5 2.500 2.500 0 0 0 0-5zm11 0a2.500 2.500 0 1 0 0 5 2.500 2.500 0 0 0 0-5zM3 6h6v4H3z',
-    warn: 'M12 2 1 21h22zM11 9h2v6h-2zM11 17h2v2h-2z'
+    warn: 'M12 2 1 21h22zM11 9h2v6h-2zM11 17h2v2h-2z',
+    alarm: 'M12 5a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM11 8.5h1.6v4.2l2.9 1.7-.8 1.3-3.7-2.2zM2.6 7.2 6.4 3.4l1.4 1.4-3.8 3.8zM21.4 7.2l-1.4 1.4-3.8-3.8 1.4-1.4z'
   };
 
   M.icon = function (name, size) {
@@ -1298,6 +1313,74 @@ svg{flex:none}
 (function (M) {
   'use strict';
   var HA = M.HA, E = M.E;
+  var H = 40;   // hauteur d'une ligne du sélecteur
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  function current() {
+    var t = HA.s(E.reveil);
+    var m = /^(\d{1,2}):(\d{2})/.exec(String(t == null ? '' : t));
+    return m ? { h: parseInt(m[1], 10), m: parseInt(m[2], 10) } : null;
+  }
+
+  function wheel(id, count, val) {
+    var s = '<div class="wheel" id="' + id + '">';
+    for (var i = 0; i < count; i++) s += '<div' + (i === val ? ' class="sel"' : '') + '>' + pad(i) + '</div>';
+    return s + '</div>';
+  }
+
+  function bindWheel(el, val, onChange) {
+    el.scrollTop = val * H;
+    var timer = null;
+    el.addEventListener('scroll', function () {
+      var i = Math.max(0, Math.min(el.children.length - 1, Math.round(el.scrollTop / H)));
+      Array.prototype.forEach.call(el.children, function (c, k) { c.classList.toggle('sel', k === i); });
+      onChange(i);
+    });
+  }
+
+  M.openAlarm = function () {
+    var cur = current();
+    var active = HA.isOn(E.reveilActif);
+    var d = new Date();
+    var hh = cur ? cur.h : 7, mm = cur ? cur.m : 0;
+    var h = '<h3>Réveil</h3>' +
+      '<div class="pg-sub">' + (active && cur ? 'Prévu à ' + pad(cur.h) + ':' + pad(cur.m) : 'Aucun réveil programmé') + '</div>' +
+      '<div class="wheels">' + wheel('al-h', 24, hh) + '<span class="colon">:</span>' + wheel('al-m', 60, mm) + '</div>' +
+      '<div class="btnrow"><button class="btn solid" id="al-go">Programmer</button>' +
+      (active ? '<button class="btn" id="al-off">Désactiver</button>' : '') + '</div>' +
+      '<div class="note" style="margin-top:8px">Crée l\'alarme dans l\'app Horloge (via le raccourci « ' + M.esc(M.cfg.alarmShortcut) + ' ») et envoie l\'heure à Home Assistant.</div>';
+    M.openSheet(h, function (s) {
+      bindWheel(s.querySelector('#al-h'), hh, function (i) { hh = i; });
+      bindWheel(s.querySelector('#al-m'), mm, function (i) { mm = i; });
+      s.querySelector('#al-go').onclick = async function () {
+        var t = pad(hh) + ':' + pad(mm);
+        try {
+          await HA.act('input_datetime', 'set_datetime', { entity_id: E.reveil, time: t + ':00' }, [E.reveil]);
+          await HA.act('input_boolean', 'turn_on', { entity_id: E.reveilActif }, [E.reveilActif]);
+        } catch (e) {
+          M.toast('Home Assistant : ' + e.message);
+        }
+        M.closeSheet();
+        M.toast('Réveil à ' + t);
+        // Raccourci iOS : crée l'alarme dans l'app Horloge
+        setTimeout(function () {
+          location.href = 'shortcuts://run-shortcut?name=' + encodeURIComponent(M.cfg.alarmShortcut) + '&input=text&text=' + encodeURIComponent(t);
+        }, 350);
+      };
+      var off = s.querySelector('#al-off');
+      if (off) off.onclick = function () {
+        M.act('input_boolean', 'turn_off', { entity_id: E.reveilActif }, [E.reveilActif]);
+        M.closeSheet();
+        M.toast('Réveil désactivé dans Home Assistant');
+      };
+    });
+  };
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+  var HA = M.HA, E = M.E;
 
   M.open = M.open || { agenda: false, ecole: false };
   var ag = M.agenda = { events: null, error: null, at: 0, loading: false };
@@ -1470,7 +1553,7 @@ svg{flex:none}
     var tmp = HA.a(E.weather, 'temperature');
     var h = '<div class="stack">';
 
-    h += '<div class="hdr top"><div class="dateline">' + M.esc(date) + (typeof tmp === 'number' ? ' · ' + M.fmt(tmp) + '°' : '') + '</div>' + M.statusPill() + '</div>' +
+    h += '<div class="hdr top"><div class="dateline">' + M.esc(date) + (typeof tmp === 'number' ? ' · ' + M.fmt(tmp) + '°' : '') + '</div><div class="hdr-r">' + M.statusPill() + '<button class="alarm-btn' + (HA.isOn(E.reveilActif) ? ' on' : '') + '" id="alarm-open" aria-label="Réveil">' + M.icon('alarm', 22) + '</button></div></div>' +
       '<h1 class="jarvis" aria-label="J.A.R.V.I.S.">' + 'JARVIS'.split('').map(function (l) { return '<span>' + l + '</span>'; }).join('') + '</h1>';
 
     if (!HA.configured()) {
@@ -1531,6 +1614,7 @@ svg{flex:none}
       };
     });
     el.querySelectorAll('[data-pellet]').forEach(function (b) { b.onclick = M.openPellets; });
+    var ab = el.querySelector('#alarm-open'); if (ab) ab.onclick = M.openAlarm;
     el.querySelectorAll('[data-school]').forEach(function (b) { b.onclick = M.openSchoolApp; });
     el.scrollTop = top;
   }
@@ -1850,6 +1934,11 @@ svg{flex:none}
       '<div class="note">Le fichier est créé automatiquement au premier mouvement. Le jeton reste sur cet appareil.</div>' +
       '<div class="btnrow"><button class="btn" id="s-pel-save">Enregistrer</button></div></div>';
 
+    h += '<div class="card"><h2>Réveil</h2>' +
+      '<div class="field"><label for="s-alsh">Nom du raccourci iOS</label><input class="inp" id="s-alsh" autocapitalize="off" autocorrect="off" value="' + M.esc(c.alarmShortcut) + '"></div>' +
+      '<div class="note">L\'heure est aussi envoyée à Home Assistant : <b>' + M.esc(M.E.reveil) + '</b> et <b>' + M.esc(M.E.reveilActif) + '</b>.</div>' +
+      '<div class="btnrow"><button class="btn" id="s-al-save">Enregistrer</button></div></div>';
+
     h += '<div class="card"><h2>Couleur</h2><div class="swatches" style="margin-top:8px">' +
       COLORS.map(function (col) { return '<button class="swatch' + (col === c.accent ? ' on' : '') + '" data-col="' + col + '" style="background:' + col + '" aria-label="' + col + '"></button>'; }).join('') +
       '</div></div>';
@@ -1889,6 +1978,10 @@ svg{flex:none}
     el.querySelector('#s-sch-save').onclick = function () {
       M.saveCfg({ scheduleUrl: el.querySelector('#s-sch').value.trim(), ecoleUrl: el.querySelector('#s-eco').value.trim() });
       M.school.load();
+      M.toast('Enregistré');
+    };
+    el.querySelector('#s-al-save').onclick = function () {
+      M.saveCfg({ alarmShortcut: el.querySelector('#s-alsh').value.trim() || 'Réveil' });
       M.toast('Enregistré');
     };
     el.querySelector('#s-pel-save').onclick = function () {
