@@ -321,6 +321,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     debutRecharge: 'input_datetime.debut_recharge_tesla',
     finRecharge: 'input_datetime.fin_recharge_tesla',
     courantRecharge: 'number.tesla_model_y_courant_de_recharge',
+    teslaClim: 'climate.tesla_model_y_climatisation',
     teslaBatt: 'sensor.tesla_model_y_niveau_de_la_batterie',
     teslaCharge: 'sensor.tesla_model_y_charge',
     teslaInside: 'sensor.tesla_model_y_temperature_interieure',
@@ -1668,8 +1669,21 @@ button.power{color:inherit;font:inherit;text-align:left}
   // État de charge : « charging » côté Home Assistant ; le temps restant est en minutes
   function isCharging() { return HA.s(E.teslaCharge) === 'charging'; }
 
+  function climOn() { var c = HA.s(E.teslaClim); return !!c && c !== 'off' && c !== 'unavailable' && c !== 'unknown'; }
+
+  function climLabel() {
+    var t = HA.a(E.teslaClim, 'temperature'), cur = HA.a(E.teslaClim, 'current_temperature');
+    var heat = typeof t === 'number' && typeof cur === 'number' ? cur < t : true;
+    return (heat ? 'Chauffe' : 'Clim') + (typeof t === 'number' ? ' → ' + M.fmt(t, 1) + '°' : '');
+  }
+
   function teslaSub() {
     var st = HA.s(E.teslaCharge);
+    if (climOn()) {
+      var ex = '';
+      if (st === 'charging') { var m = parseFloat(HA.s(E.teslaTemps)); if (!isNaN(m)) ex = ' · fin ' + M.hm(new Date(Date.now() + m * 60000)); }
+      return climLabel() + ex;
+    }
     if (st === 'charging') {
       var min = parseFloat(HA.s(E.teslaTemps));
       if (!isNaN(min)) return 'fin ' + M.hm(new Date(Date.now() + min * 60000));
@@ -1815,7 +1829,7 @@ button.power{color:inherit;font:inherit;text-align:left}
         doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison|portes') +
       (isCharging() && batt != null
         ? batteryBar(tile('on', 'car', 'Tesla', 'En charge', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°'), { batt: batt, charging: true })
-        : tile(batt == null ? 'na' : '', 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°')) +
+        : tile(climOn() ? 'on' : batt == null ? 'na' : '', 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°')) +
       '</div>';
 
     h += '<div class="row2">' +
