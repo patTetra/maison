@@ -1625,6 +1625,14 @@ button.power{color:inherit;font:inherit;text-align:left}
     return HA.isOn(E.jourNuit) === !!M.cfg.jourQuandActive;
   }
 
+  function lightsOffline() {
+    var seen = {};
+    return M.LIGHTS_IN.concat(M.LIGHTS_OUT).filter(function (l) {
+      if (seen[l.entity] || HA.s(l.entity) !== 'unavailable') return false;
+      seen[l.entity] = 1; return true;
+    });
+  }
+
   function lightsOn() {
     var all = M.LIGHTS_IN.concat(M.LIGHTS_OUT), seen = {}, out = [];
     all.forEach(function (l) {
@@ -1767,6 +1775,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     var poele = HA.isOn(E.poele);
     var salon = HA.num(E.salonTemp), cons = HA.num(E.consigne);
     var lon = lightsOn();
+    var lOff = lightsOffline();
     var doorsOpen = M.DOORS.filter(function (d) { return HA.isOn(d.entity); });
     var batt = HA.num(E.teslaBatt);
     var ft = HA.num(E.filtrationTemp);
@@ -1781,8 +1790,11 @@ button.power{color:inherit;font:inherit;text-align:left}
       '<button class="tile" data-pellet="1"><div class="tile-top">' + M.icon('bag', 22) + '<span class="tile-lab">Pellets</span></div><div class="tile-val">' +
         (stock == null ? '—' : stock + (stock > 1 ? ' sacs' : ' sac')) + '</div></button>' +
       tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', ft == null ? '' : 'eau ' + M.fmt(ft, 1) + ' °C', 'maison|piscine') +
-      tile(lon.length ? 'on lit' : '', 'bulb', 'Lumières', lon.length ? lon.length + (lon.length > 1 ? ' allumées' : ' allumée') : 'Éteintes',
-        lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''), 'lumieres') +
+      (lOff.length
+        ? tile('err', 'bulb', 'Lumières', lOff.length + (lOff.length > 1 ? ' déconnectées' : ' déconnectée'),
+            lOff.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lOff.length > 2 ? '…' : ''), 'lumieres')
+        : tile(lon.length ? 'on lit' : '', 'bulb', 'Lumières', lon.length ? lon.length + (lon.length > 1 ? ' allumées' : ' allumée') : 'Éteintes',
+        lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''), 'lumieres')) +
       tile(doorsOpen.length ? 'warn' : '', 'door', 'Portes', doorsOpen.length ? doorsOpen.length + (doorsOpen.length > 1 ? ' ouvertes' : ' ouverte') : 'Fermées',
         doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison|portes') +
       (isCharging() && batt != null
@@ -1834,10 +1846,11 @@ button.power{color:inherit;font:inherit;text-align:left}
 
   function tile(l) {
     var on = HA.isOn(l.entity);
-    var na = !HA.avail(l.entity);
+    var off = HA.s(l.entity) === 'unavailable';
+    var na = !HA.avail(l.entity) && !off;
     var br = HA.a(l.entity, 'brightness');
-    var sub = na ? 'indisponible' : (on ? (typeof br === 'number' ? Math.round(br / 2.55) + ' %' : (l.icon ? 'allumée' : 'allumée')) : 'éteinte');
-    return '<button class="tile lt' + (on ? (l.icon ? ' on' : ' on lit') : '') + (na ? ' na' : '') + '" data-light="' + l.entity + '">' +
+    var sub = off ? 'déconnectée' : na ? 'indisponible' : (on ? (typeof br === 'number' ? Math.round(br / 2.55) + ' %' : (l.icon ? 'allumée' : 'allumée')) : 'éteinte');
+    return '<button class="tile lt' + (on ? (l.icon ? ' on' : ' on lit') : '') + (na ? ' na' : '') + (off ? ' err' : '') + '" data-light="' + l.entity + '">' +
       '<div class="tile-top">' + M.icon(l.icon || 'bulb', 22) + '<span class="tile-lab">' + M.esc(l.name) + '</span></div>' +
       '<div class="tile-sub">' + sub + '</div></button>';
   }
