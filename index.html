@@ -271,6 +271,10 @@ button.power{color:inherit;font:inherit;text-align:left}
 .chip.err{background:rgba(255,69,58,.16);color:var(--danger)}
 .offline-note{margin:2px 0 10px;padding:10px 12px;border-radius:12px;background:rgba(255,69,58,.12);border:1px solid rgba(255,69,58,.4);color:var(--danger);font-size:13px;line-height:1.35}
 
+.hw-date{margin:12px 0 2px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+.hw-date:first-of-type{margin-top:6px}
+.hw .hw-txt{font-size:13px;color:var(--text2);white-space:pre-line;margin-top:2px;line-height:1.4}
+
 </style>
 </head>
 <body>
@@ -1702,12 +1706,15 @@ button.power{color:inherit;font:inherit;text-align:left}
           (S.next.salle ? ' · salle ' + M.esc(S.next.salle) : '') + (S.next.prof ? ' · ' + M.esc(S.next.prof) : '') + '</span></div>';
       }
       if (!S.todo.length) h += '<div class="empty">Aucun devoir à faire.</div>';
-      S.todo.slice(0, 6).forEach(function (t) {
-        var txt = t.texte.length > 90 ? t.texte.slice(0, 90) + '…' : t.texte;
-        h += '<div class="hw"><b>' + M.esc(t.matiere) + '</b><span>' + (t.date ? 'Pour le ' + M.esc(t.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })) : '') +
-          (txt ? ' — ' + M.esc(txt) : '') + '</span></div>';
+      var lastKey = null;
+      S.todo.forEach(function (t) {
+        var key = t.date ? t.date.toDateString() : 'none';
+        if (key !== lastKey) {
+          lastKey = key;
+          h += '<div class="hw-date">' + (t.date ? 'Pour le ' + M.esc(t.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })) : 'Sans date') + '</div>';
+        }
+        h += '<div class="hw"><b>' + M.esc(t.matiere) + '</b>' + (t.texte ? '<span class="hw-txt">' + M.esc(t.texte) + '</span>' : '') + '</div>';
       });
-      if (S.todo.length > 6) h += '<div class="empty">+ ' + (S.todo.length - 6) + ' autres devoirs</div>';
     }
     h += '<button class="btn solid wide" data-school="1">Ouvrir l\'app de Manon</button>';
     return h;
