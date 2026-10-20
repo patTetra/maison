@@ -278,9 +278,9 @@ button.power{color:inherit;font:inherit;text-align:left}
 .hw.done{opacity:.7}
 .hw-ck{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-right:6px;border-radius:50%;background:#30d158;color:#fff;vertical-align:-3px}
 
-.banner.err{background:rgba(255,69,58,.14);border:1px solid rgba(255,69,58,.5);color:var(--danger);width:100%;text-align:left;font:inherit;font-weight:600;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:14px}
-.banner.err span:first-child{display:flex;align-items:center;gap:8px}
-.banner.err .muted{font-weight:500;opacity:.8;font-size:13px}
+.banner.err{background:none;border:0;color:var(--danger);width:100%;text-align:left;font:inherit;font-size:13px;font-weight:600;display:flex;justify-content:flex-start;align-items:center;padding:2px 4px;margin:0;border-radius:0}
+.banner.err span:first-child{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.banner.err .muted{display:none}
 
 </style>
 </head>
@@ -1807,7 +1807,7 @@ button.power{color:inherit;font:inherit;text-align:left}
 
     var offAll = HA.configured() ? offlineAll() : [];
     if (offAll.length) {
-      h += '<button class="banner err" data-offline="1"><span>' + M.icon('alert', 18) + ' ' + offAll.length + (offAll.length > 1 ? ' appareils déconnectés' : ' appareil déconnecté') + '</span><span class="muted">Voir</span></button>';
+      h += '<button class="banner err" data-offline="1"><span>' + M.icon('alert', 14) + ' ' + offAll.length + (offAll.length > 1 ? ' appareils déconnectés' : ' appareil déconnecté') + '</span><span class="muted">Voir</span></button>';
     }
 
     h += '<div class="shortcuts">' +
