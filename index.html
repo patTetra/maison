@@ -1960,6 +1960,17 @@ button.power{color:inherit;font:inherit;text-align:left}
   }
   function r(v) { return Math.round(v * 100) / 100; }
 
+  // Tranche de chauffage en cours, calculée comme l'automatisation (jour décalé de 2 h le week-end)
+  M.heatIsDay = function () {
+    var j = HA.s(E.debutJour), n = HA.s(E.debutNuit);
+    var mm = function (t) { var m = /^(\d+):(\d+)/.exec(t || ''); return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : null; };
+    var a = mm(j), b = mm(n);
+    if (a == null || b == null) return HA.isOn(E.jourNuit) === !!M.cfg.jourQuandActive;
+    var d = new Date(), wk = d.getDay() === 0 || d.getDay() === 6;
+    var now = d.getHours() * 60 + d.getMinutes();
+    return now >= a + (wk ? 120 : 0) && now < b;
+  };
+
   M.openHeat = function () {
     var absent = HA.isOn(E.absent);
     var ent = absent ? E.tempAbsent : E.consigne;
@@ -1977,7 +1988,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     else fr.push(0);
     var labelF = function (f) { return ',' + String(r(f)).replace('0.', '').replace(/^0$/, '0'); };
 
-    var isDay = HA.isOn(E.jourNuit) === !!M.cfg.jourQuandActive;
+    var isDay = M.heatIsDay();
     var conf = HA.num(E.confortJour), eco = HA.num(E.ecoNuit), abv = HA.num(E.tempAbsent);
     if (abv == null) abv = 17;
     var curSet0 = HA.num(E.consigne);
@@ -2536,7 +2547,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       var cm = String(HA.s(E.chauffageMode) || '').toLowerCase();
       if (cm === 'jour') return 'Jour';
       if (cm === 'nuit') return 'Nuit';
-      return HA.avail(E.chauffageMode) ? 'Auto ' + (isDay() ? '☀' : '☾') : (isDay() ? 'Jour' : 'Nuit');
+      return HA.avail(E.chauffageMode) ? 'Auto ' + (M.heatIsDay() ? '☀' : '☾') : (M.heatIsDay() ? 'Jour' : 'Nuit');
     };
     var stock = M.pellets.stock();
     var inside = HA.num(E.teslaInside);
