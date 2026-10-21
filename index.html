@@ -1681,7 +1681,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     list.forEach(function (c) { if (c.date.slice(0, 7) === mk) { mK += c.kwh || 0; mE += c.eur || 0; } });
     if (!list.length) { mK = HA.num(E.teslaKwhMois); mE = HA.num(E.teslaCoutMois); }
     h += row('Recharge en cours (depuis 6 h)', '<span class="val">' + (live ? kwh(live.kwh) + (live.cost != null ? ' · ~' + eur(live.cost) : '') : '—') + '</span>');
-    h += row('Dernier cycle' + (lc ? ' · ' + M.esc(lc) : ''), '<span class="val">' + kwh(lk) + ' · ' + eur(le) + '</span>');
+    h += row('Dernière recharge' + (lc ? ' · ' + M.esc(lc) : ''), '<span class="val">' + kwh(lk) + ' · ' + eur(le) + '</span>');
     h += row('Ce mois', '<span class="val">' + kwh(mK) + ' · ' + eur(mE) + '</span>');
     h += '<button class="row" data-tconso style="width:100%;background:none;border:0;border-bottom:1px solid var(--card2);color:inherit;font:inherit;text-align:left"><span>Historique des recharges</span><span class="val">Voir</span></button>';
     return h;
@@ -1779,7 +1779,7 @@ button.power{color:inherit;font:inherit;text-align:left}
         list.forEach(function (x) { tE += x.eur || 0; tK += x.kwh || 0; });
         var h = '<div class="pwr-stats"><div class="pwr-stat"><span>Total</span><b>' + M.fmt(tE, 2) + ' €</b></div>' +
           '<div class="pwr-stat"><span>Énergie</span><b>' + M.fmt(tK, 0) + ' kWh</b></div>' +
-          '<div class="pwr-stat"><span>Cycles</span><b>' + list.length + '</b></div></div>';
+          '<div class="pwr-stat"><span>Recharges</span><b>' + list.length + '</b></div></div>';
         var cur = null, buf = '', mE = 0, mK = 0, mN = 0;
         var flush = function () {
           if (cur === null) return;
