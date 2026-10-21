@@ -2518,13 +2518,19 @@ button.power{color:inherit;font:inherit;text-align:left}
     var batt = HA.num(E.teslaBatt);
     var ft = HA.num(E.filtrationTemp);
 
+    var heatMode = function () {
+      var cm = String(HA.s(E.chauffageMode) || '').toLowerCase();
+      if (cm === 'jour') return 'Jour';
+      if (cm === 'nuit') return 'Nuit';
+      return HA.avail(E.chauffageMode) ? 'Auto ' + (isDay() ? '☀' : '☾') : (isDay() ? 'Jour' : 'Nuit');
+    };
     var stock = M.pellets.stock();
     var inside = HA.num(E.teslaInside);
     var ms = mowerInfo();
 
     h += '<div class="grid2">' +
       tile(poele ? 'on' : '', 'flame', 'Chauffage', salon == null ? '—' : M.fmt(salon, 1) + '°',
-        HA.isOn(E.maintenance) ? 'maintenance poêle' : HA.isOn(E.absent) ? 'mode absent' + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°') : (poele ? 'poêle allumé' : 'poêle éteint') + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°'), '@heat') +
+        HA.isOn(E.maintenance) ? 'maintenance poêle' : HA.isOn(E.absent) ? 'Absent' + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°') + (poele ? ' · poêle' : '') : heatMode() + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°') + (poele ? ' · poêle' : ''), '@heat') +
       '<button class="tile" data-pellet="1"><div class="tile-top">' + M.icon('bag', 22) + '<span class="tile-lab">Pellets</span></div><div class="tile-val">' +
         (stock == null ? '—' : stock + (stock > 1 ? ' sacs' : ' sac')) + '</div></button>' +
       tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', ft == null ? '' : 'eau ' + M.fmt(ft, 1) + ' °C', 'maison|piscine') +
