@@ -336,6 +336,22 @@ button.power{color:inherit;font:inherit;text-align:left}
 
 .ht-info{font-size:16px;line-height:1.4;color:var(--text2);margin:2px 0 12px}
 
+.pl-modes{display:flex;gap:8px;margin-bottom:8px}
+.pl-mg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+.pl-mg>i{font-style:normal;text-align:center;font-size:11px;color:var(--muted);padding:2px 0}
+.pl-mc{min-height:54px;border-radius:10px;background:var(--card2);padding:4px 3px;display:flex;flex-direction:column;align-items:center;gap:1px;overflow:hidden}
+.pl-mc b{font-family:var(--ft);font-size:15px;font-weight:700}
+.pl-mc span{font-size:10px;line-height:1.1;text-align:center;color:var(--text2);word-break:break-word}
+.pl-mc.out{opacity:.35}
+.pl-mc.we{background:rgba(128,140,150,.16)}
+.pl-mc.today{box-shadow:0 0 0 2px var(--accent)}
+.pl-mc.k-soir,.pl-leg .k-soir{background:rgba(255,138,61,.6)}
+.pl-mc.k-ve,.pl-leg .k-ve{background:rgba(64,140,255,.55)}
+.pl-mc.k-jour,.pl-leg .k-jour{background:rgba(255,138,61,.2)}
+.pl-mc.k-soir span,.pl-mc.k-ve span{color:var(--text)}
+.pl-leg{display:flex;gap:8px;margin-top:8px;justify-content:center}
+.pl-leg span{font-size:11px;padding:3px 10px;border-radius:999px}
+
 </style>
 </head>
 <body>
@@ -1682,7 +1698,7 @@ button.power{color:inherit;font:inherit;text-align:left}
 (function (M) {
   'use strict';
   var HA = M.HA, E = M.E;
-  var P = M.planning = { offset: 0, cache: {}, loading: false, error: null };
+  var P = M.planning = { offset: 0, mode: 'week', cache: {}, loading: false, error: null };
 
   function pdt(x) {
     if (x && typeof x === 'object') x = x.dateTime || x.date;
@@ -1695,18 +1711,25 @@ button.power{color:inherit;font:inherit;text-align:left}
     return d;
   }
   function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
-  function key(off) { return String(monday(off).getTime()); }
+  function range(mode, off) {
+    if (mode === 'month') {
+      var n = new Date(), f = new Date(n.getFullYear(), n.getMonth() + off, 1);
+      var a = monday(0); a = new Date(f); a.setHours(0, 0, 0, 0); a.setDate(a.getDate() - ((a.getDay() + 6) % 7));
+      return { a: a, b: addDays(a, 42), k: 'm' + a.getTime(), first: f };
+    }
+    var w = monday(off);
+    return { a: w, b: addDays(w, 7), k: 'w' + w.getTime() };
+  }
 
   P.load = async function (force) {
     if (!HA.configured() || P.loading) return;
-    var k = key(P.offset), c = P.cache[k];
+    var rg = range(P.mode, P.offset), k = rg.k, c = P.cache[k];
     if (!force && c && Date.now() - c.at < 300000) return;
     P.loading = true;
     try {
-      var a = monday(P.offset), b = addDays(a, 7);
-      var list = await HA.calendar(E.planning, a, b);
+      var list = await HA.calendar(E.planning, rg.a, rg.b);
       P.cache[k] = {
-        at: Date.now(),
+        at: Date.now(), a: rg.a, b: rg.b,
         events: (list || []).map(function (ev) {
           var s = pdt(ev.start), e = pdt(ev.end);
           return { title: ev.summary || 'Sans titre', where: ev.location || '', allDay: s.allDay, start: s.d, end: e.d };
@@ -1727,10 +1750,13 @@ button.power{color:inherit;font:inherit;text-align:left}
   }
 
   function todayEvs() {
-    var c = P.cache[key(0)];
-    if (!c) return null;
     var d0 = new Date(); d0.setHours(0, 0, 0, 0);
-    return dayEvents(c.events, d0);
+    var found = null;
+    Object.keys(P.cache).forEach(function (k) {
+      var c = P.cache[k];
+      if (!found && c.a <= d0 && d0 < c.b) found = c;
+    });
+    return found ? dayEvents(found.events, d0) : null;
   }
   function isSoir(evs) { return evs.some(function (e) { return /soir/i.test(e.title); }); }
 
@@ -1745,17 +1771,20 @@ button.power{color:inherit;font:inherit;text-align:left}
     return !t || !t.length ? '' : (isSoir(t) ? 'pl-soir' : 'pl-hl');
   };
 
-  P.body = function () {
-    var a = monday(P.offset), z = addDays(a, 6), c = P.cache[key(P.offset)];
+  function kind(evs) {
+    var t = evs.map(function (e) { return e.title; }).join(' ');
+    if (/soir/i.test(t)) return 'soir';
+    if (/\bVE\b/i.test(t)) return 've';
+    if (/jour/i.test(t)) return 'jour';
+    return '';
+  }
+  function shortTitle(evs) {
+    return evs.map(function (e) { return e.title.replace(/^\s*patrick\s*/i, ''); }).join(' · ');
+  }
+
+  function weekDays(c, a) {
+    var days = '', today = new Date(); today.setHours(0, 0, 0, 0);
     var fmt = function (d, o) { return d.toLocaleDateString('fr-FR', o); };
-    var h = '<div class="pl-nav"><button class="pl-b" data-pw="-1" aria-label="Semaine précédente">‹</button>' +
-      '<button class="pl-t" data-pw="0" aria-label="Revenir à cette semaine"><b>' + fmt(a, { day: 'numeric', month: 'short' }) + ' – ' + fmt(z, { day: 'numeric', month: 'short' }) + '</b></button>' +
-      '<button class="pl-b" data-pw="1" aria-label="Semaine suivante">›</button></div>';
-    if (P.error && !c) return h + '<div class="empty">' + M.esc(P.error) + '</div>';
-    // Pendant le chargement d'une autre semaine, on garde l'ancienne affichée (grisée) pour ne pas faire sauter l'écran
-    if (!c) return h + (P.lastDays ? '<div class="pl-dim">' + P.lastDays + '</div>' : '<div class="empty">Chargement…</div>');
-    var days = '';
-    var today = new Date(); today.setHours(0, 0, 0, 0);
     for (var i = 0; i < 7; i++) {
       var d = addDays(a, i), evs = dayEvents(c.events, d), isT = d.getTime() === today.getTime();
       days += '<div class="pl-day' + (isT ? ' today' : '') + (evs.length ? '' : ' empty') + (d.getDay() === 0 || d.getDay() === 6 ? ' we' : '') + (isSoir(evs) ? ' soir' : '') + '"><div class="pl-d"><b>' + M.esc(fmt(d, { weekday: 'short' }).replace('.', '')) + '</b><span>' + d.getDate() + '</span></div><div class="pl-e">';
@@ -1766,8 +1795,42 @@ button.power{color:inherit;font:inherit;text-align:left}
       });
       days += '</div></div>';
     }
-    P.lastDays = days;
-    return h + days;
+    return days;
+  }
+
+  function monthGrid(c, rg) {
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var h = '<div class="pl-mg">' + ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(function (l) { return '<i>' + l + '</i>'; }).join('');
+    for (var i = 0; i < 42; i++) {
+      var d = addDays(rg.a, i);
+      if (i >= 35 && d.getMonth() !== rg.first.getMonth()) break;      // 6e ligne seulement si utile
+      var evs = dayEvents(c.events, d), k = kind(evs);
+      var out = d.getMonth() !== rg.first.getMonth();
+      h += '<div class="pl-mc' + (k ? ' k-' + k : '') + (out ? ' out' : '') + (d.getTime() === today.getTime() ? ' today' : '') + ((d.getDay() === 0 || d.getDay() === 6) && !k ? ' we' : '') + '">' +
+        '<b>' + d.getDate() + '</b><span>' + M.esc(shortTitle(evs)) + '</span></div>';
+    }
+    return h + '</div>' +
+      '<div class="pl-leg"><span class="k-ve">VE</span><span class="k-jour">Jour</span><span class="k-soir">Soir</span></div>';
+  }
+
+  P.body = function () {
+    var rg = range(P.mode, P.offset), c = P.cache[rg.k];
+    var fmt = function (d, o) { return d.toLocaleDateString('fr-FR', o); };
+    var month = P.mode === 'month';
+    var title = month
+      ? (function (t) { return t.charAt(0).toUpperCase() + t.slice(1); })(fmt(rg.first, { month: 'long', year: 'numeric' }))
+      : fmt(rg.a, { day: 'numeric', month: 'short' }) + ' – ' + fmt(addDays(rg.a, 6), { day: 'numeric', month: 'short' });
+    var h = '<div class="pl-modes"><button class="chip-btn' + (month ? '' : ' sug') + '" data-pm="week">Semaine</button><button class="chip-btn' + (month ? ' sug' : '') + '" data-pm="month">Mois</button></div>' +
+      '<div class="pl-nav"><button class="pl-b" data-pw="-1" aria-label="Précédent">‹</button>' +
+      '<button class="pl-t" data-pw="0" aria-label="Revenir à aujourd\'hui"><b>' + M.esc(title) + '</b></button>' +
+      '<button class="pl-b" data-pw="1" aria-label="Suivant">›</button></div>';
+    P.last = P.last || {};
+    if (P.error && !c) return h + '<div class="empty">' + M.esc(P.error) + '</div>';
+    // Pendant le chargement, on garde l'ancienne vue affichée (grisée) pour ne pas faire sauter l'écran
+    if (!c) return h + (P.last[P.mode] ? '<div class="pl-dim">' + P.last[P.mode] + '</div>' : '<div class="empty">Chargement…</div>');
+    var body = month ? monthGrid(c, rg) : weekDays(c, rg.a);
+    P.last[P.mode] = body;
+    return h + body;
   };
 
   P.bind = function (el, rerender) {
@@ -1776,6 +1839,14 @@ button.power{color:inherit;font:inherit;text-align:left}
         e.stopPropagation();
         var v = parseInt(b.dataset.pw, 10);
         P.offset = v === 0 ? 0 : P.offset + v;
+        rerender();
+        P.load(false);
+      };
+    });
+    el.querySelectorAll('[data-pm]').forEach(function (b) {
+      b.onclick = function (e) {
+        e.stopPropagation();
+        P.mode = b.dataset.pm; P.offset = 0;
         rerender();
         P.load(false);
       };
