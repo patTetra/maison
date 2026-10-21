@@ -327,6 +327,10 @@ button.power{color:inherit;font:inherit;text-align:left}
 .pl-day.soir{background:rgba(255,138,61,.16)}
 .pl-day.soir .pl-h{color:var(--light)}
 
+.pl-dim{opacity:.45;pointer-events:none}
+.pl-n{color:var(--accent);font-weight:600}
+.pl-day.soir .pl-n{color:var(--light)}
+
 </style>
 </head>
 <body>
@@ -1742,19 +1746,22 @@ button.power{color:inherit;font:inherit;text-align:left}
       '<button class="pl-t" data-pw="0"><b>' + label + '</b><small>' + fmt(a, { day: 'numeric', month: 'short' }) + ' – ' + fmt(z, { day: 'numeric', month: 'short' }) + '</small></button>' +
       '<button class="pl-b" data-pw="1" aria-label="Semaine suivante">›</button></div>';
     if (P.error && !c) return h + '<div class="empty">' + M.esc(P.error) + '</div>';
-    if (!c) return h + '<div class="empty">Chargement…</div>';
+    // Pendant le chargement d'une autre semaine, on garde l'ancienne affichée (grisée) pour ne pas faire sauter l'écran
+    if (!c) return h + (P.lastDays ? '<div class="pl-dim">' + P.lastDays + '</div>' : '<div class="empty">Chargement…</div>');
+    var days = '';
     var today = new Date(); today.setHours(0, 0, 0, 0);
     for (var i = 0; i < 7; i++) {
       var d = addDays(a, i), evs = dayEvents(c.events, d), isT = d.getTime() === today.getTime();
-      h += '<div class="pl-day' + (isT ? ' today' : '') + (evs.length ? '' : ' empty') + (d.getDay() === 0 || d.getDay() === 6 ? ' we' : '') + (isSoir(evs) ? ' soir' : '') + '"><div class="pl-d"><b>' + M.esc(fmt(d, { weekday: 'short' }).replace('.', '')) + '</b><span>' + d.getDate() + '</span></div><div class="pl-e">';
-      if (!evs.length) h += '<span class="pl-none">—</span>';
+      days += '<div class="pl-day' + (isT ? ' today' : '') + (evs.length ? '' : ' empty') + (d.getDay() === 0 || d.getDay() === 6 ? ' we' : '') + (isSoir(evs) ? ' soir' : '') + '"><div class="pl-d"><b>' + M.esc(fmt(d, { weekday: 'short' }).replace('.', '')) + '</b><span>' + d.getDate() + '</span></div><div class="pl-e">';
+      if (!evs.length) days += '<span class="pl-none">—</span>';
       evs.forEach(function (ev) {
         var t = ev.allDay ? '' : '<span class="pl-h">' + M.hm(ev.start) + ' – ' + M.hm(ev.end) + '</span>';
-        h += '<div class="pl-ev">' + t + '<span class="pl-n">' + M.esc(ev.title) + '</span></div>';
+        days += '<div class="pl-ev">' + t + '<span class="pl-n">' + M.esc(ev.title) + '</span></div>';
       });
-      h += '</div></div>';
+      days += '</div></div>';
     }
-    return h;
+    P.lastDays = days;
+    return h + days;
   };
 
   P.bind = function (el, rerender) {
