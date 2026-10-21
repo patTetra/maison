@@ -1965,37 +1965,47 @@ button.power{color:inherit;font:inherit;text-align:left}
     else fr.push(0);
     var labelF = function (f) { return ',' + String(r(f)).replace('0.', '').replace(/^0$/, '0'); };
 
+    var isDay = HA.isOn(E.jourNuit) === !!M.cfg.jourQuandActive;
+    var conf = HA.num(E.confortJour), eco = HA.num(E.ecoNuit), abv = HA.num(E.tempAbsent);
+    if (abv == null) abv = 17;
+    var mode = isDay ? 'day' : 'night';
+    var vals = { day: conf, night: eco, abs: abv };
+    var start = absent ? cur : (vals[mode] == null ? cur : vals[mode]);
+    start = Math.min(max, Math.max(min, start));
+    cur = start;
     var iv = Math.min(i1, Math.max(i0, Math.floor(cur + 1e-9)));
     var fv = r(cur - iv), fi = 0;
     fr.forEach(function (f, j) { if (Math.abs(f - fv) < Math.abs(fr[fi] - fv)) fi = j; });
     var ii = ints.indexOf(iv);
 
     var salon = HA.num(E.salonTemp);
-    var conf = HA.num(E.confortJour), eco = HA.num(E.ecoNuit);
+    var curSet = HA.num(E.consigne);
     var poele = HA.isOn(E.poele);
     var h = '<h3>' + (absent ? 'Mode absent' : 'Chauffage') + '</h3>' +
       '<div class="ht-info">' + (absent
         ? 'Consigne maintenue à ' + M.fmt(cur, step < 1 ? 1 : 0) + ' °C, jour et nuit, jusqu\'à la désactivation.'
         : (salon == null ? '' : 'Salon ' + M.fmt(salon, 1) + ' °C · ') + 'consigne actuelle ' + M.fmt(cur, step < 1 ? 1 : 0) + ' °C · poêle ' + (poele ? 'allumé' : 'éteint')) + '</div>' +
       (absent ? '' : '<div class="chips">' +
-      (conf != null ? '<button class="chip-btn sug" data-t="' + conf + '">Confort · ' + M.fmt(conf, 1) + '°</button>' : '') +
-      (eco != null ? '<button class="chip-btn" data-t="' + eco + '">Éco · ' + M.fmt(eco, 1) + '°</button>' : '') +
-      '<button class="chip-btn" data-t="' + (HA.num(E.tempAbsent) == null ? 17 : HA.num(E.tempAbsent)) + '" data-abs="1">Absent · ' + M.fmt(HA.num(E.tempAbsent) == null ? 17 : HA.num(E.tempAbsent), 1) + '°</button></div>') +
+      ['day|Jour', 'night|Nuit', 'abs|Absent'].map(function (x) {
+        var k = x.split('|')[0], t = x.split('|')[1];
+        return '<button class="chip-btn' + (k === mode ? ' sug' : '') + '" data-m="' + k + '">' + t + ' · <span class="mv">' + (vals[k] == null ? '—' : M.fmt(vals[k], 1)) + '</span>°</button>';
+      }).join('') + '</div>') +
       '<div class="wheels">' + wheel('ht-i', ints, ii) + (fr.length > 1 ? '<span class="colon">,</span>' + wheel('ht-f', fr.map(function (f) { return labelF(f).slice(1); }), fi) : '') +
       '<span class="colon" style="font-size:22px">°C</span></div>' +
-      '<div class="btnrow"><button class="btn solid" id="ht-go">' + (absent ? 'Régler la température' : 'Appliquer') + '</button>' +
-      (absent ? '<button class="btn" id="ht-abs-off">Désactiver l\'absence</button>' : '<button class="btn" id="ht-all">Tous les réglages</button>') + '</div>' +
+      '<div class="btnrow"><button class="btn solid" id="ht-go">' + (absent ? 'Régler la température' : 'Appliquer maintenant') + '</button>' +
+      (absent ? '<button class="btn" id="ht-abs-off">Désactiver l\'absence</button>' : '<button class="btn" id="ht-save">Enregistrer</button>') + '</div>' +
+      (absent ? '' : '<div class="ht-info" style="margin:10px 0 0;font-size:13px">Enregistrer change la valeur du mode pour tous les jours. Appliquer maintenant règle aussi la consigne tout de suite.</div>') +
       '';
     M.openSheet(h, function (s) {
       bind(s.querySelector('#ht-i'), ii, function (i) { ii = i; });
       var wf = s.querySelector('#ht-f');
       if (wf) bind(wf, fi, function (i) { fi = i; });
-      var absChosen = false;
-      s.querySelectorAll('[data-t]').forEach(function (b) {
+      var sel = mode;
+      s.querySelectorAll('[data-m]').forEach(function (b) {
         b.onclick = function () {
-          absChosen = !!b.dataset.abs;
-          s.querySelectorAll('[data-t]').forEach(function (o) { o.classList.toggle('sug', o === b); });
-          var v = Math.min(max, Math.max(min, parseFloat(b.dataset.t)));
+          sel = b.dataset.m;
+          s.querySelectorAll('[data-m]').forEach(function (o) { o.classList.toggle('sug', o === b); });
+          var v = Math.min(max, Math.max(min, vals[sel] == null ? cur : vals[sel]));
           var a = Math.floor(v + 1e-9), fx = r(v - a), j = 0;
           fr.forEach(function (f, n) { if (Math.abs(f - fx) < Math.abs(fr[j] - fx)) j = n; });
           ii = ints.indexOf(a); fi = j;
@@ -2003,21 +2013,32 @@ button.power{color:inherit;font:inherit;text-align:left}
           if (wf) wf.scrollTo({ top: fi * H, behavior: 'smooth' });
         };
       });
+      var fmtv = function (v) { return M.fmt(v, step < 1 ? 1 : 0); };
+      var target = function () { return absent ? E.tempAbsent : (sel === 'day' ? E.confortJour : sel === 'night' ? E.ecoNuit : E.tempAbsent); };
+      var names = { day: 'Jour', night: 'Nuit', abs: 'Absent' };
       s.querySelector('#ht-go').onclick = async function () {
         var v = r(ints[ii] + fr[fi]);
-        if (absChosen && !absent) {
-          // « Absent » choisi : règle la température d'absence puis active le mode (la consigne reste fixe)
-          try {
+        try {
+          if (absent) {
             await HA.act('input_number', 'set_value', { entity_id: E.tempAbsent, value: v }, [E.tempAbsent]);
+            M.closeSheet(); M.toast('Température absent ' + fmtv(v) + ' °C'); return;
+          }
+          await HA.act('input_number', 'set_value', { entity_id: target(), value: v }, [target()]);
+          if (sel === 'abs') {
             await HA.act('input_boolean', 'turn_on', { entity_id: E.absent }, [E.absent]);
-          } catch (e) { M.toast('Home Assistant : ' + e.message); return; }
-          M.closeSheet();
-          M.toast('Mode absent · ' + M.fmt(v, step < 1 ? 1 : 0) + ' °C');
-          return;
-        }
-        M.act('input_number', 'set_value', { entity_id: ent, value: v }, [ent]);
-        M.closeSheet();
-        M.toast((absent ? 'Température absent ' : 'Consigne ') + M.fmt(v, step < 1 ? 1 : 0) + ' °C');
+            M.closeSheet(); M.toast('Mode absent · ' + fmtv(v) + ' °C'); return;
+          }
+          await HA.act('input_number', 'set_value', { entity_id: E.consigne, value: v }, [E.consigne]);
+          M.closeSheet(); M.toast(names[sel] + ' ' + fmtv(v) + ' °C appliqué');
+        } catch (e) { M.toast('Home Assistant : ' + e.message); }
+      };
+      var sv = s.querySelector('#ht-save');
+      if (sv) sv.onclick = async function () {
+        var v = r(ints[ii] + fr[fi]);
+        try { await HA.act('input_number', 'set_value', { entity_id: target(), value: v }, [target()]); } catch (e) { M.toast('Home Assistant : ' + e.message); return; }
+        vals[sel] = v;
+        var chip = s.querySelector('[data-m="' + sel + '"] .mv'); if (chip) chip.textContent = M.fmt(v, 1);
+        M.toast(names[sel] + ' enregistré : ' + fmtv(v) + ' °C');
       };
       var all = s.querySelector('#ht-all');
       if (all) all.onclick = function () { M.closeSheet(); M.go('maison', 'chauffage'); };
