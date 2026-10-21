@@ -294,6 +294,9 @@ button.power{color:inherit;font:inherit;text-align:left}
 .tc-bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .tc-v{font-variant-numeric:tabular-nums;text-align:right}
 
+.tc-mh{display:flex;justify-content:space-between;gap:8px;margin:14px 0 2px;font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.03em}
+.tc-mh span:last-child{text-transform:none;letter-spacing:0;font-weight:600;color:var(--text2)}
+
 </style>
 </head>
 <body>
@@ -1671,42 +1674,114 @@ button.power{color:inherit;font:inherit;text-align:left}
   };
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function dkey(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+
+  // ---- Archive permanente dans le dépôt GitHub (même dépôt et même jeton que les pellets) ----
+  var FILE = 'tesla-conso.json', arch = { cycles: [] }, sha = null, syncing = null;
+  function aurl() { return 'https://api.github.com/repos/' + String(M.cfg.pelletRepo).trim() + '/contents/' + FILE; }
+  function ah(write) {
+    var h = { 'Accept': 'application/vnd.github+json' }, t = String(M.cfg.pelletToken || '').trim();
+    if (t) h.Authorization = 'Bearer ' + t;
+    if (write) h['Content-Type'] = 'application/json';
+    return h;
+  }
+  function enc(x) { return btoa(unescape(encodeURIComponent(x))); }
+  function dec(x) { return decodeURIComponent(escape(atob(String(x).replace(/\s/g, '')))); }
+
+  async function loadArchive() {
+    var res = await fetch(aurl() + '?t=' + Date.now(), { headers: ah(false), cache: 'no-store' });
+    if (res.status === 404) { sha = null; arch = { cycles: [] }; return; }
+    if (!res.ok) throw new Error('GitHub ' + res.status);
+    var j = await res.json();
+    arch = JSON.parse(dec(j.content));
+    if (!Array.isArray(arch.cycles)) arch.cycles = [];
+    sha = j.sha;
+  }
+
+  // Cycles récents d'après l'historique de HA (conservé quelques jours seulement)
+  async function haCycles(days) {
+    var now = Date.now(), t0 = now - days * 86400000;
+    var q = function (ent) {
+      return HA.rest('/api/history/period/' + encodeURIComponent(new Date(t0).toISOString()) + '?filter_entity_id=' + encodeURIComponent(ent) +
+        '&end_time=' + encodeURIComponent(new Date(now).toISOString()) + '&minimal_response&no_attributes').then(function (r) { return (r && r[0]) || []; });
+    };
+    var res = await Promise.all([q(E.teslaKwhDernier), q(E.teslaCoutDernier), q(E.teslaCouleurDernier)]);
+    var hk = function (r) { return new Date(r.last_changed || r.last_updated).toISOString().slice(0, 13); };
+    var cost = {}, col = {};
+    res[1].forEach(function (r) { if (!isNaN(parseFloat(r.state))) cost[hk(r)] = parseFloat(r.state); });
+    res[2].forEach(function (r) { col[hk(r)] = r.state; });
+    var out = [];
+    res[0].forEach(function (r) {
+      var t = new Date(r.last_changed || r.last_updated), v = parseFloat(r.state);
+      if (isNaN(v) || t.getTime() <= t0 + 1000) return;       // 1re ligne = état initial de la période
+      var e = { date: dkey(new Date(t.getTime() - 86400000)), kwh: v, eur: cost[hk(r)] };
+      if (e.eur == null) return;
+      if (col[hk(r)] && col[hk(r)] !== 'unknown') e.couleur = col[hk(r)];
+      out.push(e);
+    });
+    return out;
+  }
+
+  // Ajoute à l'archive les cycles que HA connaît et qu'elle n'a pas encore
+  M.teslaSync = function () {
+    if (syncing) return syncing;
+    syncing = (async function () {
+      if (!HA.configured()) return;
+      await loadArchive();
+      var have = {};
+      arch.cycles.forEach(function (c) { have[c.date] = true; });
+      var fresh = (await haCycles(14)).filter(function (c) { return !have[c.date]; });
+      if (fresh.length && String(M.cfg.pelletToken || '').trim()) {
+        arch.cycles = arch.cycles.concat(fresh).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+        arch.updated = new Date().toISOString();
+        var body = { message: 'Recharges Tesla : +' + fresh.length, content: enc(JSON.stringify(arch, null, 1) + '\n') };
+        if (sha) body.sha = sha;
+        var res = await fetch(aurl(), { method: 'PUT', headers: ah(true), body: JSON.stringify(body) });
+        if (res.ok) { var j = await res.json(); sha = j.content && j.content.sha; }
+        else if (res.status === 409 || res.status === 422) { syncing = null; return M.teslaSync(); }
+      } else if (fresh.length) {
+        arch.pending = fresh;                                     // sans jeton : affichage seulement
+      }
+    })().catch(function (e) { M.teslaSyncError = e.message; }).then(function () { syncing = null; });
+    return syncing;
+  };
+
+  var MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
   M.openTeslaConso = function () {
     M.openSheet('<h3>Recharges Tesla</h3><div id="tc-box"><div class="empty">Chargement…</div></div>', function (s) {
-      var now = Date.now(), t0 = now - 45 * 86400000;
-      var q = function (ent) {
-        return HA.rest('/api/history/period/' + encodeURIComponent(new Date(t0).toISOString()) + '?filter_entity_id=' + encodeURIComponent(ent) +
-          '&end_time=' + encodeURIComponent(new Date(now).toISOString()) + '&minimal_response&no_attributes').then(function (r) { return (r && r[0]) || []; });
-      };
-      Promise.all([q(E.teslaKwhDernier), q(E.teslaCoutDernier)]).then(function (res) {
+      M.teslaSync().then(function () {
         var box = s.querySelector('#tc-box');
-        var kw = res[0].filter(function (r) { return !isNaN(parseFloat(r.state)); });
-        var co = res[1].filter(function (r) { return !isNaN(parseFloat(r.state)); });
-        var costBy = {};
-        co.forEach(function (r) { costBy[new Date(r.last_changed || r.last_updated).toISOString().slice(0, 13)] = parseFloat(r.state); });
-        var days = [];
-        kw.forEach(function (r) {
-          var t = new Date(r.last_changed || r.last_updated);
-          if (t.getTime() <= t0 + 1000) return;               // première valeur = état initial de la période
-          var d = new Date(t.getTime() - 86400000);            // le relevé de 6 h clôt le cycle de la veille
-          days.push({ d: d, kwh: parseFloat(r.state), eur: costBy[t.toISOString().slice(0, 13)] });
+        var list = arch.cycles.concat(arch.pending || []);
+        var seen = {};
+        list = list.filter(function (c) { if (seen[c.date]) return false; seen[c.date] = true; return true; })
+          .sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+        if (!list.length) { box.innerHTML = '<div class="empty">Pas encore d\'historique (il se construit chaque matin à 6 h).' + (M.teslaSyncError ? '<br>' + M.esc(M.teslaSyncError) : '') + '</div>'; return; }
+        var max = list.reduce(function (m, x) { return Math.max(m, x.eur || 0); }, 0.01);
+        var tE = 0, tK = 0;
+        list.forEach(function (x) { tE += x.eur || 0; tK += x.kwh || 0; });
+        var h = '<div class="pwr-stats"><div class="pwr-stat"><span>Total</span><b>' + M.fmt(tE, 2) + ' €</b></div>' +
+          '<div class="pwr-stat"><span>Énergie</span><b>' + M.fmt(tK, 0) + ' kWh</b></div>' +
+          '<div class="pwr-stat"><span>Cycles</span><b>' + list.length + '</b></div></div>';
+        var cur = null, buf = '', mE = 0, mK = 0, mN = 0;
+        var flush = function () {
+          if (cur === null) return;
+          var y = cur.slice(0, 4), m = parseInt(cur.slice(5), 10) - 1;
+          h += '<div class="tc-mh"><span>' + MOIS[m] + ' ' + y + '</span><span>' + mN + ' · ' + M.fmt(mK, 1) + ' kWh · ' + M.fmt(mE, 2) + ' €</span></div>' + buf;
+          buf = ''; mE = mK = mN = 0;
+        };
+        list.forEach(function (x) {
+          var mk = x.date.slice(0, 7);
+          if (mk !== cur) { flush(); cur = mk; }
+          mE += x.eur || 0; mK += x.kwh || 0; mN++;
+          var d = new Date(x.date + 'T12:00:00');
+          buf += '<div class="tc-row"><span class="tc-d">' + M.esc(d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })) + '</span>' +
+            '<span class="tc-bar"><i style="width:' + Math.round((x.eur || 0) / max * 100) + '%"></i></span>' +
+            '<span class="tc-v">' + M.fmt(x.kwh, 1) + ' kWh · ' + eur(x.eur) + '</span></div>';
         });
-        days.reverse();
-        if (!days.length) { box.innerHTML = '<div class="empty">Pas encore d\'historique (il se construit chaque matin à 6 h).</div>'; return; }
-        var max = days.reduce(function (m, x) { return Math.max(m, x.eur || 0); }, 0.01);
-        var tm = 0, tk = 0, cm = new Date().getMonth();
-        days.forEach(function (x) { if (x.d.getMonth() === cm) { tm += x.eur || 0; tk += x.kwh; } });
-        box.innerHTML = '<div class="pwr-stats"><div class="pwr-stat"><span>Ce mois</span><b>' + M.fmt(tm, 2) + ' €</b></div>' +
-          '<div class="pwr-stat"><span>Énergie</span><b>' + M.fmt(tk, 1) + ' kWh</b></div>' +
-          '<div class="pwr-stat"><span>Cycles</span><b>' + days.length + '</b></div></div>' +
-          days.map(function (x) {
-            return '<div class="tc-row"><span class="tc-d">' + M.esc(x.d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })) + '</span>' +
-              '<span class="tc-bar"><i style="width:' + Math.round((x.eur || 0) / max * 100) + '%"></i></span>' +
-              '<span class="tc-v">' + M.fmt(x.kwh, 1) + ' kWh · ' + eur(x.eur) + '</span></div>';
-          }).join('');
-      }).catch(function (e) {
-        s.querySelector('#tc-box').innerHTML = '<div class="msg ko">' + M.esc(e.message || 'Historique indisponible') + '</div>';
+        flush();
+        if (!String(M.cfg.pelletToken || '').trim()) h += '<div class="pg-sub">Ajoute le jeton GitHub dans Réglages pour conserver tout l\'historique.</div>';
+        box.innerHTML = h;
       });
     });
   };
@@ -2519,6 +2594,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     M.school.load();
     M.loadAgenda(false);
     M.pellets.refresh();
+    setTimeout(function () { if (M.teslaSync) M.teslaSync(); }, 4000);
 
     setInterval(function () {
       if (document.hidden) return;
