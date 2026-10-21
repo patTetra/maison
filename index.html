@@ -355,6 +355,9 @@ button.power{color:inherit;font:inherit;text-align:left}
     teslaCouleurDernier: 'input_text.tesla_couleur_dernier',
     teslaKwhMois: 'input_number.tesla_kwh_mois',
     teslaCoutMois: 'input_number.tesla_cout_mois',
+    tvEnergie: 'sensor.shellyplugmg3_d885ac176d60_energie',
+    tvKwhDernier: 'input_number.tv_kwh_dernier',
+    tvCoutDernier: 'input_number.tv_cout_dernier',
     bridee: 'input_boolean.tesla_bridee_10a',
     teslaClim: 'climate.tesla_model_y_climatisation',
     teslaBatt: 'sensor.tesla_model_y_niveau_de_la_batterie',
@@ -1644,193 +1647,181 @@ button.power{color:inherit;font:inherit;text-align:left}
   'use strict';
   var HA = M.HA, E = M.E;
 
-  function color(raw) {
-    var c = String(raw || '').split(' ')[0].toLowerCase();
-    return c === 'bleu' || c === 'blanc' || c === 'rouge' ? c : null;
-  }
-  function price(c, per) { return c ? HA.num('input_number.tarif_tempo_' + c + '_' + per) : null; }
-  function eur(v) { return v == null ? '—' : M.fmt(v, 2) + ' €'; }
-  function kwh(v) { return v == null ? '—' : M.fmt(v, 1) + ' kWh'; }
-
-  // Cycle en cours (6 h -> 6 h) : kWh depuis le dernier relevé de 6 h + coût estimé
-  M.teslaLive = function () {
-    var cur = HA.num(E.teslaEnergie), i6 = HA.num(E.teslaIdx6), i22 = HA.num(E.teslaIdx22);
-    if (cur == null || i6 == null) return null;
-    var h = new Date().getHours(), night = h >= 22 || h < 6;
-    var total = Math.max(0, cur - i6), cost = null;
-    if (!night) {
-      var p = price(color(HA.s(E.edfTempo)), 'hp');
-      cost = p == null ? null : total * p;
-    } else if (i22 != null) {
-      var c = color(HA.s(E.teslaCouleurCycle));
-      var php = price(c, 'hp'), phc = price(c, 'hc');
-      if (php != null && phc != null) cost = Math.max(0, i22 - i6) * php + Math.max(0, cur - i22) * phc;
-    }
-    return { kwh: total, cost: cost };
-  };
-
-  // Données de l'archive (GitHub) : priment sur les compteurs HA, vides au démarrage
-  function archiveList() {
-    var l = (arch.cycles || []).concat(arch.pending || []), seen = {};
-    return l.filter(function (c) { if (seen[c.date]) return false; seen[c.date] = true; return true; })
-      .sort(function (a, b) { return a.date < b.date ? 1 : -1; });
-  }
-
-  M.teslaConsoRows = function (row) {
-    var h = '', list = archiveList();
-    var last = list[0], haK = HA.num(E.teslaKwhDernier), haE = HA.num(E.teslaCoutDernier);
-    var useHa = haK != null && haK > 0 && (!last || true);
-    var lk = useHa ? haK : (last ? last.kwh : null), le = useHa ? haE : (last ? last.eur : null);
-    var lc = useHa ? HA.s(E.teslaCouleurDernier) : (last && last.couleur);
-    if (!lc || lc === 'unknown' || lc === 'unavailable') lc = '';
-    var mk = new Date().getFullYear() + '-' + pad(new Date().getMonth() + 1), mK = 0, mE = 0;
-    list.forEach(function (c) { if (c.date.slice(0, 7) === mk) { mK += c.kwh || 0; mE += c.eur || 0; } });
-    if (!list.length) { mK = HA.num(E.teslaKwhMois); mE = HA.num(E.teslaCoutMois); }
-    h += row('Dernière recharge' + (lc ? ' · ' + M.esc(lc) : ''), '<span class="val">' + kwh(lk) + ' · ' + eur(le) + '</span>');
-    h += row('Ce mois', '<span class="val">' + kwh(mK) + ' · ' + eur(mE) + '</span>');
-    h += '<button class="row" data-tconso style="width:100%;background:none;border:0;border-bottom:1px solid var(--card2);color:inherit;font:inherit;text-align:left"><span>Historique des recharges</span><span class="val">Voir</span></button>';
-    return h;
-  };
-
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function dkey(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
-
-  // ---- Archive permanente dans le dépôt GitHub (même dépôt et même jeton que les pellets) ----
-  var FILE = 'tesla-conso.json', arch = { cycles: [] }, sha = null, syncing = null;
-  function aurl() { return 'https://api.github.com/repos/' + String(M.cfg.pelletRepo).trim() + '/contents/' + FILE; }
-  function ah(write) {
-    var h = { 'Accept': 'application/vnd.github+json' }, t = String(M.cfg.pelletToken || '').trim();
-    if (t) h.Authorization = 'Bearer ' + t;
-    if (write) h['Content-Type'] = 'application/json';
-    return h;
-  }
+  function eur(v) { return v == null ? '—' : M.fmt(v, 2) + ' €'; }
+  function kwh(v) { return v == null ? '—' : M.fmt(v, 1) + ' kWh'; }
   function enc(x) { return btoa(unescape(encodeURIComponent(x))); }
   function dec(x) { return decodeURIComponent(escape(atob(String(x).replace(/\s/g, '')))); }
-
-  async function loadArchive() {
-    var res = await fetch(aurl() + '?t=' + Date.now(), { headers: ah(false), cache: 'no-store' });
-    if (res.status === 404) { sha = null; arch = { cycles: [] }; return; }
-    if (!res.ok) throw new Error('GitHub ' + res.status);
-    var j = await res.json();
-    arch = JSON.parse(dec(j.content));
-    if (!Array.isArray(arch.cycles)) arch.cycles = [];
-    sha = j.sha;
-  }
-
-  // Cycles récents d'après l'historique de HA (conservé quelques jours seulement)
-  async function haCycles(days) {
-    var now = Date.now(), t0 = now - days * 86400000;
-    var q = function (ent) {
-      return HA.rest('/api/history/period/' + encodeURIComponent(new Date(t0).toISOString()) + '?filter_entity_id=' + encodeURIComponent(ent) +
-        '&end_time=' + encodeURIComponent(new Date(now).toISOString()) + '&minimal_response&no_attributes').then(function (r) { return (r && r[0]) || []; });
-    };
-    var res = await Promise.all([q(E.teslaKwhDernier), q(E.teslaCoutDernier), q(E.teslaCouleurDernier)]);
-    var hk = function (r) { return new Date(r.last_changed || r.last_updated).toISOString().slice(0, 13); };
-    var cost = {}, col = {};
-    res[1].forEach(function (r) { if (!isNaN(parseFloat(r.state))) cost[hk(r)] = parseFloat(r.state); });
-    res[2].forEach(function (r) { col[hk(r)] = r.state; });
-    var out = [];
-    res[0].forEach(function (r) {
-      var t = new Date(r.last_changed || r.last_updated), v = parseFloat(r.state);
-      if (isNaN(v) || t.getTime() <= t0 + 1000) return;       // 1re ligne = état initial de la période
-      var e = { date: dkey(new Date(t.getTime() - 86400000)), kwh: v, eur: cost[hk(r)] };
-      if (e.eur == null) return;
-      if (col[hk(r)] && col[hk(r)] !== 'unknown') e.couleur = col[hk(r)];
-      out.push(e);
-    });
-    return out;
-  }
-
-  // Ajoute à l'archive les cycles que HA connaît et qu'elle n'a pas encore
-  M.teslaSync = function () {
-    if (syncing) return syncing;
-    syncing = (async function () {
-      if (!HA.configured()) return;
-      await loadArchive();
-      var have = {};
-      arch.cycles.forEach(function (c) { have[c.date] = true; });
-      var fresh = (await haCycles(14)).filter(function (c) { return !have[c.date]; });
-      if (fresh.length && String(M.cfg.pelletToken || '').trim()) {
-        arch.cycles = arch.cycles.concat(fresh).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
-        arch.updated = new Date().toISOString();
-        var body = { message: 'Recharges Tesla : +' + fresh.length, content: enc(JSON.stringify(arch, null, 1) + '\n') };
-        if (sha) body.sha = sha;
-        var res = await fetch(aurl(), { method: 'PUT', headers: ah(true), body: JSON.stringify(body) });
-        if (res.ok) { var j = await res.json(); sha = j.content && j.content.sha; }
-        else if (res.status === 409 || res.status === 422) { syncing = null; return M.teslaSync(); }
-      } else if (fresh.length) {
-        arch.pending = fresh;                                     // sans jeton : affichage seulement
-      }
-    })().catch(function (e) { M.teslaSyncError = e.message; }).then(function () {
-      syncing = null;
-      var v = M.views[M.current]; if (v && v.render && !M.skipRender(v.el)) v.render();
-    });
-    return syncing;
-  };
-
-  var chartMode = 'eur';
   var MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
-  function monthChart(list) {
-    var by = {};
-    list.forEach(function (x) {
-      var k = x.date.slice(0, 7);
-      by[k] = by[k] || { e: 0, k: 0 };
-      by[k].e += x.eur || 0; by[k].k += x.kwh || 0;
-    });
-    var keys = Object.keys(by).sort().slice(-12);
-    var f = chartMode === 'eur' ? 'e' : 'k';
-    var max = keys.reduce(function (m, k) { return Math.max(m, by[k][f]); }, 0.01);
-    return '<div class="pwr-chips"><button class="chip-btn' + (f === 'e' ? ' sug' : '') + '" data-cm="eur">€</button>' +
-      '<button class="chip-btn' + (f === 'k' ? ' sug' : '') + '" data-cm="kwh">kWh</button></div>' +
-      '<div class="tcm">' + keys.map(function (k) {
-        var v = by[k][f], m = parseInt(k.slice(5), 10) - 1;
-        return '<div class="tcm-c"><span class="tcm-v">' + (f === 'e' ? M.fmt(v, 0) : M.fmt(v, 0)) + '</span><i style="height:' + Math.max(2, Math.round(v / max * 100)) + '%"></i><span class="tcm-l">' +
-          MOIS[m].slice(0, 3).toLowerCase() + '</span></div>';
-      }).join('') + '</div>';
-  }
+  // Suivi de consommation (relevé quotidien à 6 h dans HA) + archive permanente dans le dépôt GitHub.
+  // cfg : file, title, lastLabel, countLabel, attr, kwhEnt, eurEnt, [colEnt], [monthKwhEnt, monthEurEnt]
+  function make(cfg) {
+    var arch = { cycles: [] }, sha = null, syncing = null, syncError = null, chartMode = 'eur';
 
-  M.openTeslaConso = function () {
-    M.openSheet('<h3>Recharges Tesla</h3><div id="tc-box"><div class="empty">Chargement…</div></div>', function (s) {
-      M.teslaSync().then(function () {
-        var box = s.querySelector('#tc-box');
-        var list = arch.cycles.concat(arch.pending || []);
-        var seen = {};
-        list = list.filter(function (c) { if (seen[c.date]) return false; seen[c.date] = true; return true; })
-          .sort(function (a, b) { return a.date < b.date ? 1 : -1; });
-        if (!list.length) { box.innerHTML = '<div class="empty">Pas encore d\'historique (il se construit chaque matin à 6 h).' + (M.teslaSyncError ? '<br>' + M.esc(M.teslaSyncError) : '') + '</div>'; return; }
-        var max = list.reduce(function (m, x) { return Math.max(m, x.eur || 0); }, 0.01);
-        var tE = 0, tK = 0;
-        list.forEach(function (x) { tE += x.eur || 0; tK += x.kwh || 0; });
-        var h = '<div class="pwr-stats"><div class="pwr-stat"><span>Total</span><b>' + M.fmt(tE, 2) + ' €</b></div>' +
-          '<div class="pwr-stat"><span>Énergie</span><b>' + M.fmt(tK, 0) + ' kWh</b></div>' +
-          '<div class="pwr-stat"><span>Recharges</span><b>' + list.length + '</b></div></div>';
-        h += monthChart(list);
-        var cur = null, buf = '', mE = 0, mK = 0, mN = 0;
-        var flush = function () {
-          if (cur === null) return;
-          var y = cur.slice(0, 4), m = parseInt(cur.slice(5), 10) - 1;
-          h += '<div class="tc-mh"><span>' + MOIS[m] + ' ' + y + '</span><span>' + mN + ' · ' + M.fmt(mK, 1) + ' kWh · ' + M.fmt(mE, 2) + ' €</span></div>' + buf;
-          buf = ''; mE = mK = mN = 0;
-        };
-        list.forEach(function (x) {
-          var mk = x.date.slice(0, 7);
-          if (mk !== cur) { flush(); cur = mk; }
-          mE += x.eur || 0; mK += x.kwh || 0; mN++;
-          var d = new Date(x.date + 'T12:00:00');
-          buf += '<div class="tc-row"><span class="tc-d">' + M.esc(d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })) + '</span>' +
-            '<span class="tc-bar"><i style="width:' + Math.round((x.eur || 0) / max * 100) + '%"></i></span>' +
-            '<span class="tc-v">' + M.fmt(x.kwh, 1) + ' kWh · ' + eur(x.eur) + '</span></div>';
-        });
-        flush();
-        if (!String(M.cfg.pelletToken || '').trim()) h += '<div class="pg-sub">Ajoute le jeton GitHub dans Réglages pour conserver tout l\'historique.</div>';
-        box.innerHTML = h;
-        box.querySelectorAll('[data-cm]').forEach(function (b) {
-          b.onclick = function () { chartMode = b.dataset.cm; M.closeSheet(); M.openTeslaConso(); };
+    function aurl() { return 'https://api.github.com/repos/' + String(M.cfg.pelletRepo).trim() + '/contents/' + cfg.file; }
+    function ah(write) {
+      var h = { 'Accept': 'application/vnd.github+json' }, t = String(M.cfg.pelletToken || '').trim();
+      if (t) h.Authorization = 'Bearer ' + t;
+      if (write) h['Content-Type'] = 'application/json';
+      return h;
+    }
+
+    async function loadArchive() {
+      var res = await fetch(aurl() + '?t=' + Date.now(), { headers: ah(false), cache: 'no-store' });
+      if (res.status === 404) { sha = null; arch = { cycles: [] }; return; }
+      if (!res.ok) throw new Error('GitHub ' + res.status);
+      var j = await res.json();
+      arch = JSON.parse(dec(j.content));
+      if (!Array.isArray(arch.cycles)) arch.cycles = [];
+      sha = j.sha;
+    }
+
+    // Relevés récents d'après l'historique de HA (conservé quelques jours seulement)
+    async function haCycles(days) {
+      var now = Date.now(), t0 = now - days * 86400000;
+      var q = function (ent) {
+        if (!ent) return Promise.resolve([]);
+        return HA.rest('/api/history/period/' + encodeURIComponent(new Date(t0).toISOString()) + '?filter_entity_id=' + encodeURIComponent(ent) +
+          '&end_time=' + encodeURIComponent(new Date(now).toISOString()) + '&minimal_response&no_attributes').then(function (r) { return (r && r[0]) || []; });
+      };
+      var res = await Promise.all([q(cfg.kwhEnt), q(cfg.eurEnt), q(cfg.colEnt)]);
+      var hk = function (r) { return new Date(r.last_changed || r.last_updated).toISOString().slice(0, 13); };
+      var cost = {}, col = {};
+      res[1].forEach(function (r) { if (!isNaN(parseFloat(r.state))) cost[hk(r)] = parseFloat(r.state); });
+      res[2].forEach(function (r) { col[hk(r)] = r.state; });
+      var out = [];
+      res[0].forEach(function (r) {
+        var t = new Date(r.last_changed || r.last_updated), v = parseFloat(r.state);
+        if (isNaN(v) || t.getTime() <= t0 + 1000) return;       // 1re ligne = état initial de la période
+        var e = { date: dkey(new Date(t.getTime() - 86400000)), kwh: v, eur: cost[hk(r)] };
+        if (e.eur == null) return;
+        if (col[hk(r)] && col[hk(r)] !== 'unknown') e.couleur = col[hk(r)];
+        out.push(e);
+      });
+      return out;
+    }
+
+    function sync() {
+      if (syncing) return syncing;
+      syncing = (async function () {
+        if (!HA.configured()) return;
+        await loadArchive();
+        var have = {};
+        arch.cycles.forEach(function (c) { have[c.date] = true; });
+        var fresh = (await haCycles(14)).filter(function (c) { return !have[c.date]; });
+        if (fresh.length && String(M.cfg.pelletToken || '').trim()) {
+          arch.cycles = arch.cycles.concat(fresh).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+          arch.updated = new Date().toISOString();
+          var body = { message: cfg.title + ' : +' + fresh.length, content: enc(JSON.stringify(arch, null, 1) + '\n') };
+          if (sha) body.sha = sha;
+          var res = await fetch(aurl(), { method: 'PUT', headers: ah(true), body: JSON.stringify(body) });
+          if (res.ok) { var j = await res.json(); sha = j.content && j.content.sha; }
+          else if (res.status === 409 || res.status === 422) { syncing = null; return sync(); }
+        } else if (fresh.length) {
+          arch.pending = fresh;                                   // sans jeton : affichage seulement
+        }
+        syncError = null;
+      })().catch(function (e) { syncError = e.message; }).then(function () {
+        syncing = null;
+        var v = M.views[M.current]; if (v && v.render && !M.skipRender(v.el)) v.render();
+      });
+      return syncing;
+    }
+
+    function list() {
+      var l = (arch.cycles || []).concat(arch.pending || []), seen = {};
+      return l.filter(function (c) { if (seen[c.date]) return false; seen[c.date] = true; return true; })
+        .sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+    }
+
+    function rows(row) {
+      var l = list(), last = l[0], h = '';
+      var haK = HA.num(cfg.kwhEnt), haE = HA.num(cfg.eurEnt);
+      var useHa = haK != null && haK > 0;
+      var lk = useHa ? haK : (last ? last.kwh : null), le = useHa ? haE : (last ? last.eur : null);
+      var lc = cfg.colEnt ? (useHa ? HA.s(cfg.colEnt) : (last && last.couleur)) : '';
+      if (!lc || lc === 'unknown' || lc === 'unavailable') lc = '';
+      var d = new Date(), mk = d.getFullYear() + '-' + pad(d.getMonth() + 1), mK = 0, mE = 0;
+      l.forEach(function (c) { if (c.date.slice(0, 7) === mk) { mK += c.kwh || 0; mE += c.eur || 0; } });
+      if (!l.length && cfg.monthKwhEnt) { mK = HA.num(cfg.monthKwhEnt); mE = HA.num(cfg.monthEurEnt); }
+      h += row(cfg.lastLabel + (lc ? ' · ' + M.esc(lc) : ''), '<span class="val">' + kwh(lk) + ' · ' + eur(le) + '</span>');
+      h += row('Ce mois', '<span class="val">' + kwh(mK) + ' · ' + eur(mE) + '</span>');
+      h += '<button class="row" ' + cfg.attr + ' style="width:100%;background:none;border:0;border-bottom:1px solid var(--card2);color:inherit;font:inherit;text-align:left"><span>' + cfg.histLabel + '</span><span class="val">Voir</span></button>';
+      return h;
+    }
+
+    function monthChart(l) {
+      var by = {};
+      l.forEach(function (x) {
+        var k = x.date.slice(0, 7);
+        by[k] = by[k] || { e: 0, k: 0 };
+        by[k].e += x.eur || 0; by[k].k += x.kwh || 0;
+      });
+      var keys = Object.keys(by).sort().slice(-12);
+      var f = chartMode === 'eur' ? 'e' : 'k';
+      var max = keys.reduce(function (m, k) { return Math.max(m, by[k][f]); }, 0.01);
+      return '<div class="pwr-chips"><button class="chip-btn' + (f === 'e' ? ' sug' : '') + '" data-cm="eur">€</button>' +
+        '<button class="chip-btn' + (f === 'k' ? ' sug' : '') + '" data-cm="kwh">kWh</button></div>' +
+        '<div class="tcm">' + keys.map(function (k) {
+          var v = by[k][f], m = parseInt(k.slice(5), 10) - 1;
+          return '<div class="tcm-c"><span class="tcm-v">' + M.fmt(v, 0) + '</span><i style="height:' + Math.max(2, Math.round(v / max * 100)) + '%"></i><span class="tcm-l">' +
+            MOIS[m].slice(0, 3).toLowerCase() + '</span></div>';
+        }).join('') + '</div>';
+    }
+
+    function open() {
+      M.openSheet('<h3>' + cfg.title + '</h3><div id="tc-box"><div class="empty">Chargement…</div></div>', function (s) {
+        sync().then(function () {
+          var box = s.querySelector('#tc-box'), l = list();
+          if (!l.length) { box.innerHTML = '<div class="empty">Pas encore d\'historique (il se construit chaque matin à 6 h).' + (syncError ? '<br>' + M.esc(syncError) : '') + '</div>'; return; }
+          var max = l.reduce(function (m, x) { return Math.max(m, x.eur || 0); }, 0.01), tE = 0, tK = 0;
+          l.forEach(function (x) { tE += x.eur || 0; tK += x.kwh || 0; });
+          var h = '<div class="pwr-stats"><div class="pwr-stat"><span>Total</span><b>' + M.fmt(tE, 2) + ' €</b></div>' +
+            '<div class="pwr-stat"><span>Énergie</span><b>' + M.fmt(tK, 0) + ' kWh</b></div>' +
+            '<div class="pwr-stat"><span>' + cfg.countLabel + '</span><b>' + l.length + '</b></div></div>';
+          h += monthChart(l);
+          var cur = null, buf = '', mE = 0, mK = 0, mN = 0;
+          var flush = function () {
+            if (cur === null) return;
+            h += '<div class="tc-mh"><span>' + MOIS[parseInt(cur.slice(5), 10) - 1] + ' ' + cur.slice(0, 4) + '</span><span>' + mN + ' · ' + M.fmt(mK, 1) + ' kWh · ' + M.fmt(mE, 2) + ' €</span></div>' + buf;
+            buf = ''; mE = mK = mN = 0;
+          };
+          l.forEach(function (x) {
+            var mk = x.date.slice(0, 7);
+            if (mk !== cur) { flush(); cur = mk; }
+            mE += x.eur || 0; mK += x.kwh || 0; mN++;
+            var d = new Date(x.date + 'T12:00:00');
+            buf += '<div class="tc-row"><span class="tc-d">' + M.esc(d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })) + '</span>' +
+              '<span class="tc-bar"><i style="width:' + Math.round((x.eur || 0) / max * 100) + '%"></i></span>' +
+              '<span class="tc-v">' + M.fmt(x.kwh, 1) + ' kWh · ' + eur(x.eur) + '</span></div>';
+          });
+          flush();
+          if (!String(M.cfg.pelletToken || '').trim()) h += '<div class="pg-sub">Ajoute le jeton GitHub dans Réglages pour conserver tout l\'historique.</div>';
+          box.innerHTML = h;
+          box.querySelectorAll('[data-cm]').forEach(function (b) {
+            b.onclick = function () { chartMode = b.dataset.cm; M.closeSheet(); open(); };
+          });
         });
       });
-    });
-  };
+    }
+    return { rows: rows, open: open, sync: sync };
+  }
+
+  var tesla = make({
+    file: 'tesla-conso.json', title: 'Recharges Tesla', lastLabel: 'Dernière recharge', histLabel: 'Historique des recharges',
+    countLabel: 'Recharges', attr: 'data-tconso', kwhEnt: E.teslaKwhDernier, eurEnt: E.teslaCoutDernier, colEnt: E.teslaCouleurDernier,
+    monthKwhEnt: E.teslaKwhMois, monthEurEnt: E.teslaCoutMois
+  });
+  var tv = make({
+    file: 'tv-conso.json', title: 'Consommation TV', lastLabel: 'Dernier jour', histLabel: 'Historique de la TV',
+    countLabel: 'Jours', attr: 'data-tvconso', kwhEnt: E.tvKwhDernier, eurEnt: E.tvCoutDernier
+  });
+
+  M.teslaConsoRows = tesla.rows; M.openTeslaConso = tesla.open;
+  M.tvConsoRows = tv.rows; M.openTvConso = tv.open;
+  M.teslaSync = function () { return tesla.sync().then(function () { return tv.sync(); }); };
 })(window.M = window.M || {});
 
 (function (M) {
@@ -2417,6 +2408,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       row('Seuil puissance max', numIn(E.powerMax, 'VA')) +
       row('Seuil puissance min', numIn(E.powerMin, 'VA')) +
       row('Prise TV' + (tvp == null ? '' : ' · ' + M.fmt(tvp) + ' W'), M.sw(E.tv, 'Prise TV')) +
+      M.tvConsoRows(row) +
       sub('tempo', 'Tarifs Tempo (€/kWh)',
         M.TEMPO.map(function (t) { return row(M.esc(t.name), numIn(t.entity, '€')); }).join('')) +
       '</div></div>';
@@ -2425,6 +2417,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     M.bindActions(el);
     el.querySelectorAll('[data-pellet]').forEach(function (b) { b.onclick = M.openPellets; });
     el.querySelectorAll('[data-power]').forEach(function (b) { b.onclick = M.openPower; });
+    el.querySelectorAll('[data-tvconso]').forEach(function (b) { b.onclick = M.openTvConso; });
     el.querySelectorAll('[data-tconso]').forEach(function (b) { b.onclick = M.openTeslaConso; });
     el.querySelectorAll('[data-sub]').forEach(function (b) {
       b.onclick = function () { M.open[b.dataset.sub] = !M.open[b.dataset.sub]; render(); };
