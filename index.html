@@ -325,11 +325,9 @@ button.power{color:inherit;font:inherit;text-align:left}
 .pl-day.today{background:none;box-shadow:inset 3px 0 0 var(--accent)}
 .pl-day.we{background:rgba(128,140,150,.16)}
 .pl-day.soir{background:rgba(255,138,61,.16)}
-.pl-day.soir .pl-h{color:var(--light)}
 
 .pl-dim{opacity:.45;pointer-events:none}
-.pl-n{color:var(--accent);font-weight:600}
-.pl-day.soir .pl-n{color:var(--light)}
+.pl-n.ve{color:var(--accent);font-weight:600}
 
 </style>
 </head>
@@ -1756,7 +1754,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       if (!evs.length) days += '<span class="pl-none">—</span>';
       evs.forEach(function (ev) {
         var t = ev.allDay ? '' : '<span class="pl-h">' + M.hm(ev.start) + ' – ' + M.hm(ev.end) + '</span>';
-        days += '<div class="pl-ev">' + t + '<span class="pl-n">' + M.esc(ev.title) + '</span></div>';
+        days += '<div class="pl-ev">' + t + '<span class="pl-n' + (/\bVE\b/i.test(ev.title) ? ' ve' : '') + '">' + M.esc(ev.title) + '</span></div>';
       });
       days += '</div></div>';
     }
