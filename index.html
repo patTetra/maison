@@ -334,6 +334,8 @@ button.power{color:inherit;font:inherit;text-align:left}
 
 .sv.tap{cursor:pointer;text-decoration:underline;text-decoration-color:var(--accent-line,rgba(0,0,0,.3));text-underline-offset:5px}
 
+.ht-info{font-size:16px;line-height:1.4;color:var(--text2);margin:2px 0 12px}
+
 </style>
 </head>
 <body>
@@ -357,6 +359,8 @@ button.power{color:inherit;font:inherit;text-align:left}
     powerMax: 'input_number.seuil_puissance_max',
     powerMin: 'input_number.seuil_puissance_min',
     poele: 'switch.poele',
+    absent: 'input_boolean.mode_absent',
+    tempAbsent: 'input_number.temp_absent',
     consigne: 'input_number.temp_desiree_direct',
     maintenance: 'input_boolean.maintenance_poele',
     tmaxJour: 'sensor.plo_max_du_jour',
@@ -1800,7 +1804,8 @@ button.power{color:inherit;font:inherit;text-align:left}
   function r(v) { return Math.round(v * 100) / 100; }
 
   M.openHeat = function () {
-    var ent = E.consigne;
+    var absent = HA.isOn(E.absent);
+    var ent = absent ? E.tempAbsent : E.consigne;
     var step = parseFloat(HA.a(ent, 'step')) || 0.5;
     var min = parseFloat(HA.a(ent, 'min')); if (isNaN(min)) min = 5;
     var max = parseFloat(HA.a(ent, 'max')); if (isNaN(max)) max = 30;
@@ -1823,14 +1828,18 @@ button.power{color:inherit;font:inherit;text-align:left}
     var salon = HA.num(E.salonTemp);
     var conf = HA.num(E.confortJour), eco = HA.num(E.ecoNuit);
     var poele = HA.isOn(E.poele);
-    var h = '<h3>Chauffage</h3>' +
-      '<div class="pg-sub">' + (salon == null ? '' : 'Salon ' + M.fmt(salon, 1) + ' °C · ') + 'consigne actuelle ' + M.fmt(cur, step < 1 ? 1 : 0) + ' °C · poêle ' + (poele ? 'allumé' : 'éteint') + '</div>' +
-      '<div class="chips">' +
+    var h = '<h3>' + (absent ? 'Mode absent' : 'Chauffage') + '</h3>' +
+      '<div class="ht-info">' + (absent
+        ? 'Consigne maintenue à ' + M.fmt(cur, step < 1 ? 1 : 0) + ' °C, jour et nuit, jusqu\'à la désactivation.'
+        : (salon == null ? '' : 'Salon ' + M.fmt(salon, 1) + ' °C · ') + 'consigne actuelle ' + M.fmt(cur, step < 1 ? 1 : 0) + ' °C · poêle ' + (poele ? 'allumé' : 'éteint')) + '</div>' +
+      (absent ? '' : '<div class="chips">' +
       (conf != null ? '<button class="chip-btn sug" data-t="' + conf + '">Confort · ' + M.fmt(conf, 1) + '°</button>' : '') +
-      (eco != null ? '<button class="chip-btn" data-t="' + eco + '">Éco · ' + M.fmt(eco, 1) + '°</button>' : '') + '</div>' +
+      (eco != null ? '<button class="chip-btn" data-t="' + eco + '">Éco · ' + M.fmt(eco, 1) + '°</button>' : '') + '</div>') +
       '<div class="wheels">' + wheel('ht-i', ints, ii) + (fr.length > 1 ? '<span class="colon">,</span>' + wheel('ht-f', fr.map(function (f) { return labelF(f).slice(1); }), fi) : '') +
       '<span class="colon" style="font-size:22px">°C</span></div>' +
-      '<div class="btnrow"><button class="btn solid" id="ht-go">Appliquer</button><button class="btn" id="ht-all">Tous les réglages</button></div>';
+      '<div class="btnrow"><button class="btn solid" id="ht-go">' + (absent ? 'Régler la température' : 'Appliquer') + '</button>' +
+      (absent ? '<button class="btn" id="ht-abs-off">Désactiver l\'absence</button>' : '<button class="btn" id="ht-all">Tous les réglages</button>') + '</div>' +
+      (absent ? '' : '<button class="btn wide" id="ht-abs-on" style="margin-top:8px">Mode absent · ' + (HA.num(E.tempAbsent) == null ? '17' : M.fmt(HA.num(E.tempAbsent), 1)) + ' °C</button>');
     M.openSheet(h, function (s) {
       bind(s.querySelector('#ht-i'), ii, function (i) { ii = i; });
       var wf = s.querySelector('#ht-f');
@@ -1849,9 +1858,20 @@ button.power{color:inherit;font:inherit;text-align:left}
         var v = r(ints[ii] + fr[fi]);
         M.act('input_number', 'set_value', { entity_id: ent, value: v }, [ent]);
         M.closeSheet();
-        M.toast('Consigne ' + M.fmt(v, step < 1 ? 1 : 0) + ' °C');
+        M.toast((absent ? 'Température absent ' : 'Consigne ') + M.fmt(v, step < 1 ? 1 : 0) + ' °C');
       };
-      s.querySelector('#ht-all').onclick = function () { M.closeSheet(); M.go('maison', 'chauffage'); };
+      var all = s.querySelector('#ht-all');
+      if (all) all.onclick = function () { M.closeSheet(); M.go('maison', 'chauffage'); };
+      var on = s.querySelector('#ht-abs-on'), off = s.querySelector('#ht-abs-off');
+      var flip = function (turn) {
+        return async function () {
+          try { await HA.act('input_boolean', turn, { entity_id: E.absent }, [E.absent]); } catch (e) { M.toast('Home Assistant : ' + e.message); return; }
+          M.closeSheet();
+          M.toast(turn === 'turn_on' ? 'Mode absent activé' : 'Mode absent désactivé');
+        };
+      };
+      if (on) on.onclick = flip('turn_on');
+      if (off) off.onclick = flip('turn_off');
     });
   };
 })(window.M = window.M || {});
@@ -2290,7 +2310,7 @@ button.power{color:inherit;font:inherit;text-align:left}
 
     h += '<div class="grid2">' +
       tile(poele ? 'on' : '', 'flame', 'Chauffage', salon == null ? '—' : M.fmt(salon, 1) + '°',
-        HA.isOn(E.maintenance) ? 'maintenance poêle' : (poele ? 'poêle allumé' : 'poêle éteint') + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°'), '@heat') +
+        HA.isOn(E.maintenance) ? 'maintenance poêle' : HA.isOn(E.absent) ? 'mode absent' + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°') : (poele ? 'poêle allumé' : 'poêle éteint') + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°'), '@heat') +
       '<button class="tile" data-pellet="1"><div class="tile-top">' + M.icon('bag', 22) + '<span class="tile-lab">Pellets</span></div><div class="tile-val">' +
         (stock == null ? '—' : stock + (stock > 1 ? ' sacs' : ' sac')) + '</div></button>' +
       tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', ft == null ? '' : 'eau ' + M.fmt(ft, 1) + ' °C', 'maison|piscine') +
@@ -2581,6 +2601,8 @@ button.power{color:inherit;font:inherit;text-align:left}
       row('Poêle', M.sw(E.poele, 'Poêle')) +
       row('Température salon', '<span class="big">' + (salon == null ? '—' : M.fmt(salon, 1) + ' °C') + '</span>') +
       row('Consigne', M.stepper(E.consigne, '°')) +
+      row('Mode absent (consigne fixe)', M.sw(E.absent, 'Mode absent')) +
+      row('Température absent', M.stepper(E.tempAbsent, '°')) +
       row('Stock de pellets', '<button class="btn" data-pellet="1">' + (M.pellets.stock() == null ? '—' : M.pellets.stock() + ' sac' + (M.pellets.stock() > 1 ? 's' : '')) + '</button>') +
       row('Maintenance poêle', M.sw(E.maintenance, 'Maintenance poêle', 'danger')) +
       sub('adv', 'Réglages avancés',
