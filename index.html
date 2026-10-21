@@ -330,6 +330,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     debutRecharge: 'input_datetime.debut_recharge_tesla',
     finRecharge: 'input_datetime.fin_recharge_tesla',
     courantRecharge: 'number.tesla_model_y_courant_de_recharge',
+    bridee: 'input_boolean.tesla_bridee_10a',
     teslaClim: 'climate.tesla_model_y_climatisation',
     teslaBatt: 'sensor.tesla_model_y_niveau_de_la_batterie',
     teslaCharge: 'sensor.tesla_model_y_charge',
@@ -1712,6 +1713,11 @@ button.power{color:inherit;font:inherit;text-align:left}
   }
 
   function teslaSub() {
+    var r = teslaSub0();
+    return HA.isOn(E.bridee) ? (r ? r + ' · ' : '') + 'bridée 10 A' : r;
+  }
+
+  function teslaSub0() {
     var st = HA.s(E.teslaCharge);
     if (climOn()) {
       var ex = '';
@@ -2190,6 +2196,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     var pw = HA.num(E.power), tvp = HA.num(E.tvPower);
     h += '<div class="card" data-anchor="energie"><h2>Énergie</h2>' +
       '<button class="row" data-power style="width:100%;background:none;border:0;border-bottom:1px solid var(--card2);color:inherit;font:inherit;text-align:left"><span>Puissance compteur</span><span class="big">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span></button>' +
+      row('Charge Tesla bridée 10 A (jusqu\'à 6 h)', M.sw(E.bridee, 'Charge bridée 10 A')) +
       row('Prise TV' + (tvp == null ? '' : ' · ' + M.fmt(tvp) + ' W'), M.sw(E.tv, 'Prise TV')) +
       sub('tempo', 'Tarifs Tempo (€/kWh)',
         M.TEMPO.map(function (t) { return row(M.esc(t.name), numIn(t.entity, '€')); }).join('')) +
