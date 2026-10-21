@@ -282,6 +282,12 @@ button.power{color:inherit;font:inherit;text-align:left}
 .banner.err span:first-child{display:flex;align-items:center;gap:6px;white-space:nowrap}
 .banner.err .muted{display:none}
 
+.banner.err.paused{color:var(--muted);font-weight:500}
+.off-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--card2)}
+.off-row:first-of-type{border-top:0}
+.off-t{flex:1;min-width:0}.off-t b{display:block;font-size:14px}.off-t span{display:block;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.off-row .btn{flex:none;padding:8px 12px;font-size:13px}
+
 </style>
 </head>
 <body>
@@ -811,6 +817,23 @@ button.power{color:inherit;font:inherit;text-align:left}
   function $(id) { return document.getElementById(id); }
 
   var toastTimer;
+  // Alertes « notées » : appareils déconnectés mis en pause jusqu'à leur retour en ligne
+  function snoozeGet() { try { return JSON.parse(localStorage.getItem('maison-snooze') || '[]') || []; } catch (e) { return []; } }
+  function snoozeSet(a) { try { localStorage.setItem('maison-snooze', JSON.stringify(a)); } catch (e) {} }
+  M.snoozed = function (e) { return snoozeGet().indexOf(e) !== -1; };
+  M.snooze = function (e, on) {
+    var a = snoozeGet().filter(function (x) { return x !== e; });
+    if (on) a.push(e);
+    snoozeSet(a);
+  };
+  // Retire la pause des appareils redevenus disponibles (appelé à chaque rendu de l'accueil)
+  M.snoozeCleanup = function () {
+    var a = snoozeGet(), keep = a.filter(function (e) { return !M.HA.avail(e) && M.HA.s(e) !== 'unknown' ? true : M.HA.s(e) === undefined; });
+    if (keep.length !== a.length) snoozeSet(keep);
+  };
+  // Déconnecté ET alerte non mise en pause
+  M.offline = function (e) { return M.HA.s(e) === 'unavailable' && !M.snoozed(e); };
+
   M.toast = function (msg) {
     var t = $('toast');
     t.textContent = msg;
@@ -1646,13 +1669,13 @@ button.power{color:inherit;font:inherit;text-align:left}
   function offlineAll() {
     return M.ALL_ENTITIES.filter(function (e) {
       return e !== E.tv && HA.s(e) === 'unavailable';
-    }).map(function (e) { return { id: e, name: HA.a(e, 'friendly_name') || e }; });
+    }).map(function (e) { return { id: e, name: HA.a(e, 'friendly_name') || e, snoozed: M.snoozed(e) }; });
   }
 
   function lightsOffline() {
     var seen = {};
     return M.LIGHTS_IN.concat(M.LIGHTS_OUT).filter(function (l) {
-      if (seen[l.entity] || HA.s(l.entity) !== 'unavailable') return false;
+      if (seen[l.entity] || !M.offline(l.entity)) return false;
       seen[l.entity] = 1; return true;
     });
   }
@@ -1805,9 +1828,16 @@ button.power{color:inherit;font:inherit;text-align:left}
       h += '<div class="banner"><span>Renseigne l\'adresse et le jeton de Home Assistant.</span><button class="btn" data-go="reglages">Réglages</button></div>';
     }
 
-    var offAll = HA.configured() ? offlineAll() : [];
+    if (HA.configured()) M.snoozeCleanup();
+    var offList = HA.configured() ? offlineAll() : [];
+    var offAll = offList.filter(function (x) { return !x.snoozed; });
+    var offPaused = offList.length - offAll.length;
     if (offAll.length) {
       h += '<button class="banner err" data-offline="1"><span>' + M.icon('alert', 14) + ' ' + offAll.length + (offAll.length > 1 ? ' appareils déconnectés' : ' appareil déconnecté') + '</span><span class="muted">Voir</span></button>';
+    }
+
+    if (!offAll.length && offPaused) {
+      h += '<button class="banner err paused" data-offline="1"><span>' + M.icon('alert', 14) + ' ' + offPaused + (offPaused > 1 ? ' alertes en pause' : ' alerte en pause') + '</span></button>';
     }
 
     h += '<div class="shortcuts">' +
@@ -1849,7 +1879,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       '</div>';
 
     h += '<div class="row2">' +
-      (HA.s(E.ballon) === 'unavailable'
+      (M.offline(E.ballon)
         ? tile('err', 'drop', 'Ballon', 'Déconnecté', 'module Shelly hors ligne', 'maison|ballon')
         : tile(HA.isOn(E.ballon) ? 'on' : '', 'drop', 'Ballon', HA.isOn(E.ballon) ? 'Chauffe' : 'Arrêté', HA.isOn(E.ballonForce) ? 'forcé' : '', 'maison|ballon')) +
       batteryBar(tile(ms.cls, 'mower', 'Tondeuse', ms.label, ms.sub, ''), ms) + '</div>';
@@ -1876,9 +1906,20 @@ button.power{color:inherit;font:inherit;text-align:left}
       b.onclick = function () {
         var l = offlineAll();
         M.openSheet('<h3>Appareils déconnectés</h3>' + (l.length ? l.map(function (x) {
-          return '<div class="hw"><b>' + M.esc(x.name) + '</b><span>' + M.esc(x.id) + '</span></div>';
-        }).join('') : '<div class="empty">Tout est connecté.</div>') + '<div class="btnrow"><button class="btn solid" id="off-ok">OK</button></div>',
-          function (sh) { sh.querySelector('#off-ok').onclick = M.closeSheet; });
+          return '<div class="off-row"><div class="off-t"><b>' + M.esc(x.name) + '</b><span>' + M.esc(x.id) + '</span></div>' +
+            '<button class="btn' + (x.snoozed ? '' : ' solid') + '" data-snz="' + M.esc(x.id) + '">' + (x.snoozed ? 'Réactiver' : 'Alerte notée') + '</button></div>';
+        }).join('') + '<div class="pg-sub">« Alerte notée » met l\'alerte en pause jusqu\'au retour en ligne de l\'appareil.</div>'
+          : '<div class="empty">Tout est connecté.</div>') + '<div class="btnrow"><button class="btn solid" id="off-ok">OK</button></div>',
+          function (sh) {
+            sh.querySelector('#off-ok').onclick = M.closeSheet;
+            sh.querySelectorAll('[data-snz]').forEach(function (bt) {
+              bt.onclick = function () {
+                M.snooze(bt.dataset.snz, !M.snoozed(bt.dataset.snz));
+                M.closeSheet();
+                M.views.accueil && M.views.accueil.render && M.views.accueil.render();
+              };
+            });
+          });
       };
     });
     el.querySelectorAll('[data-school]').forEach(function (b) { b.onclick = M.openSchoolApp; });
@@ -1901,7 +1942,7 @@ button.power{color:inherit;font:inherit;text-align:left}
 
   function tile(l) {
     var on = HA.isOn(l.entity);
-    var off = HA.s(l.entity) === 'unavailable';
+    var off = M.offline(l.entity);
     var na = !HA.avail(l.entity) && !off;
     var br = HA.a(l.entity, 'brightness');
     var sub = off ? 'déconnectée' : na ? 'indisponible' : (on ? (typeof br === 'number' ? Math.round(br / 2.55) + ' %' : (l.icon ? 'allumée' : 'allumée')) : 'éteinte');
@@ -2122,8 +2163,8 @@ button.power{color:inherit;font:inherit;text-align:left}
       '</div>';
 
     // Ballon
-    h += '<div class="card" data-anchor="ballon"><h2>Ballon d\'eau chaude ' + (HA.s(E.ballon) === 'unavailable' ? chip('Déconnecté', 'err') : HA.isOn(E.ballon) ? chip('Chauffe') : chip('Arrêté', 'off')) + '</h2>' +
-      (HA.s(E.ballon) === 'unavailable' ? '<div class="offline-note">Le module Shelly ne répond plus : le ballon ne peut pas être commandé ni s\'éteindre.</div>' : '') +
+    h += '<div class="card" data-anchor="ballon"><h2>Ballon d\'eau chaude ' + (M.offline(E.ballon) ? chip('Déconnecté', 'err') : HA.isOn(E.ballon) ? chip('Chauffe') : chip('Arrêté', 'off')) + '</h2>' +
+      (M.offline(E.ballon) ? '<div class="offline-note">Le module Shelly ne répond plus : le ballon ne peut pas être commandé ni s\'éteindre.</div>' : '') +
       row('Ballon', M.sw(E.ballon, 'Ballon')) +
       row('Marche forcée', M.sw(E.ballonForce, 'Marche forcée')) +
       '<div class="note">Jours de chauffe programmés</div><div class="days">' +
