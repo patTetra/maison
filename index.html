@@ -352,6 +352,19 @@ button.power{color:inherit;font:inherit;text-align:left}
 .pl-leg{display:flex;gap:8px;margin-top:8px;justify-content:center}
 .pl-leg span{font-size:11px;padding:3px 10px;border-radius:999px}
 
+.kids{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kid{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--card);border:1px solid var(--card2);border-radius:16px;padding:8px 6px 8px}
+.kid-ph{position:relative;width:100%;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center}
+.kid-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.kid-i{font-family:var(--ft);font-size:34px;font-weight:700;color:var(--muted)}
+.kid.off .kid-ph{filter:grayscale(1);opacity:.4}
+.kid-n{font-size:16px;font-weight:700;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kid-t{display:flex;flex-direction:column;align-items:center;min-height:2px}
+.kid-t b{font-family:var(--ft);font-size:22px;font-weight:900;color:#4caf50;line-height:1.15}
+.kid-b{width:100%;height:42px;border:0;border-radius:10px;background:#4caf50;color:#fff;font:inherit;font-weight:700;font-size:15px;margin-top:2px}
+.kid-b.dep{background:#ff9800}
+.kid-b{text-align:center;padding:0}
+
 </style>
 </head>
 <body>
@@ -409,6 +422,18 @@ button.power{color:inherit;font:inherit;text-align:left}
     tvEnergie: 'sensor.shellyplugmg3_d885ac176d60_energie',
     tvKwhDernier: 'input_number.tv_kwh_dernier',
     tvCoutDernier: 'input_number.tv_cout_dernier',
+    enfantNom1: 'input_text.enfant1',
+    enfantArr1: 'input_datetime.arrivee_enfant1',
+    enfantDep1: 'input_datetime.depart_enfant1',
+    enfantPres1: 'input_boolean.presence_enfant1',
+    enfantNom2: 'input_text.enfant2',
+    enfantArr2: 'input_datetime.arrivee_enfant2',
+    enfantDep2: 'input_datetime.depart_enfant2',
+    enfantPres2: 'input_boolean.presence_enfant2',
+    enfantNom3: 'input_text.enfant3',
+    enfantArr3: 'input_datetime.arrivee_enfant3',
+    enfantDep3: 'input_datetime.depart_enfant3',
+    enfantPres3: 'input_boolean.presence_enfant3',
     bridee: 'input_boolean.tesla_bridee_10a',
     teslaClim: 'climate.tesla_model_y_climatisation',
     teslaBatt: 'sensor.tesla_model_y_niveau_de_la_batterie',
@@ -806,6 +831,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     pelletPath: 'pellets.json',
     pelletToken: '',
     alarmShortcut: 'Réveil',
+    profile: 'patrick',
     accent: '#22d3ee'
   };
 
@@ -1698,6 +1724,52 @@ button.power{color:inherit;font:inherit;text-align:left}
 (function (M) {
   'use strict';
   var HA = M.HA, E = M.E;
+  var N = [1, 2, 3];
+
+  function ent(k, n) { return E[k + n]; }
+  function hhmm(s) { return String(s || '').substring(0, 5); }
+  function inactive(n) {
+    var a = HA.s(ent('enfantArr', n)), d = HA.s(ent('enfantDep', n));
+    return (a === '00:00:00' || !a) && (d === '00:00:00' || !d);
+  }
+
+  // Bloc « enfants » (profil Gaëlle) : photo, prénom, horaires prévus, bouton Arrivée/Départ
+  M.enfantsBlock = function () {
+    var any = N.some(function (n) { return HA.s(ent('enfantNom', n)) !== undefined; });
+    if (!any) return '';
+    var h = '<div class="kids">';
+    N.forEach(function (n) {
+      var nom = HA.s(ent('enfantNom', n)) || ('Enfant ' + n), off = inactive(n);
+      var here = HA.isOn(ent('enfantPres', n));
+      h += '<div class="kid' + (off ? ' off' : '') + '">' +
+        '<div class="kid-ph"><span class="kid-i">' + M.esc(nom.charAt(0).toUpperCase()) + '</span><img alt="" src="' + M.esc(HA.baseUrl) + '/local/images/enfant' + n + '.jpg" onerror="this.style.display=\'none\'"></div>' +
+        '<div class="kid-n">' + M.esc(nom) + '</div>' +
+        '<div class="kid-t">' + (off ? '' : '<b>' + M.esc(hhmm(HA.s(ent('enfantArr', n)))) + '</b><b>' + M.esc(hhmm(HA.s(ent('enfantDep', n)))) + '</b>') + '</div>' +
+        (off ? '' : '<button class="kid-b' + (here ? ' dep' : '') + '" data-kid="' + n + '">' + (here ? 'Départ' : 'Arrivée') + '</button>') +
+        '</div>';
+    });
+    return h + '</div>';
+  };
+
+  M.enfantsBind = function (root) {
+    root.querySelectorAll('[data-kid]').forEach(function (b) {
+      b.onclick = async function () {
+        var n = parseInt(b.dataset.kid, 10), here = HA.isOn(ent('enfantPres', n));
+        var nom = HA.s(ent('enfantNom', n)) || ('Enfant ' + n);
+        try {
+          await HA.act('script', 'enfants_script_pointage', {
+            num: n, prevu_arr: hhmm(HA.s(ent('enfantArr', n))), prevu_dep: hhmm(HA.s(ent('enfantDep', n)))
+          }, [ent('enfantPres', n)]);
+          M.toast((here ? 'Départ' : 'Arrivée') + ' · ' + nom);
+        } catch (e) { M.toast('Home Assistant : ' + e.message); }
+      };
+    });
+  };
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+  var HA = M.HA, E = M.E;
   var P = M.planning = { offset: 0, mode: 'week', cache: {}, loading: false, error: null };
   try { if (localStorage.getItem('maison-plmode') === 'month') P.mode = 'month'; } catch (e) { /* rien */ }
 
@@ -2380,6 +2452,8 @@ button.power{color:inherit;font:inherit;text-align:left}
       shortcut(E.lumExt, 'bulb', 'Lumières ext.', HA.isOn(E.lumExt), 'lit') +
       shortcut(E.jourNuit, isDay() ? 'sun' : 'moon', isDay() ? 'Mode jour' : 'Mode nuit', !isDay()) + '</div>';
 
+    if (M.cfg.profile === 'gaelle') h += M.enfantsBlock();
+
     var pw = HA.num(E.power);
     h += '<button class="power" data-power aria-label="Courbe de puissance"><span class="pw-l">Puissance compteur</span><span class="pw-v">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span><span class="chev">' + M.icon('chevr', 18) + '</span></button>';
 
@@ -2436,6 +2510,7 @@ button.power{color:inherit;font:inherit;text-align:left}
         render();
       };
     });
+    M.enfantsBind(el);
     M.planning.bind(el, render);
     el.querySelectorAll('[data-heat]').forEach(function (b) { b.onclick = M.openHeat; });
     el.querySelectorAll('[data-pellet]').forEach(function (b) { b.onclick = M.openPellets; });
@@ -2776,6 +2851,10 @@ button.power{color:inherit;font:inherit;text-align:left}
       '<div class="btnrow"><button class="btn solid" id="s-save">Enregistrer et tester</button></div>' +
       '<div class="msg ' + (testMsg ? testMsg.cls : '') + '" id="s-msg">' + M.esc(testMsg ? testMsg.text : M.statusText()) + '</div></div>';
 
+    h += '<div class="card"><h2>Profil de cet appareil</h2>' +
+      '<div class="note">Change l\'écran d\'accueil : le profil Gaëlle ajoute les enfants (photos, horaires, arrivée / départ).</div>' +
+      '<div class="opts" style="margin-top:8px"><button class="opt' + (c.profile !== 'gaelle' ? ' on' : '') + '" data-prof="patrick">Patrick</button><button class="opt' + (c.profile === 'gaelle' ? ' on' : '') + '" data-prof="gaelle">Gaëlle</button></div></div>';
+
     h += '<div class="card"><h2>Mode jour / nuit</h2>' +
       '<div class="note">Quand <b>input_boolean.etat_jour_nuit</b> est activé, c\'est :</div>' +
       '<div class="opts" style="margin-top:8px"><button class="opt' + (c.jourQuandActive ? ' on' : '') + '" data-jn="1">Le jour</button><button class="opt' + (!c.jourQuandActive ? ' on' : '') + '" data-jn="0">La nuit</button></div></div>';
@@ -2827,6 +2906,9 @@ button.power{color:inherit;font:inherit;text-align:left}
       }
       render();
     };
+    el.querySelectorAll('[data-prof]').forEach(function (b) {
+      b.onclick = function () { M.saveCfg({ profile: b.dataset.prof }); M.toast('Profil : ' + (b.dataset.prof === 'gaelle' ? 'Gaëlle' : 'Patrick')); render(); };
+    });
     el.querySelectorAll('[data-jn]').forEach(function (b) {
       b.onclick = function () { M.saveCfg({ jourQuandActive: b.dataset.jn === '1' }); render(); };
     });
