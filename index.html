@@ -1752,6 +1752,17 @@ button.power{color:inherit;font:inherit;text-align:left}
     return h + '</div>';
   };
 
+  // Résumé affiché quand le bloc est replié : présents / horaires du jour
+  M.enfantsSub = function () {
+    var parts = [];
+    N.forEach(function (n) {
+      if (inactive(n)) return;
+      var nom = HA.s(ent('enfantNom', n)); if (!nom) return;
+      parts.push(nom + (HA.isOn(ent('enfantPres', n)) ? ' ✓' : ' ' + hhmm(HA.s(ent('enfantArr', n)))));
+    });
+    return parts.length ? parts.join(' · ') : 'Aucun horaire';
+  };
+
   M.enfantsBind = function (root) {
     root.querySelectorAll('[data-kid]').forEach(function (b) {
       b.onclick = async function () {
@@ -2505,7 +2516,10 @@ button.power{color:inherit;font:inherit;text-align:left}
       shortcut(E.lumExt, 'bulb', 'Lumières ext.', HA.isOn(E.lumExt), 'lit') +
       shortcut(E.jourNuit, isDay() ? 'sun' : 'moon', isDay() ? 'Mode jour' : 'Mode nuit', !isDay()) + '</div>';
 
-    if (M.cfg.profile === 'gaelle') h += M.enfantsBlock();
+    if (M.cfg.profile === 'gaelle' && M.enfantsBlock()) {
+      if (M.open.enfants === undefined) M.open.enfants = true;
+      h += acc('enfants', 'smile', 'Enfants', M.enfantsSub(), M.enfantsBlock());
+    }
 
     var pw = HA.num(E.power);
     h += '<button class="power" data-power aria-label="Courbe de puissance"><span class="pw-l">Puissance compteur</span><span class="pw-v">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span><span class="chev">' + M.icon('chevr', 18) + '</span></button>';
