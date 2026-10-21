@@ -329,6 +329,9 @@ button.power{color:inherit;font:inherit;text-align:left}
 .pl-dim{opacity:.45;pointer-events:none}
 .pl-n.ve{color:var(--accent);font-weight:600}
 
+.pl-b{display:flex;align-items:center;justify-content:center;padding:0;text-align:center}
+.pl-t b{font-size:14px}
+
 </style>
 </head>
 <body>
@@ -1739,9 +1742,8 @@ button.power{color:inherit;font:inherit;text-align:left}
   P.body = function () {
     var a = monday(P.offset), z = addDays(a, 6), c = P.cache[key(P.offset)];
     var fmt = function (d, o) { return d.toLocaleDateString('fr-FR', o); };
-    var label = P.offset === 0 ? 'Cette semaine' : (P.offset === 1 ? 'Semaine prochaine' : (P.offset === -1 ? 'Semaine dernière' : 'Semaine'));
     var h = '<div class="pl-nav"><button class="pl-b" data-pw="-1" aria-label="Semaine précédente">‹</button>' +
-      '<button class="pl-t" data-pw="0"><b>' + label + '</b><small>' + fmt(a, { day: 'numeric', month: 'short' }) + ' – ' + fmt(z, { day: 'numeric', month: 'short' }) + '</small></button>' +
+      '<button class="pl-t" data-pw="0" aria-label="Revenir à cette semaine"><b>' + fmt(a, { day: 'numeric', month: 'short' }) + ' – ' + fmt(z, { day: 'numeric', month: 'short' }) + '</b></button>' +
       '<button class="pl-b" data-pw="1" aria-label="Semaine suivante">›</button></div>';
     if (P.error && !c) return h + '<div class="empty">' + M.esc(P.error) + '</div>';
     // Pendant le chargement d'une autre semaine, on garde l'ancienne affichée (grisée) pour ne pas faire sauter l'écran
