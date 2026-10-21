@@ -1699,6 +1699,7 @@ button.power{color:inherit;font:inherit;text-align:left}
   'use strict';
   var HA = M.HA, E = M.E;
   var P = M.planning = { offset: 0, mode: 'week', cache: {}, loading: false, error: null };
+  try { if (localStorage.getItem('maison-plmode') === 'month') P.mode = 'month'; } catch (e) { /* rien */ }
 
   function pdt(x) {
     if (x && typeof x === 'object') x = x.dateTime || x.date;
@@ -1847,6 +1848,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       b.onclick = function (e) {
         e.stopPropagation();
         P.mode = b.dataset.pm; P.offset = 0;
+        try { localStorage.setItem('maison-plmode', P.mode); } catch (err) { /* rien */ }
         rerender();
         P.load(false);
       };
