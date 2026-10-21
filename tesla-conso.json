@@ -1,10 +1,623 @@
 {
+ "updated": "2026-10-21T01:47:00.527880Z",
  "cycles": [
   {
-   "date": "2026-10-20",
-   "kwh": 0,
-   "eur": 0
+   "date": "2026-10-19",
+   "kwh": 15.56,
+   "eur": 2.11,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-18",
+   "kwh": 0.13,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-17",
+   "kwh": 0.13,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-16",
+   "kwh": 19.17,
+   "eur": 2.6,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-15",
+   "kwh": 11.9,
+   "eur": 1.62,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-14",
+   "kwh": 9.21,
+   "eur": 1.25,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-13",
+   "kwh": 15.97,
+   "eur": 2.39,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-11",
+   "kwh": 8.6,
+   "eur": 1.17,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-10",
+   "kwh": 0.11,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-09",
+   "kwh": 10.5,
+   "eur": 1.43,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-08",
+   "kwh": 12.73,
+   "eur": 1.73,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-07",
+   "kwh": 14.34,
+   "eur": 1.95,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-06",
+   "kwh": 6.6,
+   "eur": 0.9,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-05",
+   "kwh": 4.64,
+   "eur": 0.77,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-03",
+   "kwh": 5.75,
+   "eur": 0.78,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-02",
+   "kwh": 13.36,
+   "eur": 1.81,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-10-01",
+   "kwh": 12.99,
+   "eur": 1.87,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-30",
+   "kwh": 11.74,
+   "eur": 1.59,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-29",
+   "kwh": 0.15,
+   "eur": 0.03,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-28",
+   "kwh": 5.67,
+   "eur": 0.77,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-25",
+   "kwh": 23.41,
+   "eur": 3.18,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-24",
+   "kwh": 10.12,
+   "eur": 1.37,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-23",
+   "kwh": 6.65,
+   "eur": 0.9,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-22",
+   "kwh": 8.98,
+   "eur": 1.22,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-21",
+   "kwh": 11.99,
+   "eur": 1.63,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-20",
+   "kwh": 10.55,
+   "eur": 1.43,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-19",
+   "kwh": 28.1,
+   "eur": 4.27,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-17",
+   "kwh": 12.74,
+   "eur": 1.73,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-16",
+   "kwh": 0.11,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-15",
+   "kwh": 6.66,
+   "eur": 0.9,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-14",
+   "kwh": 7.81,
+   "eur": 1.06,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-13",
+   "kwh": 25.65,
+   "eur": 3.48,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-12",
+   "kwh": 14.77,
+   "eur": 2.01,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-11",
+   "kwh": 28.8,
+   "eur": 3.91,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-10",
+   "kwh": 10.09,
+   "eur": 1.37,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-09",
+   "kwh": 16.09,
+   "eur": 2.19,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-08",
+   "kwh": 11.12,
+   "eur": 1.51,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-07",
+   "kwh": 0.09,
+   "eur": 0.01,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-06",
+   "kwh": 4.87,
+   "eur": 0.66,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-05",
+   "kwh": 29.29,
+   "eur": 3.97,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-04",
+   "kwh": 23.5,
+   "eur": 3.39,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-09-01",
+   "kwh": 5.3,
+   "eur": 0.72,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-31",
+   "kwh": 12.2,
+   "eur": 1.66,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-30",
+   "kwh": 6.82,
+   "eur": 0.93,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-29",
+   "kwh": 28.49,
+   "eur": 3.87,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-28",
+   "kwh": 28.61,
+   "eur": 3.88,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-27",
+   "kwh": 14.92,
+   "eur": 2.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-25",
+   "kwh": 4.19,
+   "eur": 0.57,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-24",
+   "kwh": 0.1,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-23",
+   "kwh": 9.78,
+   "eur": 1.33,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-22",
+   "kwh": 24.47,
+   "eur": 3.32,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-21",
+   "kwh": 7.64,
+   "eur": 1.06,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-20",
+   "kwh": 9.6,
+   "eur": 1.3,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-19",
+   "kwh": 11.26,
+   "eur": 1.86,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-16",
+   "kwh": 6.97,
+   "eur": 0.95,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-15",
+   "kwh": 7.91,
+   "eur": 1.08,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-14",
+   "kwh": 20.41,
+   "eur": 2.71,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-13",
+   "kwh": 5.37,
+   "eur": 0.71,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-12",
+   "kwh": 22.84,
+   "eur": 3.03,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-11",
+   "kwh": 28.62,
+   "eur": 3.8,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-10",
+   "kwh": 41.59,
+   "eur": 6.33,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-08",
+   "kwh": 7.66,
+   "eur": 1.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-07",
+   "kwh": 0.1,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-06",
+   "kwh": 5.83,
+   "eur": 0.78,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-05",
+   "kwh": 12.04,
+   "eur": 1.6,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-04",
+   "kwh": 4.22,
+   "eur": 0.56,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-08-03",
+   "kwh": 3.87,
+   "eur": 0.52,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-07-15",
+   "kwh": 0.1,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-07-14",
+   "kwh": 0.1,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-07-13",
+   "kwh": 0.1,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-07-12",
+   "kwh": 0.1,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-07-11",
+   "kwh": 0.1,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-07-10",
+   "kwh": 34.42,
+   "eur": 4.9,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-07-08",
+   "kwh": 15.0,
+   "eur": 1.99,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-07-06",
+   "kwh": 0.0,
+   "eur": 0.0,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-07-02",
+   "kwh": 40.64,
+   "eur": 5.75,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-30",
+   "kwh": 17.51,
+   "eur": 2.32,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-29",
+   "kwh": 36.9,
+   "eur": 4.89,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-28",
+   "kwh": 27.92,
+   "eur": 3.7,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-27",
+   "kwh": 0.09,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-26",
+   "kwh": 12.31,
+   "eur": 1.63,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-25",
+   "kwh": 4.19,
+   "eur": 0.56,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-24",
+   "kwh": 26.22,
+   "eur": 3.91,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-22",
+   "kwh": 0.12,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-21",
+   "kwh": 14.47,
+   "eur": 1.99,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-20",
+   "kwh": 6.27,
+   "eur": 1.01,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-19",
+   "kwh": 27.8,
+   "eur": 3.9,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-17",
+   "kwh": 0.0,
+   "eur": 0.0,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-16",
+   "kwh": 0.0,
+   "eur": 0.0,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-13",
+   "kwh": 0.0,
+   "eur": 0.0,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-11",
+   "kwh": 15.12,
+   "eur": 2.0,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-10",
+   "kwh": 0.09,
+   "eur": 0.02,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-09",
+   "kwh": 17.19,
+   "eur": 2.28,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-06-08",
+   "kwh": 8.3,
+   "eur": 1.1,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-05-30",
+   "kwh": 21.71,
+   "eur": 2.88,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-05-29",
+   "kwh": 15.79,
+   "eur": 2.37,
+   "couleur": "Blanc"
+  },
+  {
+   "date": "2026-05-28",
+   "kwh": 13.85,
+   "eur": 2.08,
+   "couleur": "Blanc"
+  },
+  {
+   "date": "2026-05-27",
+   "kwh": 28.64,
+   "eur": 4.29,
+   "couleur": "Blanc"
+  },
+  {
+   "date": "2026-05-26",
+   "kwh": 14.46,
+   "eur": 2.17,
+   "couleur": "Blanc"
+  },
+  {
+   "date": "2026-04-30",
+   "kwh": 5.79,
+   "eur": 0.77,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-04-28",
+   "kwh": 4.41,
+   "eur": 0.58,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-04-27",
+   "kwh": 4.41,
+   "eur": 0.58,
+   "couleur": "Bleu"
+  },
+  {
+   "date": "2026-04-26",
+   "kwh": 0.96,
+   "eur": 0.13,
+   "couleur": "Bleu"
   }
- ],
- "updated": "2026-10-21T01:47:04.189Z"
+ ]
 }
