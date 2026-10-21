@@ -1663,12 +1663,26 @@ button.power{color:inherit;font:inherit;text-align:left}
     return { kwh: total, cost: cost };
   };
 
+  // Données de l'archive (GitHub) : priment sur les compteurs HA, vides au démarrage
+  function archiveList() {
+    var l = (arch.cycles || []).concat(arch.pending || []), seen = {};
+    return l.filter(function (c) { if (seen[c.date]) return false; seen[c.date] = true; return true; })
+      .sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  }
+
   M.teslaConsoRows = function (row) {
-    var live = M.teslaLive(), h = '';
+    var live = M.teslaLive(), h = '', list = archiveList();
+    var last = list[0], haK = HA.num(E.teslaKwhDernier), haE = HA.num(E.teslaCoutDernier);
+    var useHa = haK != null && haK > 0 && (!last || true);
+    var lk = useHa ? haK : (last ? last.kwh : null), le = useHa ? haE : (last ? last.eur : null);
+    var lc = useHa ? HA.s(E.teslaCouleurDernier) : (last && last.couleur);
+    if (!lc || lc === 'unknown' || lc === 'unavailable') lc = '';
+    var mk = new Date().getFullYear() + '-' + pad(new Date().getMonth() + 1), mK = 0, mE = 0;
+    list.forEach(function (c) { if (c.date.slice(0, 7) === mk) { mK += c.kwh || 0; mE += c.eur || 0; } });
+    if (!list.length) { mK = HA.num(E.teslaKwhMois); mE = HA.num(E.teslaCoutMois); }
     h += row('Recharge en cours (depuis 6 h)', '<span class="val">' + (live ? kwh(live.kwh) + (live.cost != null ? ' · ~' + eur(live.cost) : '') : '—') + '</span>');
-    h += row('Dernier cycle' + (HA.avail(E.teslaCoutDernier) && HA.s(E.teslaCouleurDernier) ? ' · ' + M.esc(HA.s(E.teslaCouleurDernier)) : ''),
-      '<span class="val">' + kwh(HA.num(E.teslaKwhDernier)) + ' · ' + eur(HA.num(E.teslaCoutDernier)) + '</span>');
-    h += row('Ce mois', '<span class="val">' + kwh(HA.num(E.teslaKwhMois)) + ' · ' + eur(HA.num(E.teslaCoutMois)) + '</span>');
+    h += row('Dernier cycle' + (lc ? ' · ' + M.esc(lc) : ''), '<span class="val">' + kwh(lk) + ' · ' + eur(le) + '</span>');
+    h += row('Ce mois', '<span class="val">' + kwh(mK) + ' · ' + eur(mE) + '</span>');
     h += '<button class="row" data-tconso style="width:100%;background:none;border:0;border-bottom:1px solid var(--card2);color:inherit;font:inherit;text-align:left"><span>Historique des recharges</span><span class="val">Voir</span></button>';
     return h;
   };
@@ -1742,7 +1756,10 @@ button.power{color:inherit;font:inherit;text-align:left}
       } else if (fresh.length) {
         arch.pending = fresh;                                     // sans jeton : affichage seulement
       }
-    })().catch(function (e) { M.teslaSyncError = e.message; }).then(function () { syncing = null; });
+    })().catch(function (e) { M.teslaSyncError = e.message; }).then(function () {
+      syncing = null;
+      var v = M.views[M.current]; if (v && v.render && !M.skipRender(v.el)) v.render();
+    });
     return syncing;
   };
 
