@@ -297,6 +297,12 @@ button.power{color:inherit;font:inherit;text-align:left}
 .tc-mh{display:flex;justify-content:space-between;gap:8px;margin:14px 0 2px;font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.03em}
 .tc-mh span:last-child{text-transform:none;letter-spacing:0;font-weight:600;color:var(--text2)}
 
+.tcm{display:flex;align-items:flex-end;gap:6px;height:130px;margin:10px 0 6px;padding-top:16px}
+.tcm-c{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.tcm-c i{display:block;width:100%;max-width:34px;border-radius:5px 5px 2px 2px;background:var(--accent);margin-bottom:4px;min-height:2px}
+.tcm-v{font-size:10px;color:var(--text2);margin-bottom:2px;font-variant-numeric:tabular-nums}
+.tcm-l{font-size:10px;color:var(--muted);text-transform:capitalize}
+
 </style>
 </head>
 <body>
@@ -1671,7 +1677,7 @@ button.power{color:inherit;font:inherit;text-align:left}
   }
 
   M.teslaConsoRows = function (row) {
-    var live = M.teslaLive(), h = '', list = archiveList();
+    var h = '', list = archiveList();
     var last = list[0], haK = HA.num(E.teslaKwhDernier), haE = HA.num(E.teslaCoutDernier);
     var useHa = haK != null && haK > 0 && (!last || true);
     var lk = useHa ? haK : (last ? last.kwh : null), le = useHa ? haE : (last ? last.eur : null);
@@ -1680,7 +1686,6 @@ button.power{color:inherit;font:inherit;text-align:left}
     var mk = new Date().getFullYear() + '-' + pad(new Date().getMonth() + 1), mK = 0, mE = 0;
     list.forEach(function (c) { if (c.date.slice(0, 7) === mk) { mK += c.kwh || 0; mE += c.eur || 0; } });
     if (!list.length) { mK = HA.num(E.teslaKwhMois); mE = HA.num(E.teslaCoutMois); }
-    h += row('Recharge en cours (depuis 6 h)', '<span class="val">' + (live ? kwh(live.kwh) + (live.cost != null ? ' · ~' + eur(live.cost) : '') : '—') + '</span>');
     h += row('Dernière recharge' + (lc ? ' · ' + M.esc(lc) : ''), '<span class="val">' + kwh(lk) + ' · ' + eur(le) + '</span>');
     h += row('Ce mois', '<span class="val">' + kwh(mK) + ' · ' + eur(mE) + '</span>');
     h += '<button class="row" data-tconso style="width:100%;background:none;border:0;border-bottom:1px solid var(--card2);color:inherit;font:inherit;text-align:left"><span>Historique des recharges</span><span class="val">Voir</span></button>';
@@ -1763,7 +1768,27 @@ button.power{color:inherit;font:inherit;text-align:left}
     return syncing;
   };
 
+  var chartMode = 'eur';
   var MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+  function monthChart(list) {
+    var by = {};
+    list.forEach(function (x) {
+      var k = x.date.slice(0, 7);
+      by[k] = by[k] || { e: 0, k: 0 };
+      by[k].e += x.eur || 0; by[k].k += x.kwh || 0;
+    });
+    var keys = Object.keys(by).sort().slice(-12);
+    var f = chartMode === 'eur' ? 'e' : 'k';
+    var max = keys.reduce(function (m, k) { return Math.max(m, by[k][f]); }, 0.01);
+    return '<div class="pwr-chips"><button class="chip-btn' + (f === 'e' ? ' sug' : '') + '" data-cm="eur">€</button>' +
+      '<button class="chip-btn' + (f === 'k' ? ' sug' : '') + '" data-cm="kwh">kWh</button></div>' +
+      '<div class="tcm">' + keys.map(function (k) {
+        var v = by[k][f], m = parseInt(k.slice(5), 10) - 1;
+        return '<div class="tcm-c"><span class="tcm-v">' + (f === 'e' ? M.fmt(v, 0) : M.fmt(v, 0)) + '</span><i style="height:' + Math.max(2, Math.round(v / max * 100)) + '%"></i><span class="tcm-l">' +
+          MOIS[m].slice(0, 3).toLowerCase() + '</span></div>';
+      }).join('') + '</div>';
+  }
 
   M.openTeslaConso = function () {
     M.openSheet('<h3>Recharges Tesla</h3><div id="tc-box"><div class="empty">Chargement…</div></div>', function (s) {
@@ -1780,6 +1805,7 @@ button.power{color:inherit;font:inherit;text-align:left}
         var h = '<div class="pwr-stats"><div class="pwr-stat"><span>Total</span><b>' + M.fmt(tE, 2) + ' €</b></div>' +
           '<div class="pwr-stat"><span>Énergie</span><b>' + M.fmt(tK, 0) + ' kWh</b></div>' +
           '<div class="pwr-stat"><span>Recharges</span><b>' + list.length + '</b></div></div>';
+        h += monthChart(list);
         var cur = null, buf = '', mE = 0, mK = 0, mN = 0;
         var flush = function () {
           if (cur === null) return;
@@ -1799,6 +1825,9 @@ button.power{color:inherit;font:inherit;text-align:left}
         flush();
         if (!String(M.cfg.pelletToken || '').trim()) h += '<div class="pg-sub">Ajoute le jeton GitHub dans Réglages pour conserver tout l\'historique.</div>';
         box.innerHTML = h;
+        box.querySelectorAll('[data-cm]').forEach(function (b) {
+          b.onclick = function () { chartMode = b.dataset.cm; M.closeSheet(); M.openTeslaConso(); };
+        });
       });
     });
   };
