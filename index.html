@@ -1834,18 +1834,22 @@ button.power{color:inherit;font:inherit;text-align:left}
         : (salon == null ? '' : 'Salon ' + M.fmt(salon, 1) + ' °C · ') + 'consigne actuelle ' + M.fmt(cur, step < 1 ? 1 : 0) + ' °C · poêle ' + (poele ? 'allumé' : 'éteint')) + '</div>' +
       (absent ? '' : '<div class="chips">' +
       (conf != null ? '<button class="chip-btn sug" data-t="' + conf + '">Confort · ' + M.fmt(conf, 1) + '°</button>' : '') +
-      (eco != null ? '<button class="chip-btn" data-t="' + eco + '">Éco · ' + M.fmt(eco, 1) + '°</button>' : '') + '</div>') +
+      (eco != null ? '<button class="chip-btn" data-t="' + eco + '">Éco · ' + M.fmt(eco, 1) + '°</button>' : '') +
+      '<button class="chip-btn" data-t="' + (HA.num(E.tempAbsent) == null ? 17 : HA.num(E.tempAbsent)) + '" data-abs="1">Absent · ' + M.fmt(HA.num(E.tempAbsent) == null ? 17 : HA.num(E.tempAbsent), 1) + '°</button></div>') +
       '<div class="wheels">' + wheel('ht-i', ints, ii) + (fr.length > 1 ? '<span class="colon">,</span>' + wheel('ht-f', fr.map(function (f) { return labelF(f).slice(1); }), fi) : '') +
       '<span class="colon" style="font-size:22px">°C</span></div>' +
       '<div class="btnrow"><button class="btn solid" id="ht-go">' + (absent ? 'Régler la température' : 'Appliquer') + '</button>' +
       (absent ? '<button class="btn" id="ht-abs-off">Désactiver l\'absence</button>' : '<button class="btn" id="ht-all">Tous les réglages</button>') + '</div>' +
-      (absent ? '' : '<button class="btn wide" id="ht-abs-on" style="margin-top:8px">Mode absent · ' + (HA.num(E.tempAbsent) == null ? '17' : M.fmt(HA.num(E.tempAbsent), 1)) + ' °C</button>');
+      '';
     M.openSheet(h, function (s) {
       bind(s.querySelector('#ht-i'), ii, function (i) { ii = i; });
       var wf = s.querySelector('#ht-f');
       if (wf) bind(wf, fi, function (i) { fi = i; });
+      var absChosen = false;
       s.querySelectorAll('[data-t]').forEach(function (b) {
         b.onclick = function () {
+          absChosen = !!b.dataset.abs;
+          s.querySelectorAll('[data-t]').forEach(function (o) { o.classList.toggle('sug', o === b); });
           var v = Math.min(max, Math.max(min, parseFloat(b.dataset.t)));
           var a = Math.floor(v + 1e-9), fx = r(v - a), j = 0;
           fr.forEach(function (f, n) { if (Math.abs(f - fx) < Math.abs(fr[j] - fx)) j = n; });
@@ -1854,8 +1858,18 @@ button.power{color:inherit;font:inherit;text-align:left}
           if (wf) wf.scrollTo({ top: fi * H, behavior: 'smooth' });
         };
       });
-      s.querySelector('#ht-go').onclick = function () {
+      s.querySelector('#ht-go').onclick = async function () {
         var v = r(ints[ii] + fr[fi]);
+        if (absChosen && !absent) {
+          // « Absent » choisi : règle la température d'absence puis active le mode (la consigne reste fixe)
+          try {
+            await HA.act('input_number', 'set_value', { entity_id: E.tempAbsent, value: v }, [E.tempAbsent]);
+            await HA.act('input_boolean', 'turn_on', { entity_id: E.absent }, [E.absent]);
+          } catch (e) { M.toast('Home Assistant : ' + e.message); return; }
+          M.closeSheet();
+          M.toast('Mode absent · ' + M.fmt(v, step < 1 ? 1 : 0) + ' °C');
+          return;
+        }
         M.act('input_number', 'set_value', { entity_id: ent, value: v }, [ent]);
         M.closeSheet();
         M.toast((absent ? 'Température absent ' : 'Consigne ') + M.fmt(v, step < 1 ? 1 : 0) + ' °C');
