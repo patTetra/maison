@@ -2163,8 +2163,6 @@ button.power{color:inherit;font:inherit;text-align:left}
         row('Début du jour', timeIn(E.debutJour)) +
         row('Début de la nuit', timeIn(E.debutNuit)) +
         row('Hystérésis', M.stepper(E.hysteresis, '°')) +
-        row('Seuil puissance max', numIn(E.powerMax, 'VA')) +
-        row('Seuil puissance min', numIn(E.powerMin, 'VA')) +
         row('Température max du jour', '<span class="val">' + (tmax == null ? '—' : M.fmt(tmax, 1) + ' °C') + '</span>')) +
       '</div>';
 
@@ -2197,6 +2195,8 @@ button.power{color:inherit;font:inherit;text-align:left}
     h += '<div class="card" data-anchor="energie"><h2>Énergie</h2>' +
       '<button class="row" data-power style="width:100%;background:none;border:0;border-bottom:1px solid var(--card2);color:inherit;font:inherit;text-align:left"><span>Puissance compteur</span><span class="big">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span></button>' +
       row('Charge Tesla bridée 10 A (jusqu\'à 6 h)', M.sw(E.bridee, 'Charge bridée 10 A')) +
+      row('Seuil puissance max', numIn(E.powerMax, 'VA')) +
+      row('Seuil puissance min', numIn(E.powerMin, 'VA')) +
       row('Prise TV' + (tvp == null ? '' : ' · ' + M.fmt(tvp) + ' W'), M.sw(E.tv, 'Prise TV')) +
       sub('tempo', 'Tarifs Tempo (€/kWh)',
         M.TEMPO.map(function (t) { return row(M.esc(t.name), numIn(t.entity, '€')); }).join('')) +
