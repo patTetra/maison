@@ -320,6 +320,14 @@ button.power{color:inherit;font:inherit;text-align:left}
 .pl-n{font-size:14px}
 .pl-day.empty .pl-d span{opacity:.5}
 
+.acc-s.pl-hl{color:var(--accent);font-weight:700}
+.acc-s.pl-soir{color:var(--light);font-weight:700}
+.pl-day.today{background:none;box-shadow:inset 3px 0 0 var(--accent)}
+.pl-day.we{background:rgba(128,140,150,.16)}
+.pl-day.soir{background:rgba(255,138,61,.16);box-shadow:inset 3px 0 0 var(--light)}
+.pl-day.soir .pl-h{color:var(--light)}
+.pl-day.today.soir{box-shadow:inset 3px 0 0 var(--accent)}
+
 </style>
 </head>
 <body>
@@ -1708,14 +1716,23 @@ button.power{color:inherit;font:inherit;text-align:left}
     return events.filter(function (ev) { return ev.start.getTime() < e && ev.end.getTime() > s; });
   }
 
-  P.sub = function () {
+  function todayEvs() {
     var c = P.cache[key(0)];
-    if (!c) return '';
+    if (!c) return null;
     var d0 = new Date(); d0.setHours(0, 0, 0, 0);
-    var t = dayEvents(c.events, d0);
+    return dayEvents(c.events, d0);
+  }
+  function isSoir(evs) { return evs.some(function (e) { return /soir/i.test(e.title); }); }
+
+  P.sub = function () {
+    var t = todayEvs();
+    if (!t) return '';
     if (!t.length) return 'Rien aujourd\'hui';
-    var ev = t[0];
-    return ev.allDay ? ev.title : M.hm(ev.start) + '–' + M.hm(ev.end);
+    return t.map(function (e) { return e.title; }).join(' · ');
+  };
+  P.subCls = function () {
+    var t = todayEvs();
+    return !t || !t.length ? '' : (isSoir(t) ? 'pl-soir' : 'pl-hl');
   };
 
   P.body = function () {
@@ -1730,7 +1747,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     var today = new Date(); today.setHours(0, 0, 0, 0);
     for (var i = 0; i < 7; i++) {
       var d = addDays(a, i), evs = dayEvents(c.events, d), isT = d.getTime() === today.getTime();
-      h += '<div class="pl-day' + (isT ? ' today' : '') + (evs.length ? '' : ' empty') + '"><div class="pl-d"><b>' + M.esc(fmt(d, { weekday: 'short' }).replace('.', '')) + '</b><span>' + d.getDate() + '</span></div><div class="pl-e">';
+      h += '<div class="pl-day' + (isT ? ' today' : '') + (evs.length ? '' : ' empty') + (d.getDay() === 0 || d.getDay() === 6 ? ' we' : '') + (isSoir(evs) ? ' soir' : '') + '"><div class="pl-d"><b>' + M.esc(fmt(d, { weekday: 'short' }).replace('.', '')) + '</b><span>' + d.getDate() + '</span></div><div class="pl-e">';
       if (!evs.length) h += '<span class="pl-none">—</span>';
       evs.forEach(function (ev) {
         var t = ev.allDay ? '' : '<span class="pl-h">' + M.hm(ev.start) + ' – ' + M.hm(ev.end) + '</span>';
@@ -2103,10 +2120,10 @@ button.power{color:inherit;font:inherit;text-align:left}
     return h;
   }
 
-  function acc(key, icon, title, sub, body) {
+  function acc(key, icon, title, sub, body, subCls) {
     var open = M.open[key];
     return '<div class="acc' + (open ? ' open' : '') + '"><button class="acc-head" data-acc="' + key + '" aria-expanded="' + !!open + '">' +
-      '<span class="acc-ic">' + M.icon(icon, 20) + '</span><span class="acc-t">' + M.esc(title) + '</span><span class="acc-s">' + M.esc(sub) + '</span>' +
+      '<span class="acc-ic">' + M.icon(icon, 20) + '</span><span class="acc-t">' + M.esc(title) + '</span><span class="acc-s' + (subCls ? ' ' + subCls : '') + '">' + M.esc(sub) + '</span>' +
       '<span class="chev">' + M.icon('chevd', 22) + '</span></button>' + (open ? '<div class="acc-body">' + body + '</div>' : '') + '</div>';
   }
 
@@ -2211,7 +2228,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       batteryBar(tile(ms.cls, 'mower', 'Tondeuse', ms.label, ms.sub, ''), ms) + '</div>';
 
     h += acc('agenda', 'cal', 'Agenda du jour', agendaSub(), agendaBody());
-    h += acc('planning', 'cal', 'Planning', M.planning.sub(), M.planning.body());
+    h += acc('planning', 'cal', 'Planning', M.planning.sub(), M.planning.body(), M.planning.subCls());
     h += acc('ecole', 'cap', 'École de Manon', ecoleSub(), ecoleBody());
     h += '</div>';
 
