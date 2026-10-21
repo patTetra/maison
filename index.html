@@ -288,6 +288,12 @@ button.power{color:inherit;font:inherit;text-align:left}
 .off-t{flex:1;min-width:0}.off-t b{display:block;font-size:14px}.off-t span{display:block;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
 .off-row .btn{flex:none;padding:8px 12px;font-size:13px}
 
+.tc-row{display:grid;grid-template-columns:78px 1fr auto;gap:8px;align-items:center;padding:6px 0;font-size:13px;border-top:1px solid var(--card2)}
+.tc-d{color:var(--text2);text-transform:capitalize}
+.tc-bar{height:8px;border-radius:4px;background:var(--card2);overflow:hidden}
+.tc-bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.tc-v{font-variant-numeric:tabular-nums;text-align:right}
+
 </style>
 </head>
 <body>
@@ -330,6 +336,16 @@ button.power{color:inherit;font:inherit;text-align:left}
     debutRecharge: 'input_datetime.debut_recharge_tesla',
     finRecharge: 'input_datetime.fin_recharge_tesla',
     courantRecharge: 'number.tesla_model_y_courant_de_recharge',
+    teslaEnergie: 'sensor.consommation_tesla_channel_1_energie',
+    teslaIdx6: 'input_number.tesla_index_6h',
+    teslaIdx22: 'input_number.tesla_index_22h',
+    teslaCouleurCycle: 'input_text.tesla_couleur_cycle',
+    edfTempo: 'sensor.edf_tempo',
+    teslaKwhDernier: 'input_number.tesla_kwh_dernier',
+    teslaCoutDernier: 'input_number.tesla_cout_dernier',
+    teslaCouleurDernier: 'input_text.tesla_couleur_dernier',
+    teslaKwhMois: 'input_number.tesla_kwh_mois',
+    teslaCoutMois: 'input_number.tesla_cout_mois',
     bridee: 'input_boolean.tesla_bridee_10a',
     teslaClim: 'climate.tesla_model_y_climatisation',
     teslaBatt: 'sensor.tesla_model_y_niveau_de_la_batterie',
@@ -1619,6 +1635,87 @@ button.power{color:inherit;font:inherit;text-align:left}
   'use strict';
   var HA = M.HA, E = M.E;
 
+  function color(raw) {
+    var c = String(raw || '').split(' ')[0].toLowerCase();
+    return c === 'bleu' || c === 'blanc' || c === 'rouge' ? c : null;
+  }
+  function price(c, per) { return c ? HA.num('input_number.tarif_tempo_' + c + '_' + per) : null; }
+  function eur(v) { return v == null ? '—' : M.fmt(v, 2) + ' €'; }
+  function kwh(v) { return v == null ? '—' : M.fmt(v, 1) + ' kWh'; }
+
+  // Cycle en cours (6 h -> 6 h) : kWh depuis le dernier relevé de 6 h + coût estimé
+  M.teslaLive = function () {
+    var cur = HA.num(E.teslaEnergie), i6 = HA.num(E.teslaIdx6), i22 = HA.num(E.teslaIdx22);
+    if (cur == null || i6 == null) return null;
+    var h = new Date().getHours(), night = h >= 22 || h < 6;
+    var total = Math.max(0, cur - i6), cost = null;
+    if (!night) {
+      var p = price(color(HA.s(E.edfTempo)), 'hp');
+      cost = p == null ? null : total * p;
+    } else if (i22 != null) {
+      var c = color(HA.s(E.teslaCouleurCycle));
+      var php = price(c, 'hp'), phc = price(c, 'hc');
+      if (php != null && phc != null) cost = Math.max(0, i22 - i6) * php + Math.max(0, cur - i22) * phc;
+    }
+    return { kwh: total, cost: cost };
+  };
+
+  M.teslaConsoRows = function (row) {
+    var live = M.teslaLive(), h = '';
+    h += row('Recharge en cours (depuis 6 h)', '<span class="val">' + (live ? kwh(live.kwh) + (live.cost != null ? ' · ~' + eur(live.cost) : '') : '—') + '</span>');
+    h += row('Dernier cycle' + (HA.avail(E.teslaCoutDernier) && HA.s(E.teslaCouleurDernier) ? ' · ' + M.esc(HA.s(E.teslaCouleurDernier)) : ''),
+      '<span class="val">' + kwh(HA.num(E.teslaKwhDernier)) + ' · ' + eur(HA.num(E.teslaCoutDernier)) + '</span>');
+    h += row('Ce mois', '<span class="val">' + kwh(HA.num(E.teslaKwhMois)) + ' · ' + eur(HA.num(E.teslaCoutMois)) + '</span>');
+    h += '<button class="row" data-tconso style="width:100%;background:none;border:0;border-bottom:1px solid var(--card2);color:inherit;font:inherit;text-align:left"><span>Historique des recharges</span><span class="val">Voir</span></button>';
+    return h;
+  };
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  M.openTeslaConso = function () {
+    M.openSheet('<h3>Recharges Tesla</h3><div id="tc-box"><div class="empty">Chargement…</div></div>', function (s) {
+      var now = Date.now(), t0 = now - 45 * 86400000;
+      var q = function (ent) {
+        return HA.rest('/api/history/period/' + encodeURIComponent(new Date(t0).toISOString()) + '?filter_entity_id=' + encodeURIComponent(ent) +
+          '&end_time=' + encodeURIComponent(new Date(now).toISOString()) + '&minimal_response&no_attributes').then(function (r) { return (r && r[0]) || []; });
+      };
+      Promise.all([q(E.teslaKwhDernier), q(E.teslaCoutDernier)]).then(function (res) {
+        var box = s.querySelector('#tc-box');
+        var kw = res[0].filter(function (r) { return !isNaN(parseFloat(r.state)); });
+        var co = res[1].filter(function (r) { return !isNaN(parseFloat(r.state)); });
+        var costBy = {};
+        co.forEach(function (r) { costBy[new Date(r.last_changed || r.last_updated).toISOString().slice(0, 13)] = parseFloat(r.state); });
+        var days = [];
+        kw.forEach(function (r) {
+          var t = new Date(r.last_changed || r.last_updated);
+          if (t.getTime() <= t0 + 1000) return;               // première valeur = état initial de la période
+          var d = new Date(t.getTime() - 86400000);            // le relevé de 6 h clôt le cycle de la veille
+          days.push({ d: d, kwh: parseFloat(r.state), eur: costBy[t.toISOString().slice(0, 13)] });
+        });
+        days.reverse();
+        if (!days.length) { box.innerHTML = '<div class="empty">Pas encore d\'historique (il se construit chaque matin à 6 h).</div>'; return; }
+        var max = days.reduce(function (m, x) { return Math.max(m, x.eur || 0); }, 0.01);
+        var tm = 0, tk = 0, cm = new Date().getMonth();
+        days.forEach(function (x) { if (x.d.getMonth() === cm) { tm += x.eur || 0; tk += x.kwh; } });
+        box.innerHTML = '<div class="pwr-stats"><div class="pwr-stat"><span>Ce mois</span><b>' + M.fmt(tm, 2) + ' €</b></div>' +
+          '<div class="pwr-stat"><span>Énergie</span><b>' + M.fmt(tk, 1) + ' kWh</b></div>' +
+          '<div class="pwr-stat"><span>Cycles</span><b>' + days.length + '</b></div></div>' +
+          days.map(function (x) {
+            return '<div class="tc-row"><span class="tc-d">' + M.esc(x.d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })) + '</span>' +
+              '<span class="tc-bar"><i style="width:' + Math.round((x.eur || 0) / max * 100) + '%"></i></span>' +
+              '<span class="tc-v">' + M.fmt(x.kwh, 1) + ' kWh · ' + eur(x.eur) + '</span></div>';
+          }).join('');
+      }).catch(function (e) {
+        s.querySelector('#tc-box').innerHTML = '<div class="msg ko">' + M.esc(e.message || 'Historique indisponible') + '</div>';
+      });
+    });
+  };
+})(window.M = window.M || {});
+
+(function (M) {
+  'use strict';
+  var HA = M.HA, E = M.E;
+
   M.open = M.open || { agenda: false, ecole: false };
   var ag = M.agenda = { events: null, error: null, at: 0, loading: false };
 
@@ -2195,6 +2292,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     h += '<div class="card" data-anchor="energie"><h2>Énergie</h2>' +
       '<button class="row" data-power style="width:100%;background:none;border:0;border-bottom:1px solid var(--card2);color:inherit;font:inherit;text-align:left"><span>Puissance compteur</span><span class="big">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span></button>' +
       row('Charge Tesla bridée 10 A (jusqu\'à 6 h)', M.sw(E.bridee, 'Charge bridée 10 A')) +
+      M.teslaConsoRows(row) +
       row('Seuil puissance max', numIn(E.powerMax, 'VA')) +
       row('Seuil puissance min', numIn(E.powerMin, 'VA')) +
       row('Prise TV' + (tvp == null ? '' : ' · ' + M.fmt(tvp) + ' W'), M.sw(E.tv, 'Prise TV')) +
@@ -2206,6 +2304,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     M.bindActions(el);
     el.querySelectorAll('[data-pellet]').forEach(function (b) { b.onclick = M.openPellets; });
     el.querySelectorAll('[data-power]').forEach(function (b) { b.onclick = M.openPower; });
+    el.querySelectorAll('[data-tconso]').forEach(function (b) { b.onclick = M.openTeslaConso; });
     el.querySelectorAll('[data-sub]').forEach(function (b) {
       b.onclick = function () { M.open[b.dataset.sub] = !M.open[b.dataset.sub]; render(); };
     });
