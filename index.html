@@ -23,7 +23,7 @@
   --ft:'Rajdhani',system-ui,sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;margin:0;background:var(--bg);color:var(--text);font-family:'Barlow',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
 button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0;text-align:inherit;-webkit-touch-callout:none;user-select:none}
 input,select{font:inherit;color:inherit}
 h1,h2,h3,p{margin:0}
@@ -3221,6 +3221,28 @@ button.power{color:inherit;font:inherit;text-align:left}
     HA.loadCache();
     build();
     document.getElementById('backdrop').onclick = M.closeSheet;
+
+    // iOS : après le clavier, un changement d'orientation ou un retour dans l'appli, la page peut rester
+    // décalée (les touches tombent trop haut). On remet la fenêtre à zéro et on force un recalcul de la zone tactile.
+    (function () {
+      var app = document.getElementById('app'), tm = null;
+      function fix() {
+        if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0; document.body.scrollTop = 0;
+        if (app) { app.style.transform = 'translateZ(0)'; void app.offsetHeight; app.style.transform = ''; }
+      }
+      function later() { clearTimeout(tm); tm = setTimeout(fix, 60); setTimeout(fix, 400); }
+      window.addEventListener('scroll', function () { if (window.scrollY || window.scrollX) window.scrollTo(0, 0); }, { passive: true });
+      window.addEventListener('focusout', later);
+      window.addEventListener('orientationchange', later);
+      window.addEventListener('pageshow', later);
+      window.addEventListener('resize', later);
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) later(); });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', later);
+        window.visualViewport.addEventListener('scroll', function () { if (window.visualViewport.offsetTop) later(); });
+      }
+    })();
 
     HA.onChange(function () {
       var v = M.views[M.current];
