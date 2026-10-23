@@ -1806,7 +1806,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     });
   };
 
-  // Mode enfant (profil Gaëlle) : trois caméras avec image actualisée toutes les 4 s
+  // Mode enfant (profil Gaëlle) : trois caméras avec image actualisée toutes les secondes
   var KC = [
     { name: 'Portail', entity: 'camera.entree' },
     { name: 'Entrée', entity: 'camera.terrasse_hd_stream' },
@@ -1822,27 +1822,34 @@ button.power{color:inherit;font:inherit;text-align:left}
     return h + '</div>';
   };
 
-  function kcRefresh(root) {
-    if (M.current !== 'accueil' || document.hidden || !HA.configured()) return;
-    KC.forEach(function (c) {
-      HA.cameraBlobUrl(c.entity).then(function (u) {
+  // Une nouvelle image est demandée 1 s après la fin de la précédente (pas de requêtes qui s'empilent)
+  function kcRefresh() {
+    if (M.current !== 'accueil' || document.hidden || !HA.configured()) return Promise.resolve();
+    return Promise.all(KC.map(function (c) {
+      return HA.cameraBlobUrl(c.entity).then(function (u) {
         if (kcUrls[c.entity]) URL.revokeObjectURL(kcUrls[c.entity]);
         kcUrls[c.entity] = u;
         var box = document.querySelector('[data-kcam="' + c.entity + '"] .kc-ph');
         if (box) box.innerHTML = '<img alt="" src="' + u + '">';
       }).catch(function () { /* ignoré */ });
-    });
+    }));
   }
 
   M.kidCamsBind = function (root, active) {
-    if (!active) { if (kcTimer) { clearInterval(kcTimer); kcTimer = null; } return; }
+    if (!active) { kcTimer = null; return; }
     root.querySelectorAll('[data-kcam]').forEach(function (b) {
       b.onclick = function () {
         var c = KC.filter(function (x) { return x.entity === b.dataset.kcam; })[0];
         if (c && M.openCamLive) M.openCamLive(c);
       };
     });
-    if (!kcTimer) { kcRefresh(root); kcTimer = setInterval(kcRefresh, 4000); }
+    if (kcTimer) return;
+    kcTimer = true;
+    var loop = function () {
+      if (!kcTimer) return;
+      kcRefresh().then(function () { setTimeout(loop, 1000); });
+    };
+    loop();
   };
 })(window.M = window.M || {});
 
