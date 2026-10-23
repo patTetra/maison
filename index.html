@@ -619,6 +619,15 @@ button.power{color:inherit;font:inherit;text-align:left}
     if (HA.status !== 'connected') setTimeout(function () { HA.refresh(ids); }, 700);
   };
 
+  // Mise à jour immédiate de l'interface (avant la réponse de HA) ; renvoie l'état précédent
+  HA.optimistic = function (id, state) {
+    var o = HA.store[id]; if (!o) return null;
+    var prev = o.state;
+    HA.store[id] = { state: state, attributes: o.attributes || {} };
+    notify([id]);
+    return prev;
+  };
+
   HA.refresh = async function (ids) {
     var list = ids || [];
     for (var i = 0; i < list.length; i++) {
@@ -1026,8 +1035,12 @@ button.power{color:inherit;font:inherit;text-align:left}
   M.bindActions = function (root) {
     root.querySelectorAll('[data-toggle]').forEach(function (b) {
       b.onclick = function () {
-        var e = b.dataset.toggle;
-        M.act('homeassistant', 'toggle', { entity_id: e }, [e]);
+        var e = b.dataset.toggle, cur = HA.s(e);
+        var prev = (cur === 'on' || cur === 'off') ? HA.optimistic(e, cur === 'on' ? 'off' : 'on') : null;
+        HA.act('homeassistant', 'toggle', { entity_id: e }, [e]).catch(function (err) {
+          if (prev != null) HA.optimistic(e, prev);
+          M.toast('Action impossible : ' + err.message);
+        });
       };
     });
     root.querySelectorAll('[data-step]').forEach(function (b) {
@@ -3033,7 +3046,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     el.scrollTop = top;
   }
 
-  M.registerView('reglages', { render: render, live: false, onShow: function () { testMsg = null; render(); } });
+  M.registerView('reglages', { render: render, live: true, onShow: function () { testMsg = null; render(); } });
   HA.onStatus(function () { if (M.current === 'reglages' && !testMsg) render(); });
 })(window.M = window.M || {});
 
