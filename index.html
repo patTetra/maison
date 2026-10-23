@@ -435,6 +435,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     enfantDep3: 'input_datetime.depart_enfant3',
     enfantPres3: 'input_boolean.presence_enfant3',
     chauffageMode: 'input_select.chauffage_mode',
+    eclairageMay: 'input_boolean.eclairage_may',
     bridee: 'input_boolean.tesla_bridee_10a',
     teslaClim: 'climate.tesla_model_y_climatisation',
     teslaBatt: 'sensor.tesla_model_y_niveau_de_la_batterie',
@@ -2935,6 +2936,12 @@ button.power{color:inherit;font:inherit;text-align:left}
       '<div class="btnrow"><button class="btn solid" id="s-save">Enregistrer et tester</button></div>' +
       '<div class="msg ' + (testMsg ? testMsg.cls : '') + '" id="s-msg">' + M.esc(testMsg ? testMsg.text : M.statusText()) + '</div></div>';
 
+    h += '<div class="card"><h2>Éclairage de May</h2>' +
+      '<div class="note">Allume les lumières extérieures quand May finit son travail le soir et 20 minutes avant son embauche le matin, seulement s\'il fait nuit.</div>' +
+      (HA.avail(M.E.eclairageMay)
+        ? '<div class="row" style="margin-top:8px"><span>Activé</span>' + M.sw(M.E.eclairageMay, 'Éclairage de May') + '</div>'
+        : '<div class="note" style="margin-top:8px">Crée d\'abord l\'entrée « Éclairage May » (input_boolean.eclairage_may) dans Home Assistant.</div>') + '</div>';
+
     h += '<div class="card"><h2>Profil de cet appareil</h2>' +
       '<div class="note">Change l\'écran d\'accueil : le profil Gaëlle ajoute les enfants (photos, horaires, arrivée / départ).</div>' +
       '<div class="opts" style="margin-top:8px"><button class="opt' + (c.profile !== 'gaelle' ? ' on' : '') + '" data-prof="patrick">Patrick</button><button class="opt' + (c.profile === 'gaelle' ? ' on' : '') + '" data-prof="gaelle">Gaëlle</button></div></div>';
@@ -2969,6 +2976,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     h += '<div class="hint">Maison · pattetra.github.io/maison</div></div>';
 
     el.innerHTML = h;
+    M.bindActions(el);
 
     el.querySelector('#s-save').onclick = async function () {
       var url = el.querySelector('#s-url').value.trim();
