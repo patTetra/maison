@@ -368,8 +368,8 @@ button.power{color:inherit;font:inherit;text-align:left}
 :root[data-light]{color-scheme:light;--card:color-mix(in srgb,var(--accent) 6%,var(--bg));--card2:color-mix(in srgb,var(--accent) 16%,var(--bg));--line2:color-mix(in srgb,var(--accent) 28%,var(--bg));--text:color-mix(in srgb,#111 90%,var(--accent));--text2:color-mix(in srgb,#111 72%,var(--accent));--muted:color-mix(in srgb,#111 58%,var(--bg));--muted2:color-mix(in srgb,#111 52%,var(--bg));--warn:#c2410c;--danger:#dc2626}
 :root[data-fond=blanc]{--bg:#ffffff}
 :root[data-fond=gris]{--bg:#eceff3}
-:root[data-fond=creme]{--bg:#fbf5e6}
-:root[data-fond=sable]{--bg:#efe2c8}
+:root[data-fond=grism]{--bg:#c3c8cf}
+:root[data-fond=grisf]{--bg:#2a2c30;--card:#34373c;--card2:#43474d;--line2:#50555c}
 :root[data-light] .tabbar{background:color-mix(in srgb,var(--bg) 97%,transparent)}
 :root[data-light] .jarvis{color:var(--accent);text-shadow:0 2px 10px color-mix(in srgb,var(--accent) 30%,transparent)}
 :root[data-light] .btn.solid{color:#fff}
@@ -386,6 +386,7 @@ button.power{color:inherit;font:inherit;text-align:left}
 
 :root[data-theme=rose]{--bg:#16080f;--card:#271019;--card2:#3d1a2b;--line2:#53233a;--text:#fdeef4;--text2:#ecc7d6;--muted:#dcaec1;--muted2:#cc9db2}
 :root[data-theme=rose] .tabbar{background:rgba(22,8,15,.96)}
+:root[data-fond=grisf] .tabbar{background:rgba(42,44,48,.97)}
 
 </style>
 </head>
@@ -878,19 +879,19 @@ button.power{color:inherit;font:inherit;text-align:left}
     Object.assign(M.cfg, patch);
     localStorage.setItem(CFG_KEY, JSON.stringify(M.cfg));
   };
-  var FONDS = { sombre: '#050b10', blanc: '#ffffff', gris: '#eceff3', creme: '#fbf5e6', sable: '#efe2c8' };
-  M.fond = function () { return M.cfg.fond || (M.cfg.profile === 'gaelle' ? 'blanc' : 'sombre'); };
+  var FONDS = { sombre: '#050b10', blanc: '#ffffff', gris: '#eceff3', grism: '#c3c8cf', grisf: '#2a2c30' };
+  M.fond = function () { return FONDS[M.cfg.fond] ? M.cfg.fond : (M.cfg.profile === 'gaelle' ? 'blanc' : 'sombre'); };
   M.applyAccent = function () {
-    var rose = M.cfg.profile === 'gaelle', fond = M.fond(), light = fond !== 'sombre';
+    var rose = M.cfg.profile === 'gaelle', fond = M.fond(), light = fond === 'blanc' || fond === 'gris' || fond === 'grism';
     var a = (M.cfg.accent && M.cfg.accent !== DEFAULTS.accent) ? M.cfg.accent : (rose ? (light ? '#db2777' : '#f472b6') : (light ? '#0891b2' : DEFAULTS.accent));
     var de = document.documentElement, st = de.style;
     st.setProperty('--accent', a);
     st.setProperty('--accent-soft', a + '26');
     st.setProperty('--accent-line', a + '40');
     st.setProperty('--accent-strong', a + '80');
-    if (light) { de.setAttribute('data-light', ''); de.setAttribute('data-fond', fond); }
-    else { de.removeAttribute('data-light'); de.removeAttribute('data-fond'); }
-    if (rose && !light) de.setAttribute('data-theme', 'rose'); else de.removeAttribute('data-theme');
+    if (light) de.setAttribute('data-light', ''); else de.removeAttribute('data-light');
+    if (fond !== 'sombre') de.setAttribute('data-fond', fond); else de.removeAttribute('data-fond');
+    if (rose && fond === 'sombre') de.setAttribute('data-theme', 'rose'); else de.removeAttribute('data-theme');
     var tc = document.querySelector('meta[name=theme-color]'); if (tc) tc.setAttribute('content', FONDS[fond] || FONDS.sombre);
   };
 
@@ -3035,7 +3036,7 @@ button.power{color:inherit;font:inherit;text-align:left}
         : '<div class="note" style="margin-top:8px">Crée d\'abord l\'entrée « Éclairage May » (input_boolean.eclairage_may) dans Home Assistant.</div>') + '</div>';
 
     h += '<div class="card"><h2>Fond</h2><div class="opts" style="margin-top:8px;flex-wrap:wrap">' +
-      [['sombre', 'Sombre'], ['blanc', 'Blanc'], ['gris', 'Gris'], ['creme', 'Crème'], ['sable', 'Sable']].map(function (f) {
+      [['blanc', 'Blanc'], ['gris', 'Gris clair'], ['grism', 'Gris moyen'], ['grisf', 'Gris foncé'], ['sombre', 'Sombre']].map(function (f) {
         return '<button class="opt' + (M.fond() === f[0] ? ' on' : '') + '" data-fond="' + f[0] + '">' + f[1] + '</button>';
       }).join('') + '</div></div>';
 
