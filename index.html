@@ -365,8 +365,13 @@ button.power{color:inherit;font:inherit;text-align:left}
 .kid-b.dep{background:#ff9800}
 .kid-b{text-align:center;padding:0}
 
-:root[data-theme=rose]{--bg:#16080f;--card:#271019;--card2:#3d1a2b;--line2:#53233a;--text:#fdeef4;--text2:#ecc7d6;--muted:#dcaec1;--muted2:#cc9db2}
-:root[data-theme=rose] .tabbar{background:rgba(22,8,15,.96)}
+:root[data-theme=rose]{--bg:#ffffff;--card:#fdf1f6;--card2:#f9dce8;--line2:#efc3d5;--text:#3b1325;--text2:#69344b;--muted:#8a5570;--muted2:#9b6a83;--warn:#c2410c;--danger:#dc2626;color-scheme:light}
+:root[data-theme=rose] .tabbar{background:rgba(255,255,255,.97)}
+:root[data-theme=rose] .jarvis{color:var(--accent);text-shadow:0 2px 10px color-mix(in srgb,var(--accent) 30%,transparent)}
+:root[data-theme=rose] .btn.solid{color:#fff}
+:root[data-theme=rose] .backdrop{background:rgba(60,20,40,.35)}
+:root[data-theme=rose] .tile,:root[data-theme=rose] .card,:root[data-theme=rose] .acc,:root[data-theme=rose] .sc,:root[data-theme=rose] .kid{box-shadow:0 1px 3px rgba(190,60,110,.08)}
+:root[data-theme=rose] .kid-ph .kid-i{color:#c98aa6}
 .kc-card{padding:12px}
 .kc-card h2{font-size:15px;margin-bottom:8px}
 .kcams{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -868,7 +873,7 @@ button.power{color:inherit;font:inherit;text-align:left}
   };
   M.applyAccent = function () {
     var rose = M.cfg.profile === 'gaelle';
-    var a = (M.cfg.accent && M.cfg.accent !== DEFAULTS.accent) ? M.cfg.accent : (rose ? '#f472b6' : DEFAULTS.accent);
+    var a = (M.cfg.accent && M.cfg.accent !== DEFAULTS.accent) ? M.cfg.accent : (rose ? '#db2777' : DEFAULTS.accent);
     var st = document.documentElement.style;
     st.setProperty('--accent', a);
     st.setProperty('--accent-soft', a + '26');
@@ -876,7 +881,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     st.setProperty('--accent-strong', a + '80');
     if (rose) document.documentElement.setAttribute('data-theme', 'rose');
     else document.documentElement.removeAttribute('data-theme');
-    var tc = document.querySelector('meta[name=theme-color]'); if (tc) tc.setAttribute('content', rose ? '#16080f' : '#050b10');
+    var tc = document.querySelector('meta[name=theme-color]'); if (tc) tc.setAttribute('content', rose ? '#ffffff' : '#050b10');
   };
 
   // ---------- Icônes (aplats monochromes) ----------
