@@ -365,13 +365,17 @@ button.power{color:inherit;font:inherit;text-align:left}
 .kid-b.dep{background:#ff9800}
 .kid-b{text-align:center;padding:0}
 
-:root[data-theme=rose]{--bg:#ffffff;--card:#fdf1f6;--card2:#f9dce8;--line2:#efc3d5;--text:#3b1325;--text2:#69344b;--muted:#8a5570;--muted2:#9b6a83;--warn:#c2410c;--danger:#dc2626;color-scheme:light}
-:root[data-theme=rose] .tabbar{background:rgba(255,255,255,.97)}
-:root[data-theme=rose] .jarvis{color:var(--accent);text-shadow:0 2px 10px color-mix(in srgb,var(--accent) 30%,transparent)}
-:root[data-theme=rose] .btn.solid{color:#fff}
-:root[data-theme=rose] .backdrop{background:rgba(60,20,40,.35)}
-:root[data-theme=rose] .tile,:root[data-theme=rose] .card,:root[data-theme=rose] .acc,:root[data-theme=rose] .sc,:root[data-theme=rose] .kid{box-shadow:0 1px 3px rgba(190,60,110,.08)}
-:root[data-theme=rose] .kid-ph .kid-i{color:#c98aa6}
+:root[data-light]{color-scheme:light;--card:color-mix(in srgb,var(--accent) 6%,var(--bg));--card2:color-mix(in srgb,var(--accent) 16%,var(--bg));--line2:color-mix(in srgb,var(--accent) 28%,var(--bg));--text:color-mix(in srgb,#111 90%,var(--accent));--text2:color-mix(in srgb,#111 72%,var(--accent));--muted:color-mix(in srgb,#111 58%,var(--bg));--muted2:color-mix(in srgb,#111 52%,var(--bg));--warn:#c2410c;--danger:#dc2626}
+:root[data-fond=blanc]{--bg:#ffffff}
+:root[data-fond=gris]{--bg:#eceff3}
+:root[data-fond=creme]{--bg:#fbf5e6}
+:root[data-fond=sable]{--bg:#efe2c8}
+:root[data-light] .tabbar{background:color-mix(in srgb,var(--bg) 97%,transparent)}
+:root[data-light] .jarvis{color:var(--accent);text-shadow:0 2px 10px color-mix(in srgb,var(--accent) 30%,transparent)}
+:root[data-light] .btn.solid{color:#fff}
+:root[data-light] .backdrop{background:rgba(40,30,20,.35)}
+:root[data-light] .tile,:root[data-light] .card,:root[data-light] .acc,:root[data-light] .sc,:root[data-light] .kid{box-shadow:0 1px 3px rgba(60,40,20,.08)}
+:root[data-light] .kid-ph .kid-i{color:var(--muted)}
 .kc-card{padding:12px}
 .kc-card h2{font-size:15px;margin-bottom:8px}
 .kcams{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -379,6 +383,9 @@ button.power{color:inherit;font:inherit;text-align:left}
 .kc-ph{aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center;color:var(--muted)}
 .kc-ph img{width:100%;height:100%;object-fit:cover;display:block}
 .kc-n{font-size:13px;font-weight:600;text-align:center;color:var(--text2)}
+
+:root[data-theme=rose]{--bg:#16080f;--card:#271019;--card2:#3d1a2b;--line2:#53233a;--text:#fdeef4;--text2:#ecc7d6;--muted:#dcaec1;--muted2:#cc9db2}
+:root[data-theme=rose] .tabbar{background:rgba(22,8,15,.96)}
 
 </style>
 </head>
@@ -871,17 +878,20 @@ button.power{color:inherit;font:inherit;text-align:left}
     Object.assign(M.cfg, patch);
     localStorage.setItem(CFG_KEY, JSON.stringify(M.cfg));
   };
+  var FONDS = { sombre: '#050b10', blanc: '#ffffff', gris: '#eceff3', creme: '#fbf5e6', sable: '#efe2c8' };
+  M.fond = function () { return M.cfg.fond || (M.cfg.profile === 'gaelle' ? 'blanc' : 'sombre'); };
   M.applyAccent = function () {
-    var rose = M.cfg.profile === 'gaelle';
-    var a = (M.cfg.accent && M.cfg.accent !== DEFAULTS.accent) ? M.cfg.accent : (rose ? '#db2777' : DEFAULTS.accent);
-    var st = document.documentElement.style;
+    var rose = M.cfg.profile === 'gaelle', fond = M.fond(), light = fond !== 'sombre';
+    var a = (M.cfg.accent && M.cfg.accent !== DEFAULTS.accent) ? M.cfg.accent : (rose ? (light ? '#db2777' : '#f472b6') : (light ? '#0891b2' : DEFAULTS.accent));
+    var de = document.documentElement, st = de.style;
     st.setProperty('--accent', a);
     st.setProperty('--accent-soft', a + '26');
     st.setProperty('--accent-line', a + '40');
     st.setProperty('--accent-strong', a + '80');
-    if (rose) document.documentElement.setAttribute('data-theme', 'rose');
-    else document.documentElement.removeAttribute('data-theme');
-    var tc = document.querySelector('meta[name=theme-color]'); if (tc) tc.setAttribute('content', rose ? '#ffffff' : '#050b10');
+    if (light) { de.setAttribute('data-light', ''); de.setAttribute('data-fond', fond); }
+    else { de.removeAttribute('data-light'); de.removeAttribute('data-fond'); }
+    if (rose && !light) de.setAttribute('data-theme', 'rose'); else de.removeAttribute('data-theme');
+    var tc = document.querySelector('meta[name=theme-color]'); if (tc) tc.setAttribute('content', FONDS[fond] || FONDS.sombre);
   };
 
   // ---------- Icônes (aplats monochromes) ----------
@@ -3024,6 +3034,11 @@ button.power{color:inherit;font:inherit;text-align:left}
         ? '<div class="row" style="margin-top:8px"><span>Activé</span>' + M.sw(M.E.eclairageMay, 'Éclairage de May') + '</div>'
         : '<div class="note" style="margin-top:8px">Crée d\'abord l\'entrée « Éclairage May » (input_boolean.eclairage_may) dans Home Assistant.</div>') + '</div>';
 
+    h += '<div class="card"><h2>Fond</h2><div class="opts" style="margin-top:8px;flex-wrap:wrap">' +
+      [['sombre', 'Sombre'], ['blanc', 'Blanc'], ['gris', 'Gris'], ['creme', 'Crème'], ['sable', 'Sable']].map(function (f) {
+        return '<button class="opt' + (M.fond() === f[0] ? ' on' : '') + '" data-fond="' + f[0] + '">' + f[1] + '</button>';
+      }).join('') + '</div></div>';
+
     h += '<div class="card"><h2>Profil de cet appareil</h2>' +
       '<div class="note">Change l\'écran d\'accueil : le profil Gaëlle ajoute les enfants (photos, horaires, arrivée / départ).</div>' +
       '<div class="opts" style="margin-top:8px"><button class="opt' + (c.profile !== 'gaelle' ? ' on' : '') + '" data-prof="patrick">Patrick</button><button class="opt' + (c.profile === 'gaelle' ? ' on' : '') + '" data-prof="gaelle">Gaëlle</button></div></div>';
@@ -3080,6 +3095,9 @@ button.power{color:inherit;font:inherit;text-align:left}
       }
       render();
     };
+    el.querySelectorAll('[data-fond]').forEach(function (b) {
+      b.onclick = function () { M.saveCfg({ fond: b.dataset.fond }); M.applyAccent(); render(); };
+    });
     el.querySelectorAll('[data-prof]').forEach(function (b) {
       b.onclick = function () { M.saveCfg({ profile: b.dataset.prof }); M.applyAccent(); M.toast('Profil : ' + (b.dataset.prof === 'gaelle' ? 'Gaëlle' : 'Patrick')); render(); };
     });
