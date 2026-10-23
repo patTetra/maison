@@ -365,6 +365,16 @@ button.power{color:inherit;font:inherit;text-align:left}
 .kid-b.dep{background:#ff9800}
 .kid-b{text-align:center;padding:0}
 
+:root[data-theme=rose]{--bg:#16080f;--card:#271019;--card2:#3d1a2b;--line2:#53233a;--text:#fdeef4;--text2:#ecc7d6;--muted:#dcaec1;--muted2:#cc9db2}
+:root[data-theme=rose] .tabbar{background:rgba(22,8,15,.96)}
+.kc-card{padding:12px}
+.kc-card h2{font-size:15px;margin-bottom:8px}
+.kcams{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kcam{display:flex;flex-direction:column;gap:4px;align-items:stretch}
+.kc-ph{aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.kc-ph img{width:100%;height:100%;object-fit:cover;display:block}
+.kc-n{font-size:13px;font-weight:600;text-align:center;color:var(--text2)}
+
 </style>
 </head>
 <body>
@@ -857,12 +867,16 @@ button.power{color:inherit;font:inherit;text-align:left}
     localStorage.setItem(CFG_KEY, JSON.stringify(M.cfg));
   };
   M.applyAccent = function () {
-    var a = M.cfg.accent || DEFAULTS.accent;
+    var rose = M.cfg.profile === 'gaelle';
+    var a = (M.cfg.accent && M.cfg.accent !== DEFAULTS.accent) ? M.cfg.accent : (rose ? '#f472b6' : DEFAULTS.accent);
     var st = document.documentElement.style;
     st.setProperty('--accent', a);
     st.setProperty('--accent-soft', a + '26');
     st.setProperty('--accent-line', a + '40');
     st.setProperty('--accent-strong', a + '80');
+    if (rose) document.documentElement.setAttribute('data-theme', 'rose');
+    else document.documentElement.removeAttribute('data-theme');
+    var tc = document.querySelector('meta[name=theme-color]'); if (tc) tc.setAttribute('content', rose ? '#16080f' : '#050b10');
   };
 
   // ---------- Icônes (aplats monochromes) ----------
@@ -1791,6 +1805,45 @@ button.power{color:inherit;font:inherit;text-align:left}
       };
     });
   };
+
+  // Mode enfant (profil Gaëlle) : trois caméras avec image actualisée toutes les 4 s
+  var KC = [
+    { name: 'Portail', entity: 'camera.entree' },
+    { name: 'Entrée', entity: 'camera.terrasse_hd_stream' },
+    { name: 'Parking', entity: 'camera.camera_parking_hd_stream' }
+  ];
+  var kcUrls = {}, kcTimer = null;
+
+  M.kidCamsHtml = function () {
+    var h = '<div class="kcams">';
+    KC.forEach(function (c) {
+      h += '<button class="kcam" data-kcam="' + c.entity + '"><div class="kc-ph">' + (kcUrls[c.entity] ? '<img alt="" src="' + kcUrls[c.entity] + '">' : '<span>…</span>') + '</div><div class="kc-n">' + M.esc(c.name) + '</div></button>';
+    });
+    return h + '</div>';
+  };
+
+  function kcRefresh(root) {
+    if (M.current !== 'accueil' || document.hidden || !HA.configured()) return;
+    KC.forEach(function (c) {
+      HA.cameraBlobUrl(c.entity).then(function (u) {
+        if (kcUrls[c.entity]) URL.revokeObjectURL(kcUrls[c.entity]);
+        kcUrls[c.entity] = u;
+        var box = document.querySelector('[data-kcam="' + c.entity + '"] .kc-ph');
+        if (box) box.innerHTML = '<img alt="" src="' + u + '">';
+      }).catch(function () { /* ignoré */ });
+    });
+  }
+
+  M.kidCamsBind = function (root, active) {
+    if (!active) { if (kcTimer) { clearInterval(kcTimer); kcTimer = null; } return; }
+    root.querySelectorAll('[data-kcam]').forEach(function (b) {
+      b.onclick = function () {
+        var c = KC.filter(function (x) { return x.entity === b.dataset.kcam; })[0];
+        if (c && M.openCamLive) M.openCamLive(c);
+      };
+    });
+    if (!kcTimer) { kcRefresh(root); kcTimer = setInterval(kcRefresh, 4000); }
+  };
 })(window.M = window.M || {});
 
 (function (M) {
@@ -2546,8 +2599,12 @@ button.power{color:inherit;font:inherit;text-align:left}
       h += acc('enfants', 'smile', 'Enfants', M.enfantsSub(), M.enfantsBlock());
     }
 
-    var pw = HA.num(E.power);
-    h += '<button class="power" data-power aria-label="Courbe de puissance"><span class="pw-l">Puissance compteur</span><span class="pw-v">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span><span class="chev">' + M.icon('chevr', 18) + '</span></button>';
+    if (M.cfg.profile === 'gaelle') {
+      if (HA.isOn(E.modeEnfant)) h += '<div class="card kc-card"><h2>Caméras</h2>' + M.kidCamsHtml() + '</div>';
+    } else {
+      var pw = HA.num(E.power);
+      h += '<button class="power" data-power aria-label="Courbe de puissance"><span class="pw-l">Puissance compteur</span><span class="pw-v">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span><span class="chev">' + M.icon('chevr', 18) + '</span></button>';
+    }
 
     var poele = HA.isOn(E.poele);
     var salon = HA.num(E.salonTemp), cons = HA.num(E.consigne);
@@ -2609,6 +2666,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       };
     });
     M.enfantsBind(el);
+    M.kidCamsBind(el, M.cfg.profile === 'gaelle' && HA.isOn(E.modeEnfant));
     M.planning.bind(el, render);
     el.querySelectorAll('[data-heat]').forEach(function (b) { b.onclick = M.openHeat; });
     el.querySelectorAll('[data-pellet]').forEach(function (b) { b.onclick = M.openPellets; });
@@ -2828,6 +2886,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     },
     onHide: function () { clearInterval(timer); timer = null; }
   });
+  M.openCamLive = openLive;
 })(window.M = window.M || {});
 
 (function (M) {
@@ -3012,7 +3071,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       render();
     };
     el.querySelectorAll('[data-prof]').forEach(function (b) {
-      b.onclick = function () { M.saveCfg({ profile: b.dataset.prof }); M.toast('Profil : ' + (b.dataset.prof === 'gaelle' ? 'Gaëlle' : 'Patrick')); render(); };
+      b.onclick = function () { M.saveCfg({ profile: b.dataset.prof }); M.applyAccent(); M.toast('Profil : ' + (b.dataset.prof === 'gaelle' ? 'Gaëlle' : 'Patrick')); render(); };
     });
     el.querySelectorAll('[data-jn]').forEach(function (b) {
       b.onclick = function () { M.saveCfg({ jourQuandActive: b.dataset.jn === '1' }); render(); };
