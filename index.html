@@ -2601,14 +2601,12 @@ button.power{color:inherit;font:inherit;text-align:left}
       shortcut(E.lumExt, 'bulb', 'Lumières ext.', HA.isOn(E.lumExt), 'lit') +
       shortcut(E.jourNuit, isDay() ? 'sun' : 'moon', isDay() ? 'Mode jour' : 'Mode nuit', !isDay()) + '</div>';
 
+    if (M.cfg.profile === 'gaelle' && HA.isOn(E.modeEnfant)) h += '<div class="card kc-card"><h2>Caméras</h2>' + M.kidCamsHtml() + '</div>';
     if (M.cfg.profile === 'gaelle' && M.enfantsBlock()) {
-      if (M.open.enfants === undefined) M.open.enfants = true;
       h += acc('enfants', 'smile', 'Enfants', M.enfantsSub(), M.enfantsBlock());
     }
 
-    if (M.cfg.profile === 'gaelle') {
-      if (HA.isOn(E.modeEnfant)) h += '<div class="card kc-card"><h2>Caméras</h2>' + M.kidCamsHtml() + '</div>';
-    } else {
+    if (M.cfg.profile !== 'gaelle') {
       var pw = HA.num(E.power);
       h += '<button class="power" data-power aria-label="Courbe de puissance"><span class="pw-l">Puissance compteur</span><span class="pw-v">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span><span class="chev">' + M.icon('chevr', 18) + '</span></button>';
     }
