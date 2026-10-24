@@ -2669,6 +2669,8 @@ button.power{color:inherit;font:inherit;text-align:left}
         : tile(HA.isOn(E.ballon) ? 'on' : '', 'drop', 'Ballon', HA.isOn(E.ballon) ? 'Chauffe' : 'Arrêté', HA.isOn(E.ballonForce) ? 'forcé' : '', 'maison|ballon')) +
       batteryBar(tile(ms.cls, 'mower', 'Tondeuse', ms.label, ms.sub, ''), ms) + '</div>';
 
+    if (M.cfg.profile === 'gaelle') h += '<button class="power" data-assmat aria-label="AssMat"><span class="pw-l">AssMat</span><span class="pw-v" style="font-size:15px;font-weight:600;color:var(--muted)">Ouvrir</span><span class="chev">' + M.icon('chevr', 18) + '</span></button>';
+
     h += acc('agenda', 'cal', 'Agenda du jour', agendaSub(), agendaBody());
     h += acc('planning', 'cal', 'Planning', M.planning.sub(), M.planning.body(), M.planning.subCls());
     h += acc('ecole', 'cap', 'École de Manon', ecoleSub(), ecoleBody());
@@ -2689,6 +2691,9 @@ button.power{color:inherit;font:inherit;text-align:left}
     M.enfantsBind(el);
     M.kidCamsBind(el, M.cfg.profile === 'gaelle' && HA.isOn(E.modeEnfant));
     M.planning.bind(el, render);
+    el.querySelectorAll('[data-assmat]').forEach(function (b) {
+      b.onclick = function () { M.openOverlay('AssMat', '<iframe class="ov-frame" src="assmat.html" title="AssMat"></iframe>'); };
+    });
     el.querySelectorAll('[data-heat]').forEach(function (b) { b.onclick = M.openHeat; });
     el.querySelectorAll('[data-pellet]').forEach(function (b) { b.onclick = M.openPellets; });
     el.querySelectorAll('[data-power]').forEach(function (b) { b.onclick = M.openPower; });
