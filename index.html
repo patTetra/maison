@@ -390,6 +390,9 @@ button.power{color:inherit;font:inherit;text-align:left}
 
 .acc-act{flex:none;width:34px;height:34px;border-radius:17px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
 
+:root[data-fond=nuit]{--bg:#0f172a;--card:#1e293b;--card2:#334155;--line2:rgba(255,255,255,.12);--text:#f8fafc;--text2:#cbd5e1;--muted:#94a3b8;--muted2:#8d9bb0}
+:root[data-fond=nuit] .tabbar{background:rgba(15,23,42,.97)}
+
 </style>
 </head>
 <body>
@@ -881,12 +884,12 @@ button.power{color:inherit;font:inherit;text-align:left}
     Object.assign(M.cfg, patch);
     localStorage.setItem(CFG_KEY, JSON.stringify(M.cfg));
   };
-  var FONDS = { sombre: '#050b10', blanc: '#ffffff', gris: '#eceff3', grism: '#c3c8cf', grisf: '#2a2c30' };
+  var FONDS = { sombre: '#050b10', blanc: '#ffffff', gris: '#eceff3', grism: '#c3c8cf', grisf: '#2a2c30', nuit: '#0f172a' };
   // Le fond est mémorisé par profil (Patrick / Gaëlle) ; l'ancien réglage unique est repris pour le profil en cours
   M.fond = function () {
     var pr = M.cfg.profile === 'gaelle' ? 'gaelle' : 'patrick';
     var f = (M.cfg.fonds || {})[pr] || M.cfg.fond;
-    return FONDS[f] ? f : (pr === 'gaelle' ? 'blanc' : 'sombre');
+    return FONDS[f] ? f : (pr === 'gaelle' ? 'nuit' : 'sombre');
   };
   M.setFond = function (f) {
     var pr = M.cfg.profile === 'gaelle' ? 'gaelle' : 'patrick';
@@ -894,13 +897,13 @@ button.power{color:inherit;font:inherit;text-align:left}
     fonds[pr] = f;
     M.saveCfg({ fonds: fonds, fond: null });
   };
-  var LIGHT_ACC = { '#22d3ee': '#0891b2', '#4ade80': '#16a34a', '#a78bfa': '#7c3aed', '#fb923c': '#ea580c', '#f472b6': '#db2777' };
+  var LIGHT_ACC = { '#ec4899': '#db2777', '#22d3ee': '#0891b2', '#4ade80': '#16a34a', '#a78bfa': '#7c3aed', '#fb923c': '#ea580c', '#f472b6': '#db2777' };
   // Couleur d'accent choisie, mémorisée par profil (à défaut : cyan pour Patrick, rose pour Gaëlle)
   M.accentChoice = function () {
     var pr = M.cfg.profile === 'gaelle' ? 'gaelle' : 'patrick';
     var c = (M.cfg.accents || {})[pr];
     if (!c && M.cfg.accent && M.cfg.accent !== DEFAULTS.accent) c = M.cfg.accent;   // ancien réglage unique
-    return c || (pr === 'gaelle' ? '#f472b6' : DEFAULTS.accent);
+    return c || (pr === 'gaelle' ? '#ec4899' : DEFAULTS.accent);
   };
   M.setAccent = function (c) {
     var pr = M.cfg.profile === 'gaelle' ? 'gaelle' : 'patrick';
@@ -3044,7 +3047,7 @@ button.power{color:inherit;font:inherit;text-align:left}
 (function (M) {
   'use strict';
   var HA = M.HA;
-  var COLORS = ['#22d3ee', '#4ade80', '#a78bfa', '#fb923c', '#f472b6'];
+  var COLORS = ['#22d3ee', '#4ade80', '#a78bfa', '#fb923c', '#ec4899'];
   var testMsg = null;
 
   function render() {
@@ -3068,7 +3071,7 @@ button.power{color:inherit;font:inherit;text-align:left}
         : '<div class="note" style="margin-top:8px">Crée d\'abord l\'entrée « Éclairage May » (input_boolean.eclairage_may) dans Home Assistant.</div>') + '</div>';
 
     h += '<div class="card"><h2>Fond</h2><div class="note">Mémorisé pour le profil en cours.</div><div class="opts" style="margin-top:8px;flex-wrap:wrap">' +
-      [['blanc', 'Blanc'], ['gris', 'Gris clair'], ['grism', 'Gris moyen'], ['grisf', 'Gris foncé'], ['sombre', 'Sombre']].map(function (f) {
+      [['blanc', 'Blanc'], ['gris', 'Gris clair'], ['grism', 'Gris moyen'], ['grisf', 'Gris foncé'], ['sombre', 'Sombre'], ['nuit', 'Nuit AssMat']].map(function (f) {
         return '<button class="opt' + (M.fond() === f[0] ? ' on' : '') + '" data-fond="' + f[0] + '">' + f[1] + '</button>';
       }).join('') + '</div></div>';
 
