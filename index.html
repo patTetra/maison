@@ -388,6 +388,8 @@ button.power{color:inherit;font:inherit;text-align:left}
 :root[data-theme=rose] .tabbar{background:rgba(22,8,15,.96)}
 :root[data-fond=grisf] .tabbar{background:rgba(42,44,48,.97)}
 
+.acc-act{flex:none;width:34px;height:34px;border-radius:17px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
+
 </style>
 </head>
 <body>
@@ -880,10 +882,36 @@ button.power{color:inherit;font:inherit;text-align:left}
     localStorage.setItem(CFG_KEY, JSON.stringify(M.cfg));
   };
   var FONDS = { sombre: '#050b10', blanc: '#ffffff', gris: '#eceff3', grism: '#c3c8cf', grisf: '#2a2c30' };
-  M.fond = function () { return FONDS[M.cfg.fond] ? M.cfg.fond : (M.cfg.profile === 'gaelle' ? 'blanc' : 'sombre'); };
+  // Le fond est mémorisé par profil (Patrick / Gaëlle) ; l'ancien réglage unique est repris pour le profil en cours
+  M.fond = function () {
+    var pr = M.cfg.profile === 'gaelle' ? 'gaelle' : 'patrick';
+    var f = (M.cfg.fonds || {})[pr] || M.cfg.fond;
+    return FONDS[f] ? f : (pr === 'gaelle' ? 'blanc' : 'sombre');
+  };
+  M.setFond = function (f) {
+    var pr = M.cfg.profile === 'gaelle' ? 'gaelle' : 'patrick';
+    var fonds = Object.assign({}, M.cfg.fonds || {});
+    fonds[pr] = f;
+    M.saveCfg({ fonds: fonds, fond: null });
+  };
+  var LIGHT_ACC = { '#22d3ee': '#0891b2', '#4ade80': '#16a34a', '#a78bfa': '#7c3aed', '#fb923c': '#ea580c', '#f472b6': '#db2777' };
+  // Couleur d'accent choisie, mémorisée par profil (à défaut : cyan pour Patrick, rose pour Gaëlle)
+  M.accentChoice = function () {
+    var pr = M.cfg.profile === 'gaelle' ? 'gaelle' : 'patrick';
+    var c = (M.cfg.accents || {})[pr];
+    if (!c && M.cfg.accent && M.cfg.accent !== DEFAULTS.accent) c = M.cfg.accent;   // ancien réglage unique
+    return c || (pr === 'gaelle' ? '#f472b6' : DEFAULTS.accent);
+  };
+  M.setAccent = function (c) {
+    var pr = M.cfg.profile === 'gaelle' ? 'gaelle' : 'patrick';
+    var accents = Object.assign({}, M.cfg.accents || {});
+    accents[pr] = c;
+    M.saveCfg({ accents: accents, accent: DEFAULTS.accent });
+  };
   M.applyAccent = function () {
     var rose = M.cfg.profile === 'gaelle', fond = M.fond(), light = fond === 'blanc' || fond === 'gris' || fond === 'grism';
-    var a = (M.cfg.accent && M.cfg.accent !== DEFAULTS.accent) ? M.cfg.accent : (rose ? (light ? '#db2777' : '#f472b6') : (light ? '#0891b2' : DEFAULTS.accent));
+    var ch = M.accentChoice();
+    var a = light ? (LIGHT_ACC[ch] || ch) : ch;
     var de = document.documentElement, st = de.style;
     st.setProperty('--accent', a);
     st.setProperty('--accent-soft', a + '26');
@@ -908,6 +936,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     door: 'M5 21V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v18h2v1.5H3V21zM7.5 4.5V21h9V4.5zM13.5 11.5v2h2v-2z',
     sun: 'M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM11 1h2v3h-2zM11 20h2v3h-2zM1 11h3v2H1zM20 11h3v2h-3z',
     moon: 'M21 14.5A9 9 0 0 1 9.5 3a9 9 0 1 0 11.5 11.5z',
+    heart: 'M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.700-8 11-8 11z',
     smile: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM8.5 9a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm7 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zM7.5 14h9a4.5 4.5 0 0 1-9 0z',
     bolt: 'M13 2 4 14h6l-1 8 9-12h-6z',
     cal: 'M7 2h2v2h6V2h2v2h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3zM5 9v10h14V9z',
@@ -2619,7 +2648,7 @@ button.power{color:inherit;font:inherit;text-align:left}
 
     if (M.cfg.profile === 'gaelle' && HA.isOn(E.modeEnfant)) h += '<div class="card kc-card"><h2>Caméras</h2>' + M.kidCamsHtml() + '</div>';
     if (M.cfg.profile === 'gaelle' && M.enfantsBlock()) {
-      h += acc('enfants', 'smile', 'Enfants', M.enfantsSub(), M.enfantsBlock());
+      h += acc('enfants', 'smile', 'Enfants', M.enfantsSub(), M.enfantsBlock()).replace('<span class="acc-t">Enfants</span>', '<span class="acc-t">Enfants</span><span class="acc-act" role="button" tabindex="0" data-assmat aria-label="AssMat">' + M.icon('heart', 18) + '</span>');
     }
 
     if (M.cfg.profile !== 'gaelle') {
@@ -2669,8 +2698,6 @@ button.power{color:inherit;font:inherit;text-align:left}
         : tile(HA.isOn(E.ballon) ? 'on' : '', 'drop', 'Ballon', HA.isOn(E.ballon) ? 'Chauffe' : 'Arrêté', HA.isOn(E.ballonForce) ? 'forcé' : '', 'maison|ballon')) +
       batteryBar(tile(ms.cls, 'mower', 'Tondeuse', ms.label, ms.sub, ''), ms) + '</div>';
 
-    if (M.cfg.profile === 'gaelle') h += '<button class="power" data-assmat aria-label="AssMat"><span class="pw-l">AssMat</span><span class="pw-v" style="font-size:15px;font-weight:600;color:var(--muted)">Ouvrir</span><span class="chev">' + M.icon('chevr', 18) + '</span></button>';
-
     h += acc('agenda', 'cal', 'Agenda du jour', agendaSub(), agendaBody());
     h += acc('planning', 'cal', 'Planning', M.planning.sub(), M.planning.body(), M.planning.subCls());
     h += acc('ecole', 'cap', 'École de Manon', ecoleSub(), ecoleBody());
@@ -2692,7 +2719,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     M.kidCamsBind(el, M.cfg.profile === 'gaelle' && HA.isOn(E.modeEnfant));
     M.planning.bind(el, render);
     el.querySelectorAll('[data-assmat]').forEach(function (b) {
-      b.onclick = function () { M.openOverlay('AssMat', '<iframe class="ov-frame" src="assmat.html" title="AssMat"></iframe>'); };
+      b.onclick = function (ev) { ev.stopPropagation(); M.openOverlay('AssMat', '<iframe class="ov-frame" src="assmat.html" title="AssMat"></iframe>'); };
     });
     el.querySelectorAll('[data-heat]').forEach(function (b) { b.onclick = M.openHeat; });
     el.querySelectorAll('[data-pellet]').forEach(function (b) { b.onclick = M.openPellets; });
@@ -3040,7 +3067,7 @@ button.power{color:inherit;font:inherit;text-align:left}
         ? '<div class="row" style="margin-top:8px"><span>Activé</span>' + M.sw(M.E.eclairageMay, 'Éclairage de May') + '</div>'
         : '<div class="note" style="margin-top:8px">Crée d\'abord l\'entrée « Éclairage May » (input_boolean.eclairage_may) dans Home Assistant.</div>') + '</div>';
 
-    h += '<div class="card"><h2>Fond</h2><div class="opts" style="margin-top:8px;flex-wrap:wrap">' +
+    h += '<div class="card"><h2>Fond</h2><div class="note">Mémorisé pour le profil en cours.</div><div class="opts" style="margin-top:8px;flex-wrap:wrap">' +
       [['blanc', 'Blanc'], ['gris', 'Gris clair'], ['grism', 'Gris moyen'], ['grisf', 'Gris foncé'], ['sombre', 'Sombre']].map(function (f) {
         return '<button class="opt' + (M.fond() === f[0] ? ' on' : '') + '" data-fond="' + f[0] + '">' + f[1] + '</button>';
       }).join('') + '</div></div>';
@@ -3071,7 +3098,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       '<div class="btnrow"><button class="btn" id="s-al-save">Enregistrer</button></div></div>';
 
     h += '<div class="card"><h2>Couleur</h2><div class="swatches" style="margin-top:8px">' +
-      COLORS.map(function (col) { return '<button class="swatch' + (col === c.accent ? ' on' : '') + '" data-col="' + col + '" style="background:' + col + '" aria-label="' + col + '"></button>'; }).join('') +
+      COLORS.map(function (col) { return '<button class="swatch' + (col === M.accentChoice() ? ' on' : '') + '" data-col="' + col + '" style="background:' + col + '" aria-label="' + col + '"></button>'; }).join('') +
       '</div></div>';
 
     h += '<div class="card"><h2>Données locales</h2><div class="note">Efface l\'adresse, le jeton et les réglages enregistrés sur cet appareil.</div>' +
@@ -3102,7 +3129,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       render();
     };
     el.querySelectorAll('[data-fond]').forEach(function (b) {
-      b.onclick = function () { M.saveCfg({ fond: b.dataset.fond }); M.applyAccent(); render(); };
+      b.onclick = function () { M.setFond(b.dataset.fond); M.applyAccent(); render(); };
     });
     el.querySelectorAll('[data-prof]').forEach(function (b) {
       b.onclick = function () { M.saveCfg({ profile: b.dataset.prof }); M.applyAccent(); M.toast('Profil : ' + (b.dataset.prof === 'gaelle' ? 'Gaëlle' : 'Patrick')); render(); };
@@ -3111,7 +3138,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       b.onclick = function () { M.saveCfg({ jourQuandActive: b.dataset.jn === '1' }); render(); };
     });
     el.querySelectorAll('[data-col]').forEach(function (b) {
-      b.onclick = function () { M.saveCfg({ accent: b.dataset.col }); M.applyAccent(); render(); };
+      b.onclick = function () { M.setAccent(b.dataset.col); M.applyAccent(); render(); };
     });
     el.querySelector('#s-sch-save').onclick = function () {
       M.saveCfg({ scheduleUrl: el.querySelector('#s-sch').value.trim(), ecoleUrl: el.querySelector('#s-eco').value.trim() });
