@@ -1395,6 +1395,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     try {
       await write(mut, label);
       P.msg = { cls: 'ok', text: okMsg(P.stock()) };
+      qty = 1;
     } catch (e) {
       P.msg = { cls: 'ko', text: e.message || 'Échec' };
     }
@@ -1517,6 +1518,14 @@ button.power{color:inherit;font:inherit;text-align:left}
     return h;
   }
 
+  var QMAX = 30, QH = 40;
+  function qtyWheel() {
+    var h = '<div class="wheel" id="p-qty">';
+    for (var i = 1; i <= QMAX; i++) h += '<div' + (i === qty ? ' class="sel"' : '') + '>' + i + '</div>';
+    return h + '</div>';
+  }
+  function takeLabel() { return qty === 1 ? 'Sac utilisé' : qty + ' sacs utilisés'; }
+
   function show() {
     var s = P.stock();
     var cur = new Date(new Date().getMonth() >= 8 ? new Date().getFullYear() : new Date().getFullYear() - 1, 8, 1);
@@ -1525,9 +1534,9 @@ button.power{color:inherit;font:inherit;text-align:left}
     var h = '<h3>Pellets</h3>' +
       '<div class="pel-val">' + (s == null ? '—' : s + ' <small>' + plural(s) + ' en stock</small>') + '</div>' +
       (P.error ? '<div class="msg ko">' + M.esc(P.error) + '</div>' : '') +
-      '<div class="row"><span>Nombre de sacs</span><div class="stepper"><button class="sb" data-q="-1" aria-label="Moins">−</button><span class="sv">' + qty + '</span><button class="sb" data-q="1" aria-label="Plus">+</button></div></div>' +
-      '<div class="btnrow"><button class="btn solid" id="p-take"' + (P.busy ? ' disabled' : '') + '>Utiliser ' + qty + ' ' + plural(qty) + '</button>' +
-      '<button class="btn" id="p-add"' + (P.busy ? ' disabled' : '') + '>Acheter ' + qty + ' ' + plural(qty) + '</button></div>' +
+      '<div class="wheels" style="margin-top:6px">' + qtyWheel() + '<span class="colon" id="p-unit" style="font-size:22px">' + plural(qty) + '</span></div>' +
+      '<button class="btn solid" id="p-take" style="width:100%;height:60px;font-size:20px;margin-top:6px"' + (P.busy ? ' disabled' : '') + '>' + takeLabel() + '</button>' +
+      '<button class="btn" id="p-add" style="width:100%;margin-top:8px"' + (P.busy ? ' disabled' : '') + '>Acheter ' + qty + ' ' + plural(qty) + '</button>' +
       (P.msg ? '<div class="msg ' + P.msg.cls + '">' + M.esc(P.msg.text) + '</div>' : '') +
       statsBlk +
       '<div class="field"><label for="p-set">Corriger le stock (après inventaire)</label><div class="btnrow" style="margin-top:0"><input class="inp" id="p-set" type="number" inputmode="numeric" min="0" step="1" value="' + (s == null ? '' : s) + '"><button class="btn" id="p-setb" style="flex:none">Corriger</button></div></div>';
@@ -1540,8 +1549,15 @@ button.power{color:inherit;font:inherit;text-align:left}
     }
     M.openSheet(h, function (sh) {
       sh.dataset.pellets = '1';
-      sh.querySelectorAll('[data-q]').forEach(function (b) {
-        b.onclick = function () { qty = Math.max(1, Math.min(99, qty + parseInt(b.dataset.q, 10))); show(); };
+      var wq = sh.querySelector('#p-qty');
+      wq.scrollTop = (qty - 1) * QH;
+      wq.addEventListener('scroll', function () {
+        var i = Math.max(0, Math.min(QMAX - 1, Math.round(wq.scrollTop / QH)));
+        Array.prototype.forEach.call(wq.children, function (c, k) { c.classList.toggle('sel', k === i); });
+        qty = i + 1;
+        sh.querySelector('#p-take').textContent = takeLabel();
+        sh.querySelector('#p-add').textContent = 'Acheter ' + qty + ' ' + plural(qty);
+        sh.querySelector('#p-unit').textContent = plural(qty);
       });
       sh.querySelector('#p-stats').onclick = function () { statsOpen = !statsOpen; show(); };
       sh.querySelectorAll('[data-season]').forEach(function (b) {
