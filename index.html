@@ -2653,6 +2653,8 @@ button.power{color:inherit;font:inherit;text-align:left}
     if (M.cfg.profile === 'gaelle' && M.enfantsBlock()) {
       h += acc('enfants', 'smile', 'Enfants', M.enfantsSub(), M.enfantsBlock()).replace('<span class="acc-t">Enfants</span>', '<span class="acc-t">Enfants</span><span class="acc-act" role="button" tabindex="0" data-assmat aria-label="AssMat">' + M.icon('heart', 18) + '</span>');
     }
+    var gaelle = M.cfg.profile === 'gaelle';
+    if (gaelle) h += acc('agenda', 'cal', 'Agenda du jour', agendaSub(), agendaBody());
 
     if (M.cfg.profile !== 'gaelle') {
       var pw = HA.num(E.power);
@@ -2677,23 +2679,30 @@ button.power{color:inherit;font:inherit;text-align:left}
     var inside = HA.num(E.teslaInside);
     var ms = mowerInfo();
 
-    h += '<div class="grid2">' +
-      tile(poele ? 'on' : '', 'flame', 'Chauffage', salon == null ? '—' : M.fmt(salon, 1) + '°',
+    var camTile = tile('', 'camera', 'Caméras', M.CAMERAS.length + ' caméras', '', 'cameras');
+    var chaufPell = tile(poele ? 'on' : '', 'flame', 'Chauffage', salon == null ? '—' : M.fmt(salon, 1) + '°',
         HA.isOn(E.maintenance) ? 'maintenance poêle' : HA.isOn(E.absent) ? 'Absent' + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°') + (poele ? ' · poêle' : '') : heatMode() + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°') + (poele ? ' · poêle' : ''), '@heat') +
       '<button class="tile" data-pellet="1"><div class="tile-top">' + M.icon('bag', 22) + '<span class="tile-lab">Pellets</span></div><div class="tile-val">' +
-        (stock == null ? '—' : stock + (stock > 1 ? ' sacs' : ' sac')) + '</div></button>' +
-      tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', ft == null ? '' : 'eau ' + M.fmt(ft, 1) + ' °C', 'maison|piscine') +
-      (lOff.length
+        (stock == null ? '—' : stock + (stock > 1 ? ' sacs' : ' sac')) + '</div></button>';
+    var filtTile = tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', ft == null ? '' : 'eau ' + M.fmt(ft, 1) + ' °C', 'maison|piscine');
+    var lumTile = (lOff.length
         ? tile('err', 'bulb', 'Lumières', lOff.length + (lOff.length > 1 ? ' déconnectées' : ' déconnectée'),
             lOff.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lOff.length > 2 ? '…' : ''), 'lumieres')
         : tile(lon.length ? 'on lit' : '', 'bulb', 'Lumières', lon.length ? lon.length + (lon.length > 1 ? ' allumées' : ' allumée') : 'Éteintes',
-        lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''), 'lumieres')) +
-      tile(doorsOpen.length ? 'warn' : '', 'door', 'Portes', doorsOpen.length ? doorsOpen.length + (doorsOpen.length > 1 ? ' ouvertes' : ' ouverte') : 'Fermées',
+        lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''), 'lumieres'));
+    var portesTesla = tile(doorsOpen.length ? 'warn' : '', 'door', 'Portes', doorsOpen.length ? doorsOpen.length + (doorsOpen.length > 1 ? ' ouvertes' : ' ouverte') : 'Fermées',
         doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison|portes') +
       (isCharging() && batt != null
         ? batteryBar(tile('on', 'car', 'Tesla', 'En charge', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°'), { batt: batt, charging: true })
-        : tile(climOn() ? 'on' : batt == null ? 'na' : '', 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°')) +
-      '</div>';
+        : tile(climOn() ? 'on' : batt == null ? 'na' : '', 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°'));
+
+    if (gaelle) {
+      h += '<div class="grid2">' + chaufPell + camTile + lumTile + '</div>';
+      h += acc('planning', 'cal', 'Planning', M.planning.sub(), M.planning.body(), M.planning.subCls());
+      h += '<div class="grid2">' + portesTesla + '</div>';
+    } else {
+      h += '<div class="grid2">' + chaufPell + filtTile + lumTile + portesTesla + '</div>';
+    }
 
     h += '<div class="row2">' +
       (M.offline(E.ballon)
@@ -2701,8 +2710,10 @@ button.power{color:inherit;font:inherit;text-align:left}
         : tile(HA.isOn(E.ballon) ? 'on' : '', 'drop', 'Ballon', HA.isOn(E.ballon) ? 'Chauffe' : 'Arrêté', HA.isOn(E.ballonForce) ? 'forcé' : '', 'maison|ballon')) +
       batteryBar(tile(ms.cls, 'mower', 'Tondeuse', ms.label, ms.sub, ''), ms) + '</div>';
 
-    h += acc('agenda', 'cal', 'Agenda du jour', agendaSub(), agendaBody());
-    h += acc('planning', 'cal', 'Planning', M.planning.sub(), M.planning.body(), M.planning.subCls());
+    if (!gaelle) {
+      h += acc('agenda', 'cal', 'Agenda du jour', agendaSub(), agendaBody());
+      h += acc('planning', 'cal', 'Planning', M.planning.sub(), M.planning.body(), M.planning.subCls());
+    }
     h += acc('ecole', 'cap', 'École de Manon', ecoleSub(), ecoleBody());
     h += '</div>';
 
