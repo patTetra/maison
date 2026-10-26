@@ -526,10 +526,10 @@ button.power{color:inherit;font:inherit;text-align:left}
 
   // « Portail » filme le portail ; « Entrée » (caméra de la terrasse) filme la porte d'entrée
   const CAMERAS = [
-    { name: 'Portail', entity: 'camera.entree', wide: false },
-    { name: 'Entrée', entity: 'camera.terrasse_hd_stream', wide: false },
+    { name: 'Entrée', entity: 'camera.terrasse_hd_stream', wide: true },
     { name: 'Parking', entity: 'camera.camera_parking_hd_stream', wide: true },
-    { name: 'Grange', entity: 'camera.ipcam_mainprofile', wide: true }
+    { name: 'Portail', entity: 'camera.entree', wide: false },
+    { name: 'Grange', entity: 'camera.ipcam_mainprofile', wide: false }
   ];
 
   // Autres prises pilotables depuis l'onglet Lumières (hors décompte « lumières allumées »)
