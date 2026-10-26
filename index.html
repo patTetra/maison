@@ -526,10 +526,10 @@ button.power{color:inherit;font:inherit;text-align:left}
 
   // « Portail » filme le portail ; « Entrée » (caméra de la terrasse) filme la porte d'entrée
   const CAMERAS = [
-    { name: 'Entrée', entity: 'camera.terrasse_hd_stream', wide: true },
-    { name: 'Parking', entity: 'camera.camera_parking_hd_stream', wide: true },
-    { name: 'Portail', entity: 'camera.entree', wide: false },
-    { name: 'Grange', entity: 'camera.ipcam_mainprofile', wide: false }
+    { name: 'Entrée', entity: 'camera.terrasse_hd_stream', wide: true, every: 1000 },
+    { name: 'Parking', entity: 'camera.camera_parking_hd_stream', wide: true, every: 3000 },
+    { name: 'Portail', entity: 'camera.entree', wide: false, every: 10000 },
+    { name: 'Grange', entity: 'camera.ipcam_mainprofile', wide: false, every: 10000 }
   ];
 
   // Autres prises pilotables depuis l'onglet Lumières (hors décompte « lumières allumées »)
@@ -1869,52 +1869,6 @@ button.power{color:inherit;font:inherit;text-align:left}
       };
     });
   };
-
-  // Mode enfant (profil Gaëlle) : trois caméras avec image actualisée toutes les secondes
-  var KC = [
-    { name: 'Portail', entity: 'camera.entree' },
-    { name: 'Entrée', entity: 'camera.terrasse_hd_stream' },
-    { name: 'Parking', entity: 'camera.camera_parking_hd_stream' }
-  ];
-  var kcUrls = {}, kcTimer = null;
-
-  M.kidCamsHtml = function () {
-    var h = '<div class="kcams">';
-    KC.forEach(function (c) {
-      h += '<button class="kcam" data-kcam="' + c.entity + '"><div class="kc-ph">' + (kcUrls[c.entity] ? '<img alt="" src="' + kcUrls[c.entity] + '">' : '<span>…</span>') + '</div><div class="kc-n">' + M.esc(c.name) + '</div></button>';
-    });
-    return h + '</div>';
-  };
-
-  // Une nouvelle image est demandée 1 s après la fin de la précédente (pas de requêtes qui s'empilent)
-  function kcRefresh() {
-    if (M.current !== 'accueil' || document.hidden || !HA.configured()) return Promise.resolve();
-    return Promise.all(KC.map(function (c) {
-      return HA.cameraBlobUrl(c.entity).then(function (u) {
-        if (kcUrls[c.entity]) URL.revokeObjectURL(kcUrls[c.entity]);
-        kcUrls[c.entity] = u;
-        var box = document.querySelector('[data-kcam="' + c.entity + '"] .kc-ph');
-        if (box) box.innerHTML = '<img alt="" src="' + u + '">';
-      }).catch(function () { /* ignoré */ });
-    }));
-  }
-
-  M.kidCamsBind = function (root, active) {
-    if (!active) { kcTimer = null; return; }
-    root.querySelectorAll('[data-kcam]').forEach(function (b) {
-      b.onclick = function () {
-        var c = KC.filter(function (x) { return x.entity === b.dataset.kcam; })[0];
-        if (c && M.openCamLive) M.openCamLive(c);
-      };
-    });
-    if (kcTimer) return;
-    kcTimer = true;
-    var loop = function () {
-      if (!kcTimer) return;
-      kcRefresh().then(function () { setTimeout(loop, 1000); });
-    };
-    loop();
-  };
 })(window.M = window.M || {});
 
 (function (M) {
@@ -2665,7 +2619,6 @@ button.power{color:inherit;font:inherit;text-align:left}
       shortcut(E.lumExt, 'bulb', 'Lumières ext.', HA.isOn(E.lumExt), 'lit') +
       shortcut(E.jourNuit, isDay() ? 'sun' : 'moon', isDay() ? 'Mode jour' : 'Mode nuit', !isDay()) + '</div>';
 
-    if (M.cfg.profile === 'gaelle' && HA.isOn(E.modeEnfant)) h += '<div class="card kc-card"><h2>Caméras</h2>' + M.kidCamsHtml() + '</div>';
     if (M.cfg.profile === 'gaelle' && M.enfantsBlock()) {
       h += acc('enfants', 'smile', 'Enfants', M.enfantsSub(), M.enfantsBlock()).replace('<span class="acc-t">Enfants</span>', '<span class="acc-t">Enfants</span><span class="acc-act" role="button" tabindex="0" data-assmat aria-label="AssMat">' + M.icon('heart', 18) + '</span>');
     }
@@ -2746,7 +2699,6 @@ button.power{color:inherit;font:inherit;text-align:left}
       };
     });
     M.enfantsBind(el);
-    M.kidCamsBind(el, M.cfg.profile === 'gaelle' && HA.isOn(E.modeEnfant));
     M.planning.bind(el, render);
     el.querySelectorAll('[data-assmat]').forEach(function (b) {
       b.onclick = function (ev) { ev.stopPropagation(); M.openOverlay('AssMat', '<iframe class="ov-frame" src="assmat.html" title="AssMat"></iframe>'); };
@@ -2877,7 +2829,6 @@ button.power{color:inherit;font:inherit;text-align:left}
 (function (M) {
   'use strict';
   var HA = M.HA;
-  var timer = null;
   var urls = {};
 
   function setImg(cam, img, ph) {
@@ -2891,14 +2842,27 @@ button.power{color:inherit;font:inherit;text-align:left}
     });
   }
 
-  function refreshAll() {
+  // Chaque caméra a sa cadence : une nouvelle image est demandée « every » ms après la fin de la précédente
+  var gen = 0, running = false;
+  function refreshOne(c) {
     var el = M.views.cameras.el;
-    if (M.current !== 'cameras' || document.hidden || !HA.configured()) return;
-    M.CAMERAS.forEach(function (c) {
-      var box = el.querySelector('[data-cam="' + c.entity + '"]');
-      if (box) setImg(c, box.querySelector('img'), box.querySelector('.ph'));
-    });
+    var box = el.querySelector('[data-cam="' + c.entity + '"]');
+    if (!box) return Promise.resolve();
+    return setImg(c, box.querySelector('img'), box.querySelector('.ph'));
   }
+  function loop(c, g) {
+    if (!running || g !== gen) return;
+    var go = (M.current === 'cameras' && !document.hidden && HA.configured()) ? refreshOne(c) : Promise.resolve();
+    go.then(function () { setTimeout(function () { loop(c, g); }, c.every || 10000); });
+  }
+  function startAll() {
+    if (running) return;
+    running = true;
+    var g = ++gen;
+    M.CAMERAS.forEach(function (c) { loop(c, g); });
+  }
+  function stopAll() { running = false; gen++; }
+  function refreshAll() { M.CAMERAS.forEach(refreshOne); }
 
   function openLive(cam) {
     var snapTimer = null, hls = null;
@@ -2956,18 +2920,17 @@ button.power{color:inherit;font:inherit;text-align:left}
       var c = M.CAMERAS.filter(function (x) { return x.entity === b.dataset.cam; })[0];
       b.onclick = function () { openLive(c); };
     });
-    refreshAll();
   }
 
   M.registerView('cameras', {
     render: render,
     live: false,
     onShow: function () {
+      stopAll();
       render();
-      clearInterval(timer);
-      timer = setInterval(refreshAll, 10000);
+      startAll();
     },
-    onHide: function () { clearInterval(timer); timer = null; }
+    onHide: stopAll
   });
   M.openCamLive = openLive;
 })(window.M = window.M || {});
