@@ -1528,8 +1528,6 @@ button.power{color:inherit;font:inherit;text-align:left}
 
   function show() {
     var s = P.stock();
-    var cur = new Date(new Date().getMonth() >= 8 ? new Date().getFullYear() : new Date().getFullYear() - 1, 8, 1);
-    var hist = (P.data && P.data.historique || []).filter(function (x) { var d = new Date(x.date); return !isNaN(d.getTime()) && d >= cur; }).slice(0, 5);
     var statsBlk = '<button class="subhead' + (statsOpen ? ' open' : '') + '" id="p-stats" style="margin-top:10px"><span>Consommation par saison</span><span class="chev">' + M.icon('chevd', 20) + '</span></button>' + (statsOpen ? statsHtml() : '');
     var h = '<h3>Pellets</h3>' +
       '<div class="pel-val">' + (s == null ? '—' : s + ' <small>' + plural(s) + ' en stock</small>') + '</div>' +
@@ -1540,13 +1538,6 @@ button.power{color:inherit;font:inherit;text-align:left}
       (P.msg ? '<div class="msg ' + P.msg.cls + '">' + M.esc(P.msg.text) + '</div>' : '') +
       statsBlk +
       '<div class="field"><label for="p-set">Corriger le stock (après inventaire)</label><div class="btnrow" style="margin-top:0"><input class="inp" id="p-set" type="number" inputmode="numeric" min="0" step="1" value="' + (s == null ? '' : s) + '"><button class="btn" id="p-setb" style="flex:none">Corriger</button></div></div>';
-    if (!hist.length) h += '<div class="sec" style="margin-top:14px">Derniers mouvements</div><div class="empty">Aucun mouvement cette saison.</div>';
-    if (hist.length) {
-      h += '<div class="sec" style="margin-top:14px">Derniers mouvements</div>' + hist.map(function (x) {
-        var dl = typeof x.delta === 'number' ? (x.delta > 0 ? '+' : x.delta < 0 ? '−' : '') + Math.abs(x.delta) : '';
-        return '<div class="row"><span>' + M.esc(when(x.date)) + (x.type ? ' · ' + (x.type === 'prise' ? 'utilisation' : x.type) : '') + '</span><span class="val">' + dl + ' → ' + x.stock + '</span></div>';
-      }).join('');
-    }
     M.openSheet(h, function (sh) {
       sh.dataset.pellets = '1';
       var wq = sh.querySelector('#p-qty');
