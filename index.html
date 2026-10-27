@@ -393,6 +393,12 @@ button.power{color:inherit;font:inherit;text-align:left}
 :root[data-fond=nuit]{--bg:#0f172a;--card:#1e293b;--card2:#334155;--line2:rgba(255,255,255,.12);--text:#f8fafc;--text2:#cbd5e1;--muted:#94a3b8;--muted2:#8d9bb0}
 :root[data-fond=nuit] .tabbar{background:rgba(15,23,42,.97)}
 
+:root{--cold:#4da3ff}
+.tile.hot{background:rgba(255,90,82,.14);border-color:rgba(255,90,82,.6)}.tile.hot .tile-top>svg:first-child,.tile.hot .tile-val{color:var(--danger)}
+.tile.cold{background:rgba(77,163,255,.14);border-color:rgba(77,163,255,.6)}.tile.cold .tile-top>svg:first-child,.tile.cold .tile-val{color:var(--cold)}
+.tile.chg{background:rgba(31,214,138,.12);border-color:rgba(31,214,138,.5)}.tile.chg .tile-top>svg:first-child,.tile.chg .tile-val{color:#1fd68a}
+.tile.fire{background:rgba(255,138,61,.14);border-color:rgba(255,138,61,.6)}.tile.fire .tile-top>svg:first-child,.tile.fire .tile-val{color:var(--light)}
+
 </style>
 </head>
 <body>
@@ -2465,6 +2471,13 @@ button.power{color:inherit;font:inherit;text-align:left}
 
   function climOn() { var c = HA.s(E.teslaClim); return !!c && c !== 'off' && c !== 'unavailable' && c !== 'unknown'; }
 
+  function climMode() {
+    if (!climOn()) return '';
+    var a = HA.a(E.teslaClim, 'hvac_action');
+    if (a === 'heating') return 'hot'; if (a === 'cooling') return 'cold';
+    var t = HA.a(E.teslaClim, 'temperature'), cur = HA.a(E.teslaClim, 'current_temperature');
+    return typeof t === 'number' && typeof cur === 'number' && cur >= t ? 'cold' : 'hot';
+  }
   function climLabel() {
     var t = HA.a(E.teslaClim, 'temperature'), cur = HA.a(E.teslaClim, 'current_temperature');
     var heat = typeof t === 'number' && typeof cur === 'number' ? cur < t : true;
@@ -2640,8 +2653,8 @@ button.power{color:inherit;font:inherit;text-align:left}
     var ms = mowerInfo();
 
     var camTile = tile('', 'camera', 'Caméras', M.CAMERAS.length + ' caméras', '', 'cameras');
-    var chaufPell = tile(poele ? 'on' : '', 'flame', 'Chauffage', salon == null ? '—' : M.fmt(salon, 1) + '°',
-        HA.isOn(E.maintenance) ? 'maintenance poêle' : HA.isOn(E.absent) ? 'Absent' + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°') + (poele ? ' · poêle' : '') : heatMode() + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°') + (poele ? ' · poêle' : ''), '@heat') +
+    var chaufPell = tile(HA.isOn(E.maintenance) ? 'err' : poele ? 'fire' : '', 'flame', 'Chauffage', salon == null ? '—' : M.fmt(salon, 1) + '°',
+        HA.isOn(E.maintenance) ? 'maintenance poêle' : HA.isOn(E.absent) ? 'Absent' + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°') : heatMode() + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°'), '@heat') +
       '<button class="tile" data-pellet="1"><div class="tile-top">' + M.icon('bag', 22) + '<span class="tile-lab">Pellets</span></div><div class="tile-val">' +
         (stock == null ? '—' : stock + (stock > 1 ? ' sacs' : ' sac')) + '</div></button>';
     var filtTile = tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', ft == null ? '' : 'eau ' + M.fmt(ft, 1) + ' °C', 'maison|piscine');
@@ -2652,9 +2665,9 @@ button.power{color:inherit;font:inherit;text-align:left}
         lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''), 'lumieres'));
     var portesTesla = tile(doorsOpen.length ? 'warn' : '', 'door', 'Portes', doorsOpen.length ? doorsOpen.length + (doorsOpen.length > 1 ? ' ouvertes' : ' ouverte') : 'Fermées',
         doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison|portes') +
-      (isCharging() && batt != null
-        ? batteryBar(tile('on', 'car', 'Tesla', 'En charge', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°'), { batt: batt, charging: true })
-        : tile(climOn() ? 'on' : batt == null ? 'na' : '', 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°'));
+      (isCharging() && batt != null && !climOn()
+        ? batteryBar(tile('chg', 'car', 'Tesla', 'En charge', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°'), { batt: batt, charging: true })
+        : tile(climOn() ? climMode() : batt == null ? 'na' : '', 'car', 'Tesla', batt == null ? '—' : M.fmt(batt) + ' %', teslaSub(), 'voiture', true, inside == null ? '' : 'int. ' + M.fmt(inside) + '°'));
 
     if (gaelle) {
       h += '<div class="grid2">' + chaufPell + camTile + lumTile + '</div>';
@@ -3051,6 +3064,10 @@ button.power{color:inherit;font:inherit;text-align:left}
         ? '<div class="row" style="margin-top:8px"><span>Activé</span>' + M.sw(M.E.eclairageMay, 'Éclairage de May') + '</div>'
         : '<div class="note" style="margin-top:8px">Crée d\'abord l\'entrée « Éclairage May » (input_boolean.eclairage_may) dans Home Assistant.</div>') + '</div>';
 
+    h += '<div class="card"><h2>Tablette</h2>' +
+      '<div class="note">Génère un lien qui configure la tablette automatiquement (adresse et jeton inclus) : envoie-le-toi, ouvre-le sur la tablette, c\'est fait. Ne le partage à personne.</div>' +
+      '<div class="opts" style="margin-top:8px"><button class="opt" id="tab-link">Copier le lien de la tablette</button></div></div>';
+
     h += '<div class="card"><h2>Fond</h2><div class="note">Mémorisé pour le profil en cours.</div><div class="opts" style="margin-top:8px;flex-wrap:wrap">' +
       [['blanc', 'Blanc'], ['gris', 'Gris clair'], ['grism', 'Gris moyen'], ['grisf', 'Gris foncé'], ['sombre', 'Sombre'], ['nuit', 'Nuit AssMat']].map(function (f) {
         return '<button class="opt' + (M.fond() === f[0] ? ' on' : '') + '" data-fond="' + f[0] + '">' + f[1] + '</button>';
@@ -3115,6 +3132,15 @@ button.power{color:inherit;font:inherit;text-align:left}
     el.querySelectorAll('[data-fond]').forEach(function (b) {
       b.onclick = function () { M.setFond(b.dataset.fond); M.applyAccent(); render(); };
     });
+    var tl = el.querySelector('#tab-link');
+    if (tl) tl.onclick = function () {
+      var c = btoa(unescape(encodeURIComponent(JSON.stringify({ baseUrl: HA.baseUrl, token: HA.token }))));
+      var url = new URL('tablette.html', location.href).href.split('#')[0] + '?c=' + encodeURIComponent(c);
+      var done = function () { M.toast('Lien copié'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done).catch(function () { if (navigator.share) navigator.share({ url: url }); else M.toast('Copie impossible'); });
+      else if (navigator.share) navigator.share({ url: url });
+      else M.toast('Copie impossible');
+    };
     el.querySelectorAll('[data-prof]').forEach(function (b) {
       b.onclick = function () { M.saveCfg({ profile: b.dataset.prof }); M.applyAccent(); M.toast('Profil : ' + (b.dataset.prof === 'gaelle' ? 'Gaëlle' : 'Patrick')); render(); };
     });
