@@ -436,6 +436,10 @@ button.power{color:inherit;font:inherit;text-align:left}
     ballonForce: 'input_boolean.chauffe_eau_force',
     filtration: 'switch.switch_filtration',
     filtrationTemp: 'sensor.switch_filtration_temperature',
+    filtChauffe: 'input_boolean.filtration_mode_chauffe',
+    filtHiver: 'input_boolean.filtration_mode_hiver',
+    filtNuit: 'input_boolean.filtration_nuit_programmee',
+    filtDepart: 'input_datetime.filtration_depart_standard',
     modeEnfant: 'input_boolean.mode_enfant',
     jourNuit: 'input_boolean.etat_jour_nuit',
     lumExt: 'light.lumieres_exterieures',
@@ -1088,6 +1092,15 @@ button.power{color:inherit;font:inherit;text-align:left}
     return '<div class="stepper"><button class="sb" data-step="' + ent + '|-" aria-label="Diminuer">−</button>' +
       '<span class="sv">' + (v == null ? '—' : M.fmt(v, dec)) + (unit ? '<small>' + unit + '</small>' : '') + '</span>' +
       '<button class="sb" data-step="' + ent + '|+" aria-label="Augmenter">+</button></div>';
+  };
+
+  // Mode de filtration : chauffe (manuel) > hiver (auto, eau <= 12 °C) > standard (auto)
+  M.filtInfo = function () {
+    var E = M.E, mode = HA.isOn(E.filtChauffe) ? 'chauffe' : HA.isOn(E.filtHiver) ? 'hiver' : 'standard';
+    var dep = String(HA.s(E.filtDepart) || '').substring(0, 5), ex = '';
+    if (mode === 'hiver') ex = '4 h–6 h';
+    else if (mode === 'standard' && HA.isOn(E.filtNuit) && /^\d\d:\d\d$/.test(dep)) ex = 'départ ' + dep;
+    return { mode: mode, label: { chauffe: 'Chauffe', hiver: 'Hiver', standard: 'Standard' }[mode], extra: ex };
   };
 
   M.sw = function (ent, label, cls) {
@@ -2658,7 +2671,7 @@ button.power{color:inherit;font:inherit;text-align:left}
         HA.isOn(E.maintenance) ? 'maintenance poêle' : HA.isOn(E.absent) ? 'Absent' + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°') : heatMode() + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°'), '@heat') +
       '<button class="tile" data-pellet="1"><div class="tile-top">' + M.icon('bag', 22) + '<span class="tile-lab">Pellets</span></div><div class="tile-val">' +
         (stock == null ? '—' : stock + (stock > 1 ? ' sacs' : ' sac')) + '</div></button>';
-    var filtTile = tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', ft == null ? '' : 'eau ' + M.fmt(ft, 1) + ' °C', 'maison|piscine');
+    var filtTile = tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', (function () { var fi = M.filtInfo(); return fi.label + (fi.extra ? ' · ' + fi.extra : '') + (ft == null ? '' : ' · ' + M.fmt(ft, 1) + '°'); })(), 'maison|piscine');
     var lumTile = (lOff.length
         ? tile('err', 'bulb', 'Lumières', lOff.length + (lOff.length > 1 ? ' déconnectées' : ' déconnectée'),
             lOff.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lOff.length > 2 ? '…' : ''), 'lumieres')
@@ -2998,6 +3011,8 @@ button.power{color:inherit;font:inherit;text-align:left}
     var ft = HA.num(E.filtrationTemp);
     h += '<div class="card" data-anchor="piscine"><h2>Piscine ' + (HA.isOn(E.filtration) ? chip('En marche') : chip('Arrêtée', 'off')) + '</h2>' +
       row('Filtration', M.sw(E.filtration, 'Filtration')) +
+      row('Mode ' + M.filtInfo().label.toLowerCase(), '<span class="big" style="font-size:14px">' + M.esc(M.filtInfo().extra) + '</span>') +
+      row('Mode chauffe (manuel)', M.sw(E.filtChauffe, 'Mode chauffe')) +
       row('Température de l\'eau', '<span class="big">' + (ft == null ? '—' : M.fmt(ft, 1) + ' °C') + '</span>') + '</div>';
 
     // Portes
