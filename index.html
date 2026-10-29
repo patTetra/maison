@@ -2671,7 +2671,7 @@ button.power{color:inherit;font:inherit;text-align:left}
         HA.isOn(E.maintenance) ? 'maintenance poêle' : HA.isOn(E.absent) ? 'Absent' + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°') : heatMode() + (cons == null ? '' : ' · ' + M.fmt(cons, 1) + '°'), '@heat') +
       '<button class="tile" data-pellet="1"><div class="tile-top">' + M.icon('bag', 22) + '<span class="tile-lab">Pellets</span></div><div class="tile-val">' +
         (stock == null ? '—' : stock + (stock > 1 ? ' sacs' : ' sac')) + '</div></button>';
-    var filtTile = tile(HA.isOn(E.filtration) ? 'on' : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', (function () { var fi = M.filtInfo(); return fi.label + (fi.extra ? ' · ' + fi.extra : '') + (ft == null ? '' : ' · ' + M.fmt(ft, 1) + '°'); })(), 'maison|piscine');
+    var filtTile = tile(HA.isOn(E.filtration) ? (M.filtInfo().mode === 'chauffe' ? 'hot' : 'cold') : '', 'waves', 'Filtration', HA.isOn(E.filtration) ? 'En marche' : 'Arrêtée', (function () { var fi = M.filtInfo(); return fi.label + (fi.extra ? ' · ' + fi.extra : '') + (ft == null ? '' : ' · ' + M.fmt(ft, 1) + '°'); })(), 'maison|piscine');
     var lumTile = (lOff.length
         ? tile('err', 'bulb', 'Lumières', lOff.length + (lOff.length > 1 ? ' déconnectées' : ' déconnectée'),
             lOff.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lOff.length > 2 ? '…' : ''), 'lumieres')
