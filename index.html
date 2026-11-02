@@ -443,6 +443,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     modeEnfant: 'input_boolean.mode_enfant',
     jourNuit: 'input_boolean.etat_jour_nuit',
     lumExt: 'light.lumieres_exterieures',
+    luxExt: 'sensor.lumi_cn_lumi_158d0001ad6d40_aq2_illumination_p_2_2',
     borne: 'switch.borne_tesla_switch',
     debutRecharge: 'input_datetime.debut_recharge_tesla',
     finRecharge: 'input_datetime.fin_recharge_tesla',
@@ -2681,7 +2682,8 @@ button.power{color:inherit;font:inherit;text-align:left}
         ? tile('err', 'bulb', 'Lumières', lOff.length + (lOff.length > 1 ? ' déconnectées' : ' déconnectée'),
             lOff.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lOff.length > 2 ? '…' : ''), 'lumieres')
         : tile(lon.length ? 'on lit' : '', 'bulb', 'Lumières', lon.length ? lon.length + (lon.length > 1 ? ' allumées' : ' allumée') : 'Éteintes',
-        lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''), 'lumieres'));
+        [lon.slice(0, 2).map(function (l) { return l.name; }).join(', ') + (lon.length > 2 ? '…' : ''),
+          isNaN(parseFloat(HA.s(E.luxExt))) ? '' : 'Dehors ' + Math.round(parseFloat(HA.s(E.luxExt))) + ' lx'].filter(Boolean).join(' · '), 'lumieres'));
     var portesTesla = tile(doorsOpen.length ? 'warn' : '', 'door', 'Portes', doorsOpen.length ? doorsOpen.length + (doorsOpen.length > 1 ? ' ouvertes' : ' ouverte') : 'Fermées',
         doorsOpen.map(function (d) { return d.name; }).join(', '), 'maison|portes') +
       (isCharging() && batt != null && !climOn()
@@ -2808,7 +2810,8 @@ button.power{color:inherit;font:inherit;text-align:left}
       '<div class="pg-sub">' + (n ? n + (n > 1 ? ' allumées' : ' allumée') : 'Tout est éteint') + ' · appui long : intensité</div>';
     h += '<div class="grid2">' + M.OTHERS.map(tile).join('') + '</div>';
     h += '<div class="sec">Intérieur</div><div class="grid2">' + M.LIGHTS_IN.map(tile).join('') + '</div>';
-    h += '<div class="sec">Extérieur</div><div class="grid2">' + M.LIGHTS_OUT.map(tile).join('') + '</div>';
+    var lx = parseFloat(HA.s(M.E.luxExt));
+    h += '<div class="sec">Extérieur' + (isNaN(lx) ? '' : ' · ' + Math.round(lx) + ' lx') + '</div><div class="grid2">' + M.LIGHTS_OUT.map(tile).join('') + '</div>';
     h += '<button class="btn danger wide" id="alloff">Tout éteindre</button></div>';
     el.innerHTML = h;
 
