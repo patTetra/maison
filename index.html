@@ -683,9 +683,14 @@ button.power{color:inherit;font:inherit;text-align:left}
   };
 
   HA.cameraBlobUrl = async function (entity) {
-    var res = await fetch(HA.baseUrl + '/api/camera_proxy/' + entity + '?t=' + Date.now(), { headers: { 'Authorization': 'Bearer ' + HA.token } });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return URL.createObjectURL(await res.blob());
+    // Délai max de 8 s : une requête bloquée ne doit pas figer l'image ni saturer les connexions du navigateur
+    var ctl = window.AbortController ? new AbortController() : null;
+    var to = setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
+    try {
+      var res = await fetch(HA.baseUrl + '/api/camera_proxy/' + entity + '?t=' + Date.now(), { headers: { 'Authorization': 'Bearer ' + HA.token }, signal: ctl ? ctl.signal : undefined });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return URL.createObjectURL(await res.blob());
+    } finally { clearTimeout(to); }
   };
 
   HA.streamUrl = async function (entity) {
