@@ -1105,7 +1105,17 @@ button.power{color:inherit;font:inherit;text-align:left}
     var dep = String(HA.s(E.filtDepart) || '').substring(0, 5), ex = '';
     if (mode === 'hiver') ex = '4 h–6 h';
     else if (mode === 'standard' && HA.isOn(E.filtNuit) && /^\d\d:\d\d$/.test(dep)) ex = 'départ ' + dep;
-    return { mode: mode, label: { chauffe: 'Chauffe', hiver: 'Hiver', standard: 'Standard' }[mode], extra: ex };
+    var cancellable = mode === 'standard' && HA.isOn(E.filtNuit);
+    return { cancellable: cancellable, mode: mode, label: { chauffe: 'Chauffe', hiver: 'Hiver', standard: 'Standard' }[mode], extra: ex };
+  };
+
+  // Annule la filtration programmée pour cette nuit (elle est recalculée à 6 h 05 pour la nuit suivante)
+  M.filtCancel = function () {
+    var E = M.E;
+    HA.optimistic(E.filtNuit, 'off');
+    HA.act('input_boolean', 'turn_off', { entity_id: E.filtNuit }, [E.filtNuit]).catch(function (err) { M.toast('Action impossible : ' + err.message); });
+    if (HA.isOn(E.filtration)) { HA.optimistic(E.filtration, 'off'); HA.act('switch', 'turn_off', { entity_id: E.filtration }, [E.filtration]).catch(function () {}); }
+    M.toast('Filtration de cette nuit annulée');
   };
 
   M.sw = function (ent, label, cls) {
@@ -3018,6 +3028,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       row('Filtration', M.sw(E.filtration, 'Filtration')) +
       row('Mode ' + M.filtInfo().label.toLowerCase(), '<span class="big" style="font-size:14px">' + M.esc(M.filtInfo().extra) + '</span>') +
       row('Mode chauffe (manuel)', M.sw(E.filtChauffe, 'Mode chauffe')) +
+      (M.filtInfo().cancellable ? row('Programmée cette nuit', '<button class="btn" data-filtcancel="1">Annuler</button>') : '') +
       row('Température de l\'eau', '<span class="big">' + (ft == null ? '—' : M.fmt(ft, 1) + ' °C') + '</span>') + '</div>';
 
     // Portes
@@ -3044,6 +3055,7 @@ button.power{color:inherit;font:inherit;text-align:left}
 
     el.innerHTML = h;
     M.bindActions(el);
+    el.querySelectorAll('[data-filtcancel]').forEach(function (b) { b.onclick = M.filtCancel; });
     el.querySelectorAll('[data-pellet]').forEach(function (b) { b.onclick = M.openPellets; });
     el.querySelectorAll('[data-power]').forEach(function (b) { b.onclick = M.openPower; });
     var cs = el.querySelector('[data-step="' + E.consigne + '|-"]');
