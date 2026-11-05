@@ -452,6 +452,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     teslaIdx22: 'input_number.tesla_index_22h',
     teslaCouleurCycle: 'input_text.tesla_couleur_cycle',
     edfTempo: 'sensor.couleur_du_jour',
+    edfTempoDemain: 'sensor.couleur_de_demain',
     teslaKwhDernier: 'input_number.tesla_kwh_dernier',
     teslaCoutDernier: 'input_number.tesla_cout_dernier',
     teslaCouleurDernier: 'input_text.tesla_couleur_dernier',
@@ -1042,6 +1043,19 @@ button.power{color:inherit;font:inherit;text-align:left}
       l.click();
       setTimeout(function () { l.remove(); }, 300);
     } catch (e) { /* pas de retour haptique disponible */ }
+  };
+
+  // Couleur Tempo : aujourd'hui et demain (bandeau à deux cases, couleurs EDF)
+  M.tempoStrip = function () {
+    var E = M.E, C = { bleu: ['#1f5fd6', '#fff', 'Bleu'], blanc: ['#e9edf5', '#1c2433', 'Blanc'], rouge: ['#d92632', '#fff', 'Rouge'] };
+    function cell(lab, st) {
+      var c = C[String(st || '').toLowerCase()];
+      return '<div style="flex:1;min-width:0;border-radius:14px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;' +
+        (c ? 'background:' + c[0] + ';color:' + c[1] : 'background:rgba(127,127,127,.18);color:inherit;opacity:.8') + '">' +
+        '<span style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.85">' + lab + '</span>' +
+        '<b style="font-size:17px">' + (c ? c[2] : '—') + '</b></div>';
+    }
+    return '<div style="display:flex;gap:10px;margin:0 0 10px">' + cell('Tempo aujourd\'hui', HA.s(E.edfTempo)) + cell('Demain', HA.s(E.edfTempoDemain)) + '</div>';
   };
 
   M.toast = function (msg) {
@@ -2676,6 +2690,7 @@ button.power{color:inherit;font:inherit;text-align:left}
 
     if (M.cfg.profile !== 'gaelle') {
       var pw = HA.num(E.power);
+      h += M.tempoStrip();
       h += '<button class="power" data-power aria-label="Courbe de puissance"><span class="pw-l">Puissance compteur</span><span class="pw-v">' + (pw == null ? '—' : M.fmt(pw) + ' VA') + '</span><span class="chev">' + M.icon('chevr', 18) + '</span></button>';
     }
 
