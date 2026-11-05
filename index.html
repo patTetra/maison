@@ -1030,6 +1030,20 @@ button.power{color:inherit;font:inherit;text-align:left}
   // Déconnecté ET alerte non mise en pause
   M.offline = function (e) { return M.HA.s(e) === 'unavailable' && !M.snoozed(e); };
 
+  // Retour haptique : vibration native (Android) ou, sur iPhone/iPad (iOS 17.4+), bascule d'un interrupteur caché.
+  // Doit être appelé depuis un geste de l'utilisateur pour fonctionner sur iOS.
+  M.haptic = function (ms) {
+    try {
+      if (navigator.vibrate) { navigator.vibrate(ms || 40); return; }
+      var l = document.createElement('label');
+      l.style.cssText = 'position:fixed;left:-99px;top:-99px;opacity:0;pointer-events:none';
+      l.innerHTML = '<input type="checkbox" switch>';
+      document.body.appendChild(l);
+      l.click();
+      setTimeout(function () { l.remove(); }, 300);
+    } catch (e) { /* pas de retour haptique disponible */ }
+  };
+
   M.toast = function (msg) {
     var t = $('toast');
     t.textContent = msg;
@@ -1430,6 +1444,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     try {
       await write(mut, label);
       P.msg = { cls: 'ok', text: okMsg(P.stock()) };
+      M.haptic(60);   // enregistré (fonctionne si le navigateur le permet)
       qty = 1;
     } catch (e) {
       P.msg = { cls: 'ko', text: e.message || 'Échec' };
@@ -1440,6 +1455,7 @@ button.power{color:inherit;font:inherit;text-align:left}
   }
 
   function move(delta) {
+    M.haptic(40);   // confirme la prise en compte du geste
     var label = (delta > 0 ? 'achat +' : 'utilisé ') + delta;
     run(function (d) {
       var old = typeof d.stock === 'number' ? d.stock : 0;
