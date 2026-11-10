@@ -600,6 +600,8 @@ button.power{color:inherit;font:inherit;text-align:left}
   HA.configured = function () { return !!(HA.baseUrl && HA.token); };
 
   // ---------- Lecture de l'état ----------
+  // Date (en ms) de la dernière modification connue d'une entité (0 si inconnue)
+  HA.updatedAt = function (id) { var o = HA.store[id]; return o && o.lu ? o.lu * 1000 : 0; };
   HA.s = function (id) { var o = HA.store[id]; return o ? o.state : undefined; };
   HA.a = function (id, k) { var o = HA.store[id]; return o && o.attributes ? o.attributes[k] : undefined; };
   HA.isOn = function (id) { return HA.s(id) === 'on'; };
@@ -673,7 +675,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     for (var i = 0; i < list.length; i++) {
       try {
         var o = await HA.rest('/api/states/' + encodeURIComponent(list[i]));
-        HA.store[list[i]] = { state: o.state, attributes: o.attributes || {} };
+        HA.store[list[i]] = { state: o.state, attributes: o.attributes || {}, lu: Date.parse(o.last_updated || o.last_changed || '') / 1000 || 0 };
       } catch (e) { /* ignoré */ }
     }
     notify(list);
@@ -736,7 +738,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     if (ev.a) {
       Object.keys(ev.a).forEach(function (id) {
         var s = ev.a[id];
-        HA.store[id] = { state: s.s, attributes: s.a || {} };
+        HA.store[id] = { state: s.s, attributes: s.a || {}, lu: Math.max(s.lc || 0, s.lu || 0) };
         changed.push(id);
       });
     }
@@ -748,7 +750,9 @@ button.power{color:inherit;font:inherit;text-align:left}
         if (plus) {
           if (Object.prototype.hasOwnProperty.call(plus, 's')) cur.state = plus.s;
           if (plus.a) cur.attributes = Object.assign({}, cur.attributes, plus.a);
-        }
+          if (plus.lc || plus.lu) cur.lu = Math.max(plus.lc || 0, plus.lu || 0);
+          else cur.lu = Date.now() / 1000;
+        } else { cur.lu = Date.now() / 1000; }
         var minus = d['-'];
         if (minus && minus.a) minus.a.forEach(function (k) { delete cur.attributes[k]; });
         changed.push(id);
@@ -1047,6 +1051,11 @@ button.power{color:inherit;font:inherit;text-align:left}
 
   // Couleur Tempo : aujourd'hui et demain (bandeau à deux cases, couleurs EDF)
   M.tempoStrip = function () {
+    // « Demain » reste gris tant que la couleur n'est pas annoncée : l'intégration renvoie « bleu » par défaut.
+    // Annoncée = l'entité a été modifiée depuis minuit (changement d'état ou d'attribut). Pour un jour bleu après un jour bleu,
+    // rien ne change : on l'affiche à partir de 11 h (heure officielle de l'annonce).
+    var now = new Date(), debut = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    var annonce = HA.updatedAt(M.E.edfTempoDemain) >= debut || now.getHours() >= 11;
     var E = M.E, C = { bleu: ['#1f5fd6', '#fff', 'Bleu'], blanc: ['#e9edf5', '#1c2433', 'Blanc'], rouge: ['#d92632', '#fff', 'Rouge'] };
     function cell(lab, st) {
       var c = C[String(st || '').toLowerCase()];
@@ -1055,7 +1064,7 @@ button.power{color:inherit;font:inherit;text-align:left}
         '<span style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.85">' + lab + '</span>' +
         '<b style="font-size:17px">' + (c ? c[2] : '—') + '</b></div>';
     }
-    return '<div style="display:flex;gap:10px;margin:0 0 10px">' + cell('Tempo aujourd\'hui', HA.s(E.edfTempo)) + cell('Demain', HA.s(E.edfTempoDemain)) + '</div>';
+    return '<div style="display:flex;gap:10px;margin:0 0 10px">' + cell('Tempo aujourd\'hui', HA.s(E.edfTempo)) + cell('Demain', annonce ? HA.s(E.edfTempoDemain) : null) + '</div>';
   };
 
   M.toast = function (msg) {
