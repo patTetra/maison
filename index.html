@@ -444,6 +444,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     modeEnfant: 'input_boolean.mode_enfant',
     jourNuit: 'input_boolean.etat_jour_nuit',
     lumExt: 'light.lumieres_exterieures',
+    zoneHome: 'zone.home',
     seestarCo: 'binary_sensor.seestar_connecte',
     seestarParque: 'binary_sensor.seestar_parque',
     seestarSuivi: 'binary_sensor.seestar_en_suivi',
@@ -1249,6 +1250,142 @@ button.power{color:inherit;font:inherit;text-align:left}
   // Déclinaison en degrés décimaux -> « +12° 30′ »
   function fmtDec(d) { if (d == null) return '—'; var s = d < 0 ? '−' : '+', a = Math.abs(d), t = Math.round(a * 60); return s + Math.floor(t / 60) + '° ' + pad(t % 60) + '′'; }
 
+  // ---------- Calculs astronomiques (précision ~0,3° pour la Lune ; coordonnées J2000 pour le ciel profond) ----------
+  var RAD = Math.PI / 180;
+  function jd() { return Date.now() / 86400000 + 2440587.5; }
+  function sin(x) { return Math.sin(x * RAD); }
+  function cos(x) { return Math.cos(x * RAD); }
+  function lst(lon) { return (((280.46061837 + 360.98564736629 * (jd() - 2451545) + lon) % 360) + 360) % 360; }
+  function altAz(ha, dec, lat) {
+    var alt = Math.asin(sin(dec) * sin(lat) + cos(dec) * cos(lat) * cos(ha)) / RAD;
+    var az = Math.atan2(-cos(dec) * sin(ha), sin(dec) * cos(lat) - cos(dec) * cos(ha) * sin(lat)) / RAD;
+    return { alt: alt, az: (az + 360) % 360 };
+  }
+  function haDec(alt, az, lat) {
+    var dec = Math.asin(sin(lat) * sin(alt) + cos(lat) * cos(alt) * cos(az)) / RAD;
+    var ha = Math.atan2(-cos(alt) * sin(az), sin(alt) * cos(lat) - cos(alt) * cos(az) * sin(lat)) / RAD;
+    return { ha: ha, dec: dec };
+  }
+  function home() {
+    var o = HA.store[E.zoneHome], a = o && o.attributes;
+    return a && a.latitude != null && a.longitude != null ? { lat: +a.latitude, lon: +a.longitude } : null;
+  }
+  // Objets du ciel profond : AR en heures, Dé en degrés (J2000)
+  var DEEP = [
+    { id: 'm31', n: 'M31 · Andromède', ra: 0.7123, dec: 41.2692 },
+    { id: 'm42', n: 'M42 · Orion', ra: 5.5881, dec: -5.3911 },
+    { id: 'm45', n: 'M45 · Pléiades', ra: 3.7833, dec: 24.1167 },
+    { id: 'm13', n: 'M13 · Hercule', ra: 16.6948, dec: 36.4603 },
+    { id: 'm27', n: 'M27 · Dumbbell', ra: 19.9934, dec: 22.7211 },
+    { id: 'm57', n: 'M57 · Lyre', ra: 18.8931, dec: 33.0292 }
+  ];
+  // Position topocentrique de la Lune, ramenée en J2000 (équinoxe du pointage Alpaca)
+  function moonPos(h) {
+    var T = (jd() - 2451545) / 36525;
+    var lam = 218.32 + 481267.881 * T + 6.29 * sin(135.0 + 477198.87 * T) - 1.27 * sin(259.3 - 413335.36 * T) + 0.66 * sin(235.7 + 890534.22 * T) + 0.21 * sin(269.9 + 954397.74 * T) - 0.19 * sin(357.5 + 35999.05 * T) - 0.11 * sin(186.5 + 966404.03 * T);
+    var bet = 5.13 * sin(93.3 + 483202.02 * T) + 0.28 * sin(228.2 + 960400.89 * T) - 0.28 * sin(318.3 + 6003.15 * T) - 0.17 * sin(217.6 - 407332.21 * T);
+    var par = 0.9508 + 0.0518 * cos(135.0 + 477198.87 * T) + 0.0095 * cos(259.3 - 413335.36 * T) + 0.0078 * cos(235.7 + 890534.22 * T) + 0.0028 * cos(269.9 + 954397.74 * T);
+    var eps = 23.439291 - 0.0130042 * T;
+    var x = cos(bet) * cos(lam), y = cos(bet) * sin(lam) * cos(eps) - sin(bet) * sin(eps), z = cos(bet) * sin(lam) * sin(eps) + sin(bet) * cos(eps);
+    var ra = (Math.atan2(y, x) / RAD + 360) % 360, dec = Math.asin(z) / RAD;
+    var L = lst(h.lon), g = altAz(L - ra, dec, h.lat);
+    var top = g.alt - par * cos(g.alt);                       // parallaxe en hauteur
+    var hd = haDec(top, g.az, h.lat);
+    var ra2 = (L - hd.ha + 360) % 360, dec2 = hd.dec;
+    var yrs = (jd() - 2451545) / 365.25;                      // retour à J2000
+    var ra0 = ra2 - (0.012812 + 0.005567 * sin(ra2) * Math.tan(dec2 * RAD)) * yrs;
+    var dec0 = dec2 - 0.005567 * cos(ra2) * yrs;
+    return { ra: ((ra0 + 360) % 360) / 15, dec: dec0, alt: top };
+  }
+  // Éléments orbitaux (P. Schlyter), d = jours depuis le 31/12/1999 0 h UT. Précision ~1' pour les planètes visibles.
+  var ORB = {
+    mercure: { n: 'Mercure', N: [48.3313, 3.24587e-5], i: [7.0047, 5.00e-8], w: [29.1241, 1.01444e-5], a: 0.387098, e: [0.205635, 5.59e-10], M: [168.6562, 4.0923344368] },
+    venus: { n: 'Vénus', N: [76.6799, 2.46590e-5], i: [3.3946, 2.75e-8], w: [54.8910, 1.38374e-5], a: 0.723330, e: [0.006773, -1.302e-9], M: [48.0052, 1.6021302244] },
+    mars: { n: 'Mars', N: [49.5574, 2.11081e-5], i: [1.8497, -1.78e-8], w: [286.5016, 2.92961e-5], a: 1.523688, e: [0.093405, 2.516e-9], M: [18.6021, 0.5240207766] },
+    jupiter: { n: 'Jupiter', N: [100.4542, 2.76854e-5], i: [1.3030, -1.557e-7], w: [273.8777, 1.64505e-5], a: 5.20256, e: [0.048498, 4.469e-9], M: [19.8950, 0.0830853001] },
+    saturne: { n: 'Saturne', N: [113.6634, 2.38980e-5], i: [2.4886, -1.081e-7], w: [339.3939, 2.97661e-5], a: 9.55475, e: [0.055546, -9.499e-9], M: [316.9670, 0.0334442282] }
+  };
+  function rev(x) { return ((x % 360) + 360) % 360; }
+  function el(o, k, d) { return o[k][0] + o[k][1] * d; }
+  function kepler(o, d) {
+    var M = rev(el(o, 'M', d)), e = el(o, 'e', d);
+    var E0 = M + e / RAD * sin(M) * (1 + e * cos(M));
+    for (var k = 0; k < 6; k++) E0 = E0 - (E0 - e / RAD * sin(E0) - M) / (1 - e * cos(E0));
+    var xv = o.a * (cos(E0) - e), yv = o.a * Math.sqrt(1 - e * e) * sin(E0);
+    return { r: Math.sqrt(xv * xv + yv * yv), v: Math.atan2(yv, xv) / RAD, M: M };
+  }
+  function sunGeo(d) {   // position géocentrique du Soleil (écliptique)
+    var o = { M: [356.0470, 0.9856002585], e: [0.016709, -1.151e-9], a: 1 };
+    var k = kepler(o, d), lon = rev(k.v + 282.9404 + 4.70935e-5 * d);
+    return { x: k.r * cos(lon), y: k.r * sin(lon), lon: lon };
+  }
+  function toEq(xg, yg, zg, d) {
+    var ecl = 23.4393 - 3.563e-7 * d;
+    var xe = xg, ye = yg * cos(ecl) - zg * sin(ecl), ze = yg * sin(ecl) + zg * cos(ecl);
+    return { ra: rev(Math.atan2(ye, xe) / RAD), dec: Math.atan2(ze, Math.sqrt(xe * xe + ye * ye)) / RAD };
+  }
+  function toJ2000(ra, dec) {
+    var yrs = (jd() - 2451545) / 365.25;
+    return { ra: rev(ra - (0.012812 + 0.005567 * sin(ra) * Math.tan(dec * RAD)) * yrs), dec: dec - 0.005567 * cos(ra) * yrs };
+  }
+  function sunEq() { var d = jd() - 2451543.5, sg = sunGeo(d); return toEq(sg.x, sg.y, 0, d); }
+  function planetPos(key) {
+    var o = ORB[key], d = jd() - 2451543.5, k = kepler(o, d);
+    var N = el(o, 'N', d), i = el(o, 'i', d), w = el(o, 'w', d), vw = k.v + w;
+    var xh = k.r * (cos(N) * cos(vw) - sin(N) * sin(vw) * cos(i));
+    var yh = k.r * (sin(N) * cos(vw) + cos(N) * sin(vw) * cos(i));
+    var zh = k.r * (sin(vw) * sin(i));
+    if (key === 'jupiter' || key === 'saturne') {
+      var Mj = rev(el(ORB.jupiter, 'M', d)), Ms = rev(el(ORB.saturne, 'M', d));
+      var lon = Math.atan2(yh, xh) / RAD, lat = Math.atan2(zh, Math.sqrt(xh * xh + yh * yh)) / RAD, dl = 0, db = 0;
+      if (key === 'jupiter') dl = -0.332 * sin(2 * Mj - 5 * Ms - 67.6) - 0.056 * sin(2 * Mj - 2 * Ms + 21) + 0.042 * sin(3 * Mj - 5 * Ms + 21) - 0.036 * sin(Mj - 2 * Ms) + 0.022 * cos(Mj - Ms) + 0.023 * sin(2 * Mj - 3 * Ms + 52) - 0.016 * sin(Mj - 5 * Ms - 69);
+      else { dl = 0.812 * sin(2 * Mj - 5 * Ms - 67.6) - 0.229 * cos(2 * Mj - 4 * Ms - 2) + 0.119 * sin(Mj - 2 * Ms - 3) + 0.046 * sin(2 * Mj - 6 * Ms - 69) + 0.014 * sin(Mj - 3 * Ms + 32); db = -0.020 * cos(2 * Mj - 4 * Ms - 2) + 0.018 * sin(2 * Mj - 6 * Ms - 49); }
+      lon += dl; lat += db;
+      xh = k.r * cos(lat) * cos(lon); yh = k.r * cos(lat) * sin(lon); zh = k.r * sin(lat);
+    }
+    var sg = sunGeo(d);
+    var eq = toEq(xh + sg.x, yh + sg.y, zh, d);
+    return { ofDate: eq, j2000: toJ2000(eq.ra, eq.dec) };
+  }
+  function sep(ra1, dec1, ra2, dec2) {
+    return Math.acos(Math.max(-1, Math.min(1, sin(dec1) * sin(dec2) + cos(dec1) * cos(dec2) * cos(ra1 - ra2)))) / RAD;
+  }
+  var MIN_SUN = 20;   // sécurité : jamais à moins de 20° du Soleil
+
+  // Renvoie des groupes de cibles avec hauteur et distance au Soleil
+  function targets() {
+    var h = home(), sun = sunEq(), L = h ? lst(h.lon) : 0;
+    function mk(id, n, ra, dec, raDate, decDate, alt) {
+      var t = { id: id, n: n, ra: ra, dec: dec, alt: alt };
+      if (ra != null) t.sun = sep(raDate, decDate, sun.ra, sun.dec);
+      return t;
+    }
+    function altOf(raDeg, dec) { return h ? altAz(L - raDeg, dec, h.lat).alt : null; }
+    var groups = [];
+    var m = h ? moonPos(h) : null;
+    // Lune : position J2000 topocentrique ; pour la distance au Soleil on utilise des coordonnées J2000 approchées des deux
+    groups.push({ t: 'LUNE', list: [m ? mk('moon', 'Lune', m.ra, m.dec, m.ra * 15, m.dec, m.alt) : { id: 'moon', n: 'Lune', alt: null }] });
+    var pl = [];
+    ['mercure', 'venus', 'mars', 'jupiter', 'saturne'].forEach(function (k) {
+      if (!h) { pl.push({ id: k, n: ORB[k].n, alt: null }); return; }
+      var p = planetPos(k);
+      pl.push(mk(k, ORB[k].n, p.j2000.ra / 15, p.j2000.dec, p.ofDate.ra, p.ofDate.dec, altOf(p.ofDate.ra, p.ofDate.dec)));
+    });
+    groups.push({ t: 'PLANÈTES', list: pl });
+    groups.push({ t: 'CIEL PROFOND', list: DEEP.map(function (t) {
+      return h ? mk(t.id, t.n, t.ra, t.dec, t.ra * 15, t.dec, altOf(t.ra * 15, t.dec)) : { id: t.id, n: t.n, alt: null };
+    }) });
+    return groups;
+  }
+  function flat() { var o = []; targets().forEach(function (g) { o = o.concat(g.list); }); return o; }
+  function why(t) {   // raison de blocage ou null
+    if (t.alt == null) return 'position inconnue';
+    if (t.sun != null && t.sun < MIN_SUN) return 'trop près du Soleil';
+    if (t.alt < MIN_ALT) return 'sous l’horizon';
+    return null;
+  }
+  var MIN_ALT = 10;
+
   function info() {
     var co = bin(E.seestarCo), parked = bin(E.seestarParque), track = bin(E.seestarSuivi);
     var ad = HA.num(E.seestarAD), de = HA.num(E.seestarDec);
@@ -1264,8 +1401,22 @@ button.power{color:inherit;font:inherit;text-align:left}
     return '<div style="display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid rgba(127,127,127,.2);font-size:15px"><span style="opacity:.7">' + k + '</span><b>' + v + '</b></div>';
   }
 
+  function tgtHtml(i, kind) {
+    var h = '';
+    targets().forEach(function (g) {
+      h += '<div style="margin-top:18px;font-size:13px;opacity:.7;letter-spacing:.06em">' + g.t + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">';
+      g.list.forEach(function (t) {
+        var r = why(t), ok = i.co === true && !r, tb = kind === 'tab' ? ';border:1px solid rgba(34,211,238,.45);border-radius:12px;background:rgba(34,211,238,.08);color:inherit;font:inherit' : '';
+        var sub = r || Math.round(t.alt) + '° au-dessus';
+        h += '<button ' + (kind === 'tab' ? '' : 'class="btn" ') + 'data-seatgt="' + t.id + '"' + (ok ? '' : ' disabled style="opacity:.4;' + tb + 'display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;text-align:left;padding:10px 12px"') + (ok ? ' style="' + tb + 'display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;text-align:left;padding:10px 12px"' : '') + '><b style="display:block">' + t.n + '</b><span style="font-size:12px;opacity:.75">' + sub + '</span></button>';
+      });
+      h += '</div>';
+    });
+    return h;
+  }
+
   // Contenu de la fenêtre ; kind = 'app' (feuille) ou 'tab' (tablette)
-  function body(kind) {
+  function body(kind, full) {
     var i = info(), yn = function (v) { return v == null ? '—' : v ? 'Oui' : 'Non'; };
     function b(key, label, ok, solid) {
       return '<button ' + (kind === 'tab' ? '' : 'class="btn' + (solid ? ' solid' : '') + '" ') + 'data-sea="' + key + '"' + (ok ? '' : ' disabled style="opacity:.4"') + '>' + label + '</button>';
@@ -1274,6 +1425,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     return '<div style="margin-bottom:10px">' + line('État', i.label) + line('Bras fermé', i.co ? yn(i.parked) : '—') + line('Suivi', i.co ? yn(i.track) : '—') +
       line('Ascension droite', i.co ? fmtAD(i.ad) : '—') + line('Déclinaison', i.co ? fmtDec(i.de) : '—') + '</div>' +
       (kind === 'tab' ? '<div class="seg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' + btns + '</div>' : '<div class="btnrow" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' + btns + '</div>') +
+      (full ? tgtHtml(i, kind) : '<div style="margin-top:14px"><button ' + (kind === 'tab' ? '' : 'class="btn solid" ') + 'style="width:100%" data-sea-app="' + kind + '">Ouvrir l\u2019application Seestar</button></div>') +
       '<div style="margin-top:12px;font-size:12px;opacity:.65">Le télescope doit être connecté pour renvoyer sa position. « Fermer le bras » le range en position de repos ; « Ouvrir le bras » le remet en service.</div>';
   }
 
@@ -1288,17 +1440,44 @@ button.power{color:inherit;font:inherit;text-align:left}
     }).catch(function (e) { M.toast('Action impossible : ' + e.message); });
   };
 
+  M.seestarPoint = function (id) {
+    var t = flat().filter(function (x) { return x.id === id; })[0], r = t && why(t);
+    if (!t || r) { M.toast(t ? t.n + ' : ' + r : 'Cible inconnue'); return; }
+    M.toast('Pointage vers ' + t.n + '\u2026');
+    HA.act('script', 'seestar_pointer_cible', { ra: Math.round(t.ra * 10000) / 10000, dec: Math.round(t.dec * 1000) / 1000 }, ids).then(function () {
+      [3000, 10000, 20000].forEach(function (d) { setTimeout(function () { HA.refresh(ids); }, d); });
+    }).catch(function (e) { M.toast('Action impossible : ' + e.message); });
+  };
+
   M.seestar = { info: info, body: body };
 
-  // Clic sur un bouton de commande (fenêtre ouverte) + rafraîchissement en direct
+  // Application Seestar en plein écran (ouverte depuis la fiche)
+  function seaApp(kind) {
+    var old = document.getElementById('sea-app'); if (old) old.remove();
+    var d = document.createElement('div');
+    d.id = 'sea-app';
+    d.style.cssText = 'position:fixed;inset:0;z-index:99999;overflow:auto;-webkit-overflow-scrolling:touch;background:#060b16;color:#e6edf7;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 28px)';
+    d.innerHTML = '<div style="max-width:720px;margin:0 auto"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><button data-sea-close="1" style="background:rgba(34,211,238,.14);color:#22d3ee;border:1px solid rgba(34,211,238,.5);border-radius:12px;padding:8px 14px;font:inherit;font-weight:600">← Retour</button><div style="font-size:20px;font-weight:700;flex:1">Seestar S50 Pro</div><span data-sea-badge style="font-size:13px;color:#22d3ee"></span></div><div data-sea-body="' + kind + ':full"></div></div>';
+    document.body.appendChild(d);
+    paint();
+  }
+  function paint() {
+    document.querySelectorAll('[data-sea-body]').forEach(function (el) {
+      var p = el.dataset.seaBody.split(':'), full = p[1] === 'full';
+      el.innerHTML = body(p[0], full);
+      if (full) { var bd = document.querySelector('#sea-app [data-sea-badge]'); if (bd) bd.textContent = info().label; }
+    });
+  }
+
+  // Clics (commandes, cibles, ouverture / fermeture de l'application) + rafraîchissement en direct
   document.addEventListener('click', function (ev) {
-    var b = ev.target.closest && ev.target.closest('[data-sea]');
-    if (b && !b.disabled) M.seestarCmd(b.dataset.sea);
+    var t = ev.target.closest ? ev.target : null; if (!t) return;
+    var b = t.closest('[data-sea]'); if (b && !b.disabled) M.seestarCmd(b.dataset.sea);
+    var g = t.closest('[data-seatgt]'); if (g && !g.disabled) M.seestarPoint(g.dataset.seatgt);
+    var o = t.closest('[data-sea-app]'); if (o) seaApp(o.dataset.seaApp);
+    if (t.closest('[data-sea-close]')) { var a = document.getElementById('sea-app'); if (a) a.remove(); }
   });
-  HA.onChange(function () {
-    var el = document.querySelector('[data-sea-body]');
-    if (el) el.innerHTML = body(el.dataset.seaBody);
-  });
+  HA.onChange(paint);
 
   // Fenêtre de l'appli (feuille du bas)
   M.openSeestar = function () {
