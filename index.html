@@ -1282,7 +1282,7 @@ button.power{color:inherit;font:inherit;text-align:left}
   M.seestarCmd = function (key) {
     if (!CMD[key]) return;
     M.toast(MSG[key] + '…');
-    HA.act('rest_command', CMD[key], {}, ids).then(function () {
+    HA.act(key === 'deparquer' ? 'script' : 'rest_command', key === 'deparquer' ? 'seestar_ouvrir_bras' : CMD[key], {}, ids).then(function () {
       // les capteurs se mettent à jour à leur propre rythme : on relit quelques fois
       [2500, 6000, 12000].forEach(function (d) { setTimeout(function () { HA.refresh(ids); }, d); });
     }).catch(function (e) { M.toast('Action impossible : ' + e.message); });
