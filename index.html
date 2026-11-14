@@ -1273,7 +1273,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     var btns = b('connecter', 'Connecter', i.co === false, true) + (i.parked === true ? b('deparquer', 'Ouvrir le bras', i.co === true, false) : b('parquer', 'Fermer le bras', i.co === true, false)) + b('rechauffeur', 'Connecter le réchauffeur', i.co === true, false) + b('deconnecter', 'Déconnecter', i.co === true, false);
     return '<div style="margin-bottom:10px">' + line('État', i.label) + line('Bras fermé', i.co ? yn(i.parked) : '—') + line('Suivi', i.co ? yn(i.track) : '—') +
       line('Ascension droite', i.co ? fmtAD(i.ad) : '—') + line('Déclinaison', i.co ? fmtDec(i.de) : '—') + '</div>' +
-      (kind === 'tab' ? '<div class="seg">' + btns + '</div>' : '<div class="btnrow">' + btns + '</div>') +
+      (kind === 'tab' ? '<div class="seg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' + btns + '</div>' : '<div class="btnrow" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' + btns + '</div>') +
       '<div style="margin-top:12px;font-size:12px;opacity:.65">Le télescope doit être connecté pour renvoyer sa position. « Fermer le bras » le range en position de repos ; « Ouvrir le bras » le remet en service.</div>';
   }
 
