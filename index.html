@@ -1243,6 +1243,12 @@ button.power{color:inherit;font:inherit;text-align:left}
   var HA = M.HA, E = M.E;
   var CMD = { connecter: 'seestar_connecter', deconnecter: 'seestar_deconnecter', parquer: 'seestar_parquer', deparquer: 'seestar_deparquer', rechauffeur: 'seestar_switch_connecter' };
 
+  // Message bref : M.toast n'existe que dans l'appli ; la tablette n'a pas l'élément #toast
+  function say(m) {
+    if (document.getElementById('toast')) { M.toast(m); return; }
+    var d = document.createElement('div'); d.className = 'toast'; d.textContent = m; document.body.appendChild(d);
+    setTimeout(function () { d.remove(); }, 3000);
+  }
   function bin(id) { var s = HA.s(id); return s === 'on' ? true : s === 'off' ? false : null; }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   // Ascension droite en heures décimales -> « 12 h 34 min »
@@ -1433,20 +1439,20 @@ button.power{color:inherit;font:inherit;text-align:left}
   var MSG = { connecter: 'Connexion demandée', deconnecter: 'Déconnexion demandée', parquer: 'Fermeture du bras demandée', deparquer: 'Ouverture du bras demandée', rechauffeur: 'Connexion du réchauffeur demandée' };
   M.seestarCmd = function (key) {
     if (!CMD[key]) return;
-    M.toast(MSG[key] + '…');
+    say(MSG[key] + '…');
     HA.act(key === 'deparquer' ? 'script' : 'rest_command', key === 'deparquer' ? 'seestar_ouvrir_bras' : CMD[key], {}, ids).then(function () {
       // les capteurs se mettent à jour à leur propre rythme : on relit quelques fois
       [2500, 6000, 12000].forEach(function (d) { setTimeout(function () { HA.refresh(ids); }, d); });
-    }).catch(function (e) { M.toast('Action impossible : ' + e.message); });
+    }).catch(function (e) { say('Action impossible : ' + e.message); });
   };
 
   M.seestarPoint = function (id) {
     var t = flat().filter(function (x) { return x.id === id; })[0], r = t && why(t);
-    if (!t || r) { M.toast(t ? t.n + ' : ' + r : 'Cible inconnue'); return; }
-    M.toast('Pointage vers ' + t.n + '\u2026');
+    if (!t || r) { say(t ? t.n + ' : ' + r : 'Cible inconnue'); return; }
+    say('Pointage vers ' + t.n + '\u2026');
     HA.act('script', 'seestar_pointer_cible', { ra: Math.round(t.ra * 10000) / 10000, dec: Math.round(t.dec * 1000) / 1000 }, ids).then(function () {
       [3000, 10000, 20000].forEach(function (d) { setTimeout(function () { HA.refresh(ids); }, d); });
-    }).catch(function (e) { M.toast('Action impossible : ' + e.message); });
+    }).catch(function (e) { say('Action impossible : ' + e.message); });
   };
 
   M.seestar = { info: info, body: body };
@@ -1456,7 +1462,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     var old = document.getElementById('sea-app'); if (old) old.remove();
     var d = document.createElement('div');
     d.id = 'sea-app';
-    d.style.cssText = 'position:fixed;inset:0;z-index:99999;overflow:auto;-webkit-overflow-scrolling:touch;background:#060b16;color:#e6edf7;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 28px)';
+    d.style.cssText = 'position:fixed;inset:0;z-index:55;overflow:auto;-webkit-overflow-scrolling:touch;background:#060b16;color:#e6edf7;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 28px)';
     d.innerHTML = '<div style="max-width:720px;margin:0 auto"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><button data-sea-close="1" style="background:rgba(34,211,238,.14);color:#22d3ee;border:1px solid rgba(34,211,238,.5);border-radius:12px;padding:8px 14px;font:inherit;font-weight:600">← Retour</button><div style="font-size:20px;font-weight:700;flex:1">Seestar S50 Pro</div><span data-sea-badge style="font-size:13px;color:#22d3ee"></span></div><div data-sea-body="' + kind + ':full"></div></div>';
     document.body.appendChild(d);
     paint();
