@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Agenda">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="color-scheme" content="light dark">
+<title>Agenda</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header id="head">
+  <h1 id="title"></h1>
+  <div class="nav">
+    <button id="bRefresh" aria-label="Actualiser"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg></button>
+    <button id="bPrev" aria-label="Mois précédent"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button id="bNext" aria-label="Mois suivant"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+</header>
+<div id="status"></div>
+
+<main id="grid"></main>
+<section id="list"></section>
+
+<footer id="bar">
+  <button id="bToday" class="pill">Aujourd’hui</button>
+  <div class="grp">
+    <button id="bCals" class="pill ic" aria-label="Agendas"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+    <button id="bAdd" class="pill ic" aria-label="Nouvel événement"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+</footer>
+
+<!-- Détail d'un événement -->
+<dialog id="dDetail"><div class="sheet">
+  <div class="sh-head"><span></span><b>Événement</b><button type="button" class="lnk strong" data-close>Fermer</button></div>
+  <div id="detail"></div>
+</div></dialog>
+
+<!-- Nouvel événement -->
+<dialog id="dCreate"><div class="sheet"><form id="fCreate" autocomplete="off">
+  <div class="sh-head"><button type="button" class="lnk" data-close>Annuler</button><b>Nouvel événement</b><button type="submit" class="lnk strong" id="cSave">Ajouter</button></div>
+  <input id="cTitle" placeholder="Titre" enterkeyhint="done">
+  <label class="row">Agenda <select id="cCal"></select></label>
+  <label class="row">Journée entière <input type="checkbox" id="cAll"></label>
+  <label class="row">Début <span class="two"><input type="date" id="cD0"><input type="time" id="cT0"></span></label>
+  <label class="row">Fin <span class="two"><input type="date" id="cD1"><input type="time" id="cT1"></span></label>
+  <input id="cLoc" placeholder="Lieu">
+  <textarea id="cNote" placeholder="Notes" rows="3"></textarea>
+  <p id="cErr" class="err"></p>
+</form></div></dialog>
+
+<!-- Agendas visibles -->
+<dialog id="dCals"><div class="sheet">
+  <div class="sh-head"><span></span><b>Agendas</b><button type="button" class="lnk strong" data-close>OK</button></div>
+  <div id="calList"></div>
+  <button type="button" class="lnk block" id="bSettings">Connexion à Google Agenda…</button>
+</div></dialog>
+
+<!-- Connexion -->
+<dialog id="dSettings"><div class="sheet"><form id="fSettings" autocomplete="off">
+  <div class="sh-head"><button type="button" class="lnk" data-close>Annuler</button><b>Connexion</b><button type="submit" class="lnk strong" id="sSave">Enregistrer</button></div>
+  <input id="sUrl" placeholder="Adresse du script (https://script.google.com/…/exec)" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <input id="sToken" placeholder="Code d’accès" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <p class="hint">Ces deux valeurs restent uniquement sur cet appareil.</p>
+  <p id="sErr" class="err"></p>
+</form></div></dialog>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
