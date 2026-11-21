@@ -8,14 +8,19 @@
 <meta name="apple-mobile-web-app-title" content="Agenda">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>Agenda</title>
-<link rel="stylesheet" href="style.css?v=2111b">
+<link rel="stylesheet" href="style.css?v=2111d">
 </head>
 <body>
 
 <header id="head">
   <h1 id="title"></h1>
   <div class="nav">
+    <button id="bSearch" aria-label="Rechercher"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
     <button id="bRefresh" aria-label="Actualiser"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg></button>
     <button id="bPrev" aria-label="Mois précédent"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button id="bNext" aria-label="Mois suivant"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
@@ -41,14 +46,25 @@
   <div id="detail"></div>
 </div></dialog>
 
+<!-- Recherche -->
+<dialog id="dSearch"><div class="sheet">
+  <div class="sh-head"><span></span><b>Rechercher</b><button type="button" class="lnk strong" data-close>Fermer</button></div>
+  <input id="sQ" type="search" placeholder="Titre, lieu, notes…" enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off">
+  <div id="sRes"></div>
+</div></dialog>
+
 <!-- Nouvel événement -->
 <dialog id="dCreate"><div class="sheet"><form id="fCreate" autocomplete="off">
-  <div class="sh-head"><button type="button" class="lnk" data-close>Annuler</button><b>Nouvel événement</b><button type="submit" class="lnk strong" id="cSave">Ajouter</button></div>
+  <div class="sh-head"><button type="button" class="lnk" data-close>Annuler</button><b id="cHead">Nouvel événement</b><button type="submit" class="lnk strong" id="cSave">Ajouter</button></div>
   <input id="cTitle" placeholder="Titre" enterkeyhint="done">
   <label class="row">Agenda <select id="cCal"></select></label>
   <label class="row">Journée entière <input type="checkbox" id="cAll"></label>
   <label class="row">Début <span class="two"><input type="date" id="cD0"><input type="time" id="cT0"></span></label>
   <label class="row">Fin <span class="two"><input type="date" id="cD1"><input type="time" id="cT1"></span></label>
+  <label class="row" id="rRep">Répéter <select id="cRep"><option value="">Jamais</option><option value="daily">Tous les jours</option><option value="weekly">Toutes les semaines</option><option value="biweekly">Toutes les 2 semaines</option><option value="monthly">Tous les mois</option><option value="yearly">Tous les ans</option></select></label>
+  <label class="row" id="rUntil">Jusqu’au (facultatif) <input type="date" id="cUntil"></label>
+  <label class="row">Alerte <select id="cAl1"></select></label>
+  <label class="row" id="rAl2">2e alerte <select id="cAl2"></select></label>
   <input id="cLoc" placeholder="Lieu">
   <textarea id="cNote" placeholder="Notes" rows="3"></textarea>
   <p id="cErr" class="err"></p>
@@ -73,6 +89,6 @@
 </form></div></dialog>
 
 <script src="config.js"></script>
-<script src="app.js?v=2111b"></script>
+<script src="app.js?v=2111d"></script>
 </body>
 </html>
