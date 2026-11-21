@@ -6,7 +6,7 @@ const C = Object.assign({
   DUREE_DEFAUT_MIN: 60, HEURE_DEFAUT: 9, CACHE_SECONDES: 60
 }, window.CONFIG || {});
 
-const VERSION = "21 nov. 11:45";
+const VERSION = "21 nov. 11:55";
 const MOIS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const MOIS_C = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const JOURS = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -286,7 +286,7 @@ function applyOpen() {
   const m = metrics();
   if (!m) return;
   if (S.open == null || isNaN(S.open)) S.open = m.natFrac;
-  S.open = Math.min(1, Math.max(0, S.open));
+  S.open = Math.min(m.natFrac, Math.max(0, S.open));
   const H = m.minH + (m.maxH - m.minH) * S.open;
   m.rw.style.height = H + "px";
   if (H <= m.nat) {
@@ -682,7 +682,7 @@ $("#grid").addEventListener("touchend", (e) => {
 (function () {
   const hd = $("#handle");
   let y0 = 0, o0 = 0, range = 1, moved = false, on = false;
-  const setOpen = (v) => { S.open = Math.min(1, Math.max(0, v)); applyOpen(); };
+  const setOpen = (v) => { const m = metrics(); S.open = Math.min(m ? m.natFrac : 1, Math.max(0, v)); applyOpen(); };
   function start(y) {
     const m = metrics();
     if (!m) return;
@@ -704,10 +704,8 @@ $("#grid").addEventListener("touchend", (e) => {
     if (m) {
       if (!moved) {                                      // simple toucher : une semaine → mois → grand → une semaine
         if (S.open < m.natFrac - 0.03) setOpen(m.natFrac);
-        else if (S.open < 0.97) setOpen(1);
         else setOpen(0);
       } else if (Math.abs(S.open - m.natFrac) < 0.04) setOpen(m.natFrac);
-      else if (S.open > 0.96) setOpen(1);
       else if (S.open < 0.04) setOpen(0);
     }
     LS.set("open2", S.open);
