@@ -6,7 +6,7 @@ const C = Object.assign({
   DUREE_DEFAUT_MIN: 60, HEURE_DEFAUT: 9, CACHE_SECONDES: 60
 }, window.CONFIG || {});
 
-const VERSION = "21 nov. 11:00";
+const VERSION = "21 nov. 11:30";
 const MOIS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const MOIS_C = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const JOURS = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -51,6 +51,7 @@ const S = {
   list: [],
   plan: LS.get("planCals", null),
   open: LS.get("open2", null),
+  manon: LS.get("manon", false),
   selRow: 0
 };
 
@@ -128,6 +129,20 @@ const shortTitle = (evs) => evs.map((e) => e.title.replace(/^\s*patrick\s*/i, ""
 function planEvents(d) {
   const ps = planSet();
   return (S.byDay.get(d) || []).filter((e) => (ps.size ? ps.has(e.cal) : PLAN_RE.test(e.title)));
+}
+
+const MANON_RE = /manon\s+(lannilis|crozon)/i;
+const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+function cellInfo(s) {
+  if (S.manon) {
+    const evs = (S.byDay.get(s) || []).filter((e) => MANON_RE.test(e.title));
+    const lan = evs.some((e) => /lannilis/i.test(e.title)), cro = evs.some((e) => /crozon/i.test(e.title));
+    const labels = [];
+    evs.forEach((e) => { const l = cap(e.title.replace(/^.*?manon\s*/i, "").trim()); if (l && !labels.includes(l)) labels.push(l); });
+    return { k: lan && cro ? "mix" : lan ? "lannilis" : cro ? "crozon" : "", label: labels.join(" · ") };
+  }
+  const evs = planEvents(s);
+  return { k: kindOf(evs), label: shortTitle(evs) };
 }
 
 function dayEvents(d) {
@@ -234,15 +249,14 @@ function renderGrid() {
     for (let i = 0; i < 7; i++) {
       const d = new Date(r0); d.setDate(d.getDate() + i);
       const s = ymd(d);
-      const all = planEvents(s);
+      const info = cellInfo(s);
       const cls = ["day", "pc"];
       if (d.getMonth() !== m) cls.push("other");
       if (d.getDay() === 0 || d.getDay() === 6) cls.push("we");
       if (s === today) cls.push("today");
       if (s === S.sel) cls.push("sel");
-      const k = kindOf(all);
-      if (k) cls.push("k-" + k);
-      h += `<button class="${cls.join(" ")}" data-d="${s}"><span class="n">${d.getDate()}</span><span class="lb">${esc(shortTitle(all))}</span></button>`;
+      if (info.k) cls.push("k-" + info.k);
+      h += `<button class="${cls.join(" ")}" data-d="${s}"><span class="n">${d.getDate()}</span><span class="lb">${esc(info.label)}</span></button>`;
     }
     h += `</div>`;
   }
@@ -575,6 +589,14 @@ $("#sRes").addEventListener("click", (e) => {
   selectDay(ev.d0);
 });
 $("#bSearch").addEventListener("click", openSearch);
+function syncManon() {
+  $("#bManon").classList.toggle("on", S.manon);
+  $("#bManon").setAttribute("aria-pressed", S.manon ? "true" : "false");
+}
+$("#bManon").addEventListener("click", () => {
+  S.manon = !S.manon; LS.set("manon", S.manon);
+  syncManon(); renderAll();
+});
 
 /* Agendas visibles */
 function openCals() {
@@ -707,6 +729,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) load
 
 /* ---------- Démarrage ---------- */
 document.title = C.TITRE;
+syncManon();
 rebuild();
 renderAll();
 if (!configured()) openSettings(); else loadAround(false);
