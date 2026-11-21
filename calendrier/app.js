@@ -47,7 +47,9 @@ const S = {
   byDay: new Map(),
   busy: 0,
   error: "",
-  list: []
+  list: [],
+  mode: LS.get("mode", "agenda"),
+  plan: LS.get("planCals", null)
 };
 
 /* ---------- Connexion / API ---------- */
@@ -106,8 +108,25 @@ const calOf = (id) => S.cals.find((c) => c.id === id) || {};
 const calColor = (id) => calOf(id).color || "#8e8e93";
 const startOn = (e, d) => (e.d0 === d ? +e.s : +parseYmd(d));
 
+const PLAN_RE = /^\s*patrick\s+(jour|soir|ve|rh|rtt|cp|matin|nuit)\b/i;
+function planSet() {
+  if (Array.isArray(S.plan)) return new Set(S.plan);
+  return new Set(S.cals.filter((c) => /planning/i.test(c.name)).map((c) => c.id));
+}
+function kindOf(evs) {
+  const t = evs.map((e) => e.title).join(" ");
+  if (/soir/i.test(t)) return "soir";
+  if (/\bVE\b/i.test(t)) return "ve";
+  if (/jour/i.test(t)) return "jour";
+  if (/rtt/i.test(t)) return "rtt";
+  return evs.length ? "rh" : "";
+}
+const shortTitle = (evs) => evs.map((e) => e.title.replace(/^\s*patrick\s*/i, "") || e.title).join(" · ");
+
 function dayEvents(d) {
-  const a = (S.byDay.get(d) || []).filter((e) => !S.hidden.has(e.cal));
+  const plan = S.mode === "planning";
+  const ps = plan ? planSet() : null;
+  const a = (S.byDay.get(d) || []).filter((e) => plan ? (ps.size ? ps.has(e.cal) : PLAN_RE.test(e.title)) : !S.hidden.has(e.cal));
   return a.sort((x, y) => {
     if (x.allDay !== y.allDay) return x.allDay ? -1 : 1;
     if (x.allDay) return (calOf(x.cal).name || "").localeCompare(calOf(y.cal).name || "");
@@ -207,17 +226,24 @@ function renderGrid() {
     for (let i = 0; i < 7; i++) {
       const d = new Date(r0); d.setDate(d.getDate() + i);
       const s = ymd(d);
-      const evs = dayEvents(s).slice(0, 4);
-      const bars = evs.map((e) => `<i style="background:${esc(calColor(e.cal))}"></i>`).join("");
+      const all = dayEvents(s);
       const cls = ["day"];
       if (d.getMonth() !== m) cls.push("other");
       if (d.getDay() === 0 || d.getDay() === 6) cls.push("we");
       if (s === today) cls.push("today");
       if (s === S.sel) cls.push("sel");
-      h += `<button class="${cls.join(" ")}" data-d="${s}"><span class="n">${d.getDate()}</span><span class="bars">${bars}</span></button>`;
+      if (S.mode === "planning") {
+        const k = kindOf(all);
+        cls.push("pc"); if (k) cls.push("k-" + k);
+        h += `<button class="${cls.join(" ")}" data-d="${s}"><span class="n">${d.getDate()}</span><span class="lb">${esc(shortTitle(all))}</span></button>`;
+      } else {
+        const bars = all.slice(0, 4).map((e) => `<i style="background:${esc(calColor(e.cal))}"></i>`).join("");
+        h += `<button class="${cls.join(" ")}" data-d="${s}"><span class="n">${d.getDate()}</span><span class="bars">${bars}</span></button>`;
+      }
     }
     h += `</div>`;
   }
+  if (S.mode === "planning") h += `<div class="leg"><span class="k-ve">VE</span><span class="k-jour">Jour</span><span class="k-soir">Soir</span><span class="k-rh">RH</span><span class="k-rtt">RTT</span></div>`;
   $("#grid").innerHTML = h;
 }
 
@@ -384,9 +410,10 @@ $("#fCreate").addEventListener("submit", async (ev) => {
 
 /* Agendas visibles */
 function openCals() {
+  const ps = planSet();
   const cals = S.cals.slice().sort((a, b) => (b.owned - a.owned) || a.name.localeCompare(b.name));
   $("#calList").innerHTML = cals.length
-    ? cals.map((c) => `<label class="cl"><i style="background:${esc(c.color)}"></i><span>${esc(c.name)}</span><input type="checkbox" data-id="${esc(c.id)}" ${S.hidden.has(c.id) ? "" : "checked"}></label>`).join("")
+    ? cals.map((c, i) => `<div class="cl"><label class="lab" for="cb${i}"><i style="background:${esc(c.color)}"></i><span>${esc(c.name)}</span></label><button type="button" class="pk${ps.has(c.id) ? " on" : ""}" data-plan="${esc(c.id)}">Planning</button><input type="checkbox" id="cb${i}" data-id="${esc(c.id)}" ${S.hidden.has(c.id) ? "" : "checked"}></div>`).join("")
     : `<p class="hint">Aucun agenda pour l’instant : renseignez la connexion ci-dessous.</p>`;
   dlgOpen("#dCals");
 }
@@ -396,6 +423,16 @@ $("#calList").addEventListener("change", (e) => {
   if (!id) return;
   if (e.target.checked) S.hidden.delete(id); else S.hidden.add(id);
   LS.set("hidden", [...S.hidden]);
+  renderAll();
+});
+
+$("#calList").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-plan]");
+  if (!b) return;
+  const id = b.dataset.plan, ps = planSet();
+  if (ps.has(id)) ps.delete(id); else ps.add(id);
+  S.plan = [...ps]; LS.set("planCals", S.plan);
+  b.classList.toggle("on", ps.has(id));
   renderAll();
 });
 
@@ -439,6 +476,12 @@ $("#bAdd").addEventListener("click", openCreate);
 $("#bCals").addEventListener("click", openCals);
 $("#bSettings").addEventListener("click", openSettings);
 $("#bRefresh").addEventListener("click", () => loadAround(true));
+function setMode(m) {
+  S.mode = m; LS.set("mode", m);
+  $("#bMode").textContent = m === "planning" ? "Agenda" : "Planning";
+  renderAll();
+}
+$("#bMode").addEventListener("click", () => setMode(S.mode === "planning" ? "agenda" : "planning"));
 
 let tx = 0, ty = 0;
 $("#grid").addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
@@ -451,6 +494,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) load
 
 /* ---------- Démarrage ---------- */
 document.title = C.TITRE;
+$("#bMode").textContent = S.mode === "planning" ? "Agenda" : "Planning";
 rebuild();
 renderAll();
 if (!configured()) openSettings(); else loadAround(false);
