@@ -6,7 +6,7 @@ const C = Object.assign({
   DUREE_DEFAUT_MIN: 60, HEURE_DEFAUT: 9, CACHE_SECONDES: 60
 }, window.CONFIG || {});
 
-const VERSION = "21 nov. 10:30";
+const VERSION = "21 nov. 11:00";
 const MOIS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const MOIS_C = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const JOURS = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -50,7 +50,7 @@ const S = {
   error: "",
   list: [],
   plan: LS.get("planCals", null),
-  open: Math.min(1, Math.max(0, Number(LS.get("open", 1)) || 0)),
+  open: LS.get("open2", null),
   selRow: 0
 };
 
@@ -251,14 +251,37 @@ function renderGrid() {
   applyOpen();
 }
 
-/* Hauteur du mois réglable : 1 = mois entier, 0 = seulement la semaine du jour choisi */
-function applyOpen() {
+/* Hauteur du mois réglable : 0 = seulement la semaine du jour choisi, 1 = le mois occupe presque tout l'écran */
+function metrics() {
   const rw = $("#grid .rw"), rows = $("#grid .rows");
-  if (!rw || !rows || !rows.children.length) return;
-  const row = rows.children[Math.min(S.selRow, rows.children.length - 1)];
-  const full = rows.offsetHeight, minH = row.offsetHeight;
-  rw.style.height = (minH + (full - minH) * S.open) + "px";
-  rows.style.transform = `translateY(${-row.offsetTop * (1 - S.open)}px)`;
+  if (!rw || !rows || !rows.children.length) return null;
+  const kids = Array.from(rows.children);
+  kids.forEach((k) => { k.style.height = ""; });
+  rows.style.removeProperty("--sc");
+  rows.style.transform = "";
+  const row = kids[Math.min(S.selRow, kids.length - 1)];
+  const nat = rows.offsetHeight, minH = row.offsetHeight, selTop = row.offsetTop;
+  const topRel = rw.getBoundingClientRect().top - document.body.getBoundingClientRect().top;
+  const used = $("#handle").offsetHeight + $("#bar").offsetHeight + 110;
+  const maxH = Math.max(nat, document.body.clientHeight - topRel - used);
+  return { rw, rows, kids, nat, minH, selTop, maxH, natFrac: (nat - minH) / Math.max(1, maxH - minH) };
+}
+
+function applyOpen() {
+  const m = metrics();
+  if (!m) return;
+  if (S.open == null || isNaN(S.open)) S.open = m.natFrac;
+  S.open = Math.min(1, Math.max(0, S.open));
+  const H = m.minH + (m.maxH - m.minH) * S.open;
+  m.rw.style.height = H + "px";
+  if (H <= m.nat) {
+    const prog = (m.nat - H) / Math.max(1, m.nat - m.minH);
+    m.rows.style.transform = `translateY(${-m.selTop * prog}px)`;
+  } else {
+    const rh = H / m.kids.length;
+    m.kids.forEach((k) => { k.style.height = rh + "px"; });
+    m.rows.style.setProperty("--sc", Math.min(1.9, H / m.nat).toFixed(2));
+  }
 }
 
 function renderList() {
@@ -296,7 +319,7 @@ function selectDay(s) {
 }
 
 function goMonth(delta) {
-  if (S.open < 0.05) { selectDay(addDays(S.sel, delta * 7)); return; }
+  if (S.open != null && S.open < 0.03) { selectDay(addDays(S.sel, delta * 7)); return; }
   S.cursor = new Date(S.cursor.getFullYear(), S.cursor.getMonth() + delta, 1);
   const t = parseYmd(todayStr());
   S.sel = (t.getFullYear() === S.cursor.getFullYear() && t.getMonth() === S.cursor.getMonth()) ? todayStr() : ymd(S.cursor);
@@ -635,14 +658,15 @@ $("#grid").addEventListener("touchend", (e) => {
 /* Barre grise : on la glisse pour agrandir ou réduire le mois en direct */
 (function () {
   const hd = $("#handle");
-  let y0 = 0, o0 = 1, range = 1, moved = false, on = false;
+  let y0 = 0, o0 = 0, range = 1, moved = false, on = false;
   const setOpen = (v) => { S.open = Math.min(1, Math.max(0, v)); applyOpen(); };
   function start(y) {
-    const rows = $("#grid .rows");
-    if (!rows || !rows.children.length) return;
-    const row = rows.children[Math.min(S.selRow, rows.children.length - 1)];
-    range = Math.max(1, rows.offsetHeight - row.offsetHeight);
+    const m = metrics();
+    if (!m) return;
+    if (S.open == null || isNaN(S.open)) S.open = m.natFrac;
+    range = Math.max(1, m.maxH - m.minH);
     y0 = y; o0 = S.open; moved = false; on = true;
+    applyOpen();
   }
   function move(y) {
     if (!on) return;
@@ -653,10 +677,17 @@ $("#grid").addEventListener("touchend", (e) => {
   function end() {
     if (!on) return;
     on = false;
-    if (!moved) setOpen(S.open > 0.5 ? 0 : 1);          // simple toucher : tout ouvrir ou tout replier
-    else if (S.open > 0.95) setOpen(1);
-    else if (S.open < 0.05) setOpen(0);
-    LS.set("open", S.open);
+    const m = metrics();
+    if (m) {
+      if (!moved) {                                      // simple toucher : une semaine → mois → grand → une semaine
+        if (S.open < m.natFrac - 0.03) setOpen(m.natFrac);
+        else if (S.open < 0.97) setOpen(1);
+        else setOpen(0);
+      } else if (Math.abs(S.open - m.natFrac) < 0.04) setOpen(m.natFrac);
+      else if (S.open > 0.96) setOpen(1);
+      else if (S.open < 0.04) setOpen(0);
+    }
+    LS.set("open2", S.open);
   }
   if ("ontouchstart" in window) {
     hd.addEventListener("touchstart", (e) => start(e.touches[0].clientY), { passive: true });
