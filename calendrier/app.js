@@ -6,7 +6,7 @@ const C = Object.assign({
   DUREE_DEFAUT_MIN: 60, HEURE_DEFAUT: 9, CACHE_SECONDES: 60
 }, window.CONFIG || {});
 
-const VERSION = "21 nov. 11:30";
+const VERSION = "21 nov. 11:45";
 const MOIS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const MOIS_C = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const JOURS = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -131,15 +131,16 @@ function planEvents(d) {
   return (S.byDay.get(d) || []).filter((e) => (ps.size ? ps.has(e.cal) : PLAN_RE.test(e.title)));
 }
 
-const MANON_RE = /manon\s+(lannilis|crozon)/i;
+const MANON_RE = /manon\s+(lannilis|crozon|[ée]glise)/i;
 const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
 function cellInfo(s) {
   if (S.manon) {
     const evs = (S.byDay.get(s) || []).filter((e) => MANON_RE.test(e.title));
-    const lan = evs.some((e) => /lannilis/i.test(e.title)), cro = evs.some((e) => /crozon/i.test(e.title));
+    const lan = evs.some((e) => /lannilis/i.test(e.title)), cro = evs.some((e) => /crozon/i.test(e.title)), egl = evs.some((e) => /[ée]glise/i.test(e.title));
     const labels = [];
     evs.forEach((e) => { const l = cap(e.title.replace(/^.*?manon\s*/i, "").trim()); if (l && !labels.includes(l)) labels.push(l); });
-    return { k: lan && cro ? "mix" : lan ? "lannilis" : cro ? "crozon" : "", label: labels.join(" · ") };
+    const n = (lan ? 1 : 0) + (cro ? 1 : 0) + (egl ? 1 : 0);
+    return { k: n > 1 ? "mix" : lan ? "lannilis" : cro ? "crozon" : egl ? "eglise" : "", label: labels.join(" · ") };
   }
   const evs = planEvents(s);
   return { k: kindOf(evs), label: shortTitle(evs) };
