@@ -6,7 +6,7 @@ const C = Object.assign({
   DUREE_DEFAUT_MIN: 60, HEURE_DEFAUT: 9, CACHE_SECONDES: 60
 }, window.CONFIG || {});
 
-const VERSION = "21 nov. 10:15";
+const VERSION = "21 nov. 10:30";
 const MOIS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const MOIS_C = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const JOURS = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -558,7 +558,7 @@ function openCals() {
   const ps = planSet();
   const cals = S.cals.slice().sort((a, b) => (b.owned - a.owned) || a.name.localeCompare(b.name));
   $("#calList").innerHTML = cals.length
-    ? cals.map((c, i) => `<div class="cl"><label class="lab" for="cb${i}"><i style="background:${esc(c.color)}"></i><span>${esc(c.name)}</span></label><button type="button" class="pk${ps.has(c.id) ? " on" : ""}" data-plan="${esc(c.id)}">Planning</button><input type="checkbox" id="cb${i}" data-id="${esc(c.id)}" ${S.hidden.has(c.id) ? "" : "checked"}></div>`).join("")
+    ? cals.map((c, i) => `<div class="cl${S.hidden.has(c.id) ? " off" : ""}"><label class="lab" for="cb${i}"><i style="background:${esc(c.color)}"></i><span>${esc(c.name)}</span></label><button type="button" class="pk${ps.has(c.id) ? " on" : ""}" data-plan="${esc(c.id)}">Planning</button><input type="checkbox" id="cb${i}" data-id="${esc(c.id)}" ${S.hidden.has(c.id) ? "" : "checked"}></div>`).join("")
     : `<p class="hint">Aucun agenda pour l’instant : renseignez la connexion ci-dessous.</p>`;
   $("#ver").textContent = "Version " + VERSION;
   dlgOpen("#dCals");
@@ -568,6 +568,7 @@ $("#calList").addEventListener("change", (e) => {
   const id = e.target.dataset.id;
   if (!id) return;
   if (e.target.checked) S.hidden.delete(id); else S.hidden.add(id);
+  e.target.closest(".cl").classList.toggle("off", !e.target.checked);
   LS.set("hidden", [...S.hidden]);
   renderAll();
 });
