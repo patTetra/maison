@@ -98,7 +98,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .day.pc{margin:1.5px;border-radius:9px;min-height:40px;justify-content:center;gap:0;padding:2px 1px;background:var(--bg2)}
 .day.pc .n,.day.pc.sel .n,.day.pc.today .n{width:auto;height:auto;border-radius:0;background:none;color:var(--fg);font-size:calc(14px * var(--sc, 1));font-weight:700}
 .day.pc.we:not([class*="k-"]) .n{color:var(--mut)}
-.day.pc .lb{font-size:calc(10px * var(--sc, 1));line-height:1.05;text-align:center;color:var(--mut);word-break:break-word;padding:0 2px}
+.day.pc .lb{font-size:min(calc(10px * var(--sc, 1)), 2.9vw);line-height:1.05;text-align:center;color:var(--mut);white-space:nowrap;overflow:hidden;max-width:100%;padding:0 1px}
 .day.pc[class*="k-"] .lb{color:var(--fg)}
 .day.pc.other{opacity:.4}
 .day.pc.sel{box-shadow:0 0 0 2px var(--fg)}
@@ -141,4 +141,5 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 #bManon.on{background:var(--acc);color:#fff}
 .day.pc.k-lannilis{background:rgba(52,199,150,.55)}
 .day.pc.k-crozon{background:rgba(167,110,255,.55)}
+.day.pc.k-eglise{background:rgba(255,196,60,.6)}
 .day.pc.k-mix{background:linear-gradient(135deg,rgba(167,110,255,.55) 50%,rgba(52,199,150,.55) 50%)}
