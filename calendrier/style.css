@@ -115,5 +115,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .pk{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}
 .pk.on{background:var(--acc);border-color:var(--acc);color:#fff}
 
-#handle{flex:none;display:flex;justify-content:center;padding:8px 0 6px;touch-action:none;cursor:pointer}
-#handle i{display:block;width:44px;height:5px;border-radius:3px;background:var(--mut);opacity:.5}
+#handle{flex:none;display:flex;justify-content:center;padding:12px 0 10px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+#handle i{display:block;width:48px;height:5px;border-radius:3px;background:var(--mut);opacity:.6}
+.rw{overflow:hidden}
+.rows{will-change:transform}
