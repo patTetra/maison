@@ -48,7 +48,8 @@ const S = {
   busy: 0,
   error: "",
   list: [],
-  plan: LS.get("planCals", null)
+  plan: LS.get("planCals", null),
+  collapsed: LS.get("collapsed", false)
 };
 
 /* ---------- Connexion / API ---------- */
@@ -221,7 +222,15 @@ function renderGrid() {
   let h = `<div class="wk"><span></span>`;
   for (let i = 0; i < 7; i++) h += `<span>${JOURS_L[(ws + i) % 7]}</span>`;
   h += `</div>`;
+  let only = -1;
+  if (S.collapsed) {
+    for (let w = 0; w < weeks; w++) {
+      const a = new Date(start); a.setDate(a.getDate() + w * 7);
+      if (S.sel >= ymd(a) && S.sel <= addDays(ymd(a), 6)) only = w;
+    }
+  }
   for (let w = 0; w < weeks; w++) {
+    if (only >= 0 && w !== only) continue;
     const r0 = new Date(start); r0.setDate(r0.getDate() + w * 7);
     const thu = new Date(r0); thu.setDate(thu.getDate() + ((4 - ws + 7) % 7));
     h += `<div class="row7"><span class="wn">${C.NUMEROS_SEMAINES ? isoWeek(thu) : ""}</span>`;
@@ -240,7 +249,6 @@ function renderGrid() {
     }
     h += `</div>`;
   }
-  h += `<div class="leg"><span class="k-ve">VE</span><span class="k-jour">Jour</span><span class="k-soir">Soir</span><span class="k-rh">RH</span><span class="k-rtt">RTT</span></div>`;
   $("#grid").innerHTML = h;
 }
 
@@ -279,6 +287,7 @@ function selectDay(s) {
 }
 
 function goMonth(delta) {
+  if (S.collapsed) { selectDay(addDays(S.sel, delta * 7)); return; }
   S.cursor = new Date(S.cursor.getFullYear(), S.cursor.getMonth() + delta, 1);
   const t = parseYmd(todayStr());
   S.sel = (t.getFullYear() === S.cursor.getFullYear() && t.getMonth() === S.cursor.getMonth()) ? todayStr() : ymd(S.cursor);
@@ -476,11 +485,20 @@ $("#bRefresh").addEventListener("click", () => loadAround(true));
 
 
 let tx = 0, ty = 0;
-$("#grid").addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
-$("#grid").addEventListener("touchend", (e) => {
-  const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
-  if (Math.abs(dx) > 50 && Math.abs(dy) < 40) goMonth(dx < 0 ? 1 : -1);
-}, { passive: true });
+function setCollapsed(v) {
+  if (S.collapsed === v) return;
+  S.collapsed = v; LS.set("collapsed", v);
+  renderAll();
+}
+["#grid", "#handle"].forEach((id) => {
+  $(id).addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+  $(id).addEventListener("touchend", (e) => {
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > 50 && Math.abs(dy) < 40) goMonth(dx < 0 ? 1 : -1);
+    else if (Math.abs(dy) > 40 && Math.abs(dx) < 40) setCollapsed(dy < 0);
+  }, { passive: true });
+});
+$("#handle").addEventListener("click", () => setCollapsed(!S.collapsed));
 
 document.addEventListener("visibilitychange", () => { if (!document.hidden) loadAround(false); });
 
