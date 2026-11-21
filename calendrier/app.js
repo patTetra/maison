@@ -48,7 +48,6 @@ const S = {
   busy: 0,
   error: "",
   list: [],
-  mode: LS.get("mode", "agenda"),
   plan: LS.get("planCals", null)
 };
 
@@ -123,10 +122,13 @@ function kindOf(evs) {
 }
 const shortTitle = (evs) => evs.map((e) => e.title.replace(/^\s*patrick\s*/i, "") || e.title).join(" · ");
 
+function planEvents(d) {
+  const ps = planSet();
+  return (S.byDay.get(d) || []).filter((e) => (ps.size ? ps.has(e.cal) : PLAN_RE.test(e.title)));
+}
+
 function dayEvents(d) {
-  const plan = S.mode === "planning";
-  const ps = plan ? planSet() : null;
-  const a = (S.byDay.get(d) || []).filter((e) => plan ? (ps.size ? ps.has(e.cal) : PLAN_RE.test(e.title)) : !S.hidden.has(e.cal));
+  const a = (S.byDay.get(d) || []).filter((e) => !S.hidden.has(e.cal));
   return a.sort((x, y) => {
     if (x.allDay !== y.allDay) return x.allDay ? -1 : 1;
     if (x.allDay) return (calOf(x.cal).name || "").localeCompare(calOf(y.cal).name || "");
@@ -226,24 +228,19 @@ function renderGrid() {
     for (let i = 0; i < 7; i++) {
       const d = new Date(r0); d.setDate(d.getDate() + i);
       const s = ymd(d);
-      const all = dayEvents(s);
-      const cls = ["day"];
+      const all = planEvents(s);
+      const cls = ["day", "pc"];
       if (d.getMonth() !== m) cls.push("other");
       if (d.getDay() === 0 || d.getDay() === 6) cls.push("we");
       if (s === today) cls.push("today");
       if (s === S.sel) cls.push("sel");
-      if (S.mode === "planning") {
-        const k = kindOf(all);
-        cls.push("pc"); if (k) cls.push("k-" + k);
-        h += `<button class="${cls.join(" ")}" data-d="${s}"><span class="n">${d.getDate()}</span><span class="lb">${esc(shortTitle(all))}</span></button>`;
-      } else {
-        const bars = all.slice(0, 4).map((e) => `<i style="background:${esc(calColor(e.cal))}"></i>`).join("");
-        h += `<button class="${cls.join(" ")}" data-d="${s}"><span class="n">${d.getDate()}</span><span class="bars">${bars}</span></button>`;
-      }
+      const k = kindOf(all);
+      if (k) cls.push("k-" + k);
+      h += `<button class="${cls.join(" ")}" data-d="${s}"><span class="n">${d.getDate()}</span><span class="lb">${esc(shortTitle(all))}</span></button>`;
     }
     h += `</div>`;
   }
-  if (S.mode === "planning") h += `<div class="leg"><span class="k-ve">VE</span><span class="k-jour">Jour</span><span class="k-soir">Soir</span><span class="k-rh">RH</span><span class="k-rtt">RTT</span></div>`;
+  h += `<div class="leg"><span class="k-ve">VE</span><span class="k-jour">Jour</span><span class="k-soir">Soir</span><span class="k-rh">RH</span><span class="k-rtt">RTT</span></div>`;
   $("#grid").innerHTML = h;
 }
 
@@ -476,12 +473,7 @@ $("#bAdd").addEventListener("click", openCreate);
 $("#bCals").addEventListener("click", openCals);
 $("#bSettings").addEventListener("click", openSettings);
 $("#bRefresh").addEventListener("click", () => loadAround(true));
-function setMode(m) {
-  S.mode = m; LS.set("mode", m);
-  $("#bMode").textContent = m === "planning" ? "Agenda" : "Planning";
-  renderAll();
-}
-$("#bMode").addEventListener("click", () => setMode(S.mode === "planning" ? "agenda" : "planning"));
+
 
 let tx = 0, ty = 0;
 $("#grid").addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
@@ -494,7 +486,6 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) load
 
 /* ---------- Démarrage ---------- */
 document.title = C.TITRE;
-$("#bMode").textContent = S.mode === "planning" ? "Agenda" : "Planning";
 rebuild();
 renderAll();
 if (!configured()) openSettings(); else loadAround(false);
