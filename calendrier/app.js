@@ -49,7 +49,8 @@ const S = {
   error: "",
   list: [],
   plan: LS.get("planCals", null),
-  collapsed: LS.get("collapsed", false)
+  open: Math.min(1, Math.max(0, Number(LS.get("open", 1)) || 0)),
+  selRow: 0
 };
 
 /* ---------- Connexion / API ---------- */
@@ -222,16 +223,11 @@ function renderGrid() {
   let h = `<div class="wk"><span></span>`;
   for (let i = 0; i < 7; i++) h += `<span>${JOURS_L[(ws + i) % 7]}</span>`;
   h += `</div>`;
-  let only = -1;
-  if (S.collapsed) {
-    for (let w = 0; w < weeks; w++) {
-      const a = new Date(start); a.setDate(a.getDate() + w * 7);
-      if (S.sel >= ymd(a) && S.sel <= addDays(ymd(a), 6)) only = w;
-    }
-  }
+  h += `<div class="rw"><div class="rows">`;
+  S.selRow = 0;
   for (let w = 0; w < weeks; w++) {
-    if (only >= 0 && w !== only) continue;
     const r0 = new Date(start); r0.setDate(r0.getDate() + w * 7);
+    if (S.sel >= ymd(r0) && S.sel <= addDays(ymd(r0), 6)) S.selRow = w;
     const thu = new Date(r0); thu.setDate(thu.getDate() + ((4 - ws + 7) % 7));
     h += `<div class="row7"><span class="wn">${C.NUMEROS_SEMAINES ? isoWeek(thu) : ""}</span>`;
     for (let i = 0; i < 7; i++) {
@@ -249,7 +245,19 @@ function renderGrid() {
     }
     h += `</div>`;
   }
+  h += `</div></div>`;
   $("#grid").innerHTML = h;
+  applyOpen();
+}
+
+/* Hauteur du mois réglable : 1 = mois entier, 0 = seulement la semaine du jour choisi */
+function applyOpen() {
+  const rw = $("#grid .rw"), rows = $("#grid .rows");
+  if (!rw || !rows || !rows.children.length) return;
+  const row = rows.children[Math.min(S.selRow, rows.children.length - 1)];
+  const full = rows.offsetHeight, minH = row.offsetHeight;
+  rw.style.height = (minH + (full - minH) * S.open) + "px";
+  rows.style.transform = `translateY(${-row.offsetTop * (1 - S.open)}px)`;
 }
 
 function renderList() {
@@ -287,7 +295,7 @@ function selectDay(s) {
 }
 
 function goMonth(delta) {
-  if (S.collapsed) { selectDay(addDays(S.sel, delta * 7)); return; }
+  if (S.open < 0.05) { selectDay(addDays(S.sel, delta * 7)); return; }
   S.cursor = new Date(S.cursor.getFullYear(), S.cursor.getMonth() + delta, 1);
   const t = parseYmd(todayStr());
   S.sel = (t.getFullYear() === S.cursor.getFullYear() && t.getMonth() === S.cursor.getMonth()) ? todayStr() : ymd(S.cursor);
@@ -485,20 +493,43 @@ $("#bRefresh").addEventListener("click", () => loadAround(true));
 
 
 let tx = 0, ty = 0;
-function setCollapsed(v) {
-  if (S.collapsed === v) return;
-  S.collapsed = v; LS.set("collapsed", v);
-  renderAll();
-}
-["#grid", "#handle"].forEach((id) => {
-  $(id).addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
-  $(id).addEventListener("touchend", (e) => {
-    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
-    if (Math.abs(dx) > 50 && Math.abs(dy) < 40) goMonth(dx < 0 ? 1 : -1);
-    else if (Math.abs(dy) > 40 && Math.abs(dx) < 40) setCollapsed(dy < 0);
-  }, { passive: true });
-});
-$("#handle").addEventListener("click", () => setCollapsed(!S.collapsed));
+$("#grid").addEventListener("touchstart", (e) => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+$("#grid").addEventListener("touchend", (e) => {
+  const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+  if (Math.abs(dx) > 50 && Math.abs(dy) < 40) goMonth(dx < 0 ? 1 : -1);
+}, { passive: true });
+
+/* Barre grise : on la glisse pour agrandir ou réduire le mois en direct */
+(function () {
+  const hd = $("#handle");
+  let y0 = 0, o0 = 1, range = 1, moved = false, on = false;
+  const setOpen = (v) => { S.open = Math.min(1, Math.max(0, v)); applyOpen(); };
+  hd.addEventListener("pointerdown", (e) => {
+    const rows = $("#grid .rows");
+    if (!rows || !rows.children.length) return;
+    const row = rows.children[Math.min(S.selRow, rows.children.length - 1)];
+    range = Math.max(1, rows.offsetHeight - row.offsetHeight);
+    y0 = e.clientY; o0 = S.open; moved = false; on = true;
+    try { hd.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  hd.addEventListener("pointermove", (e) => {
+    if (!on) return;
+    const dy = e.clientY - y0;
+    if (Math.abs(dy) > 4) moved = true;
+    if (moved) setOpen(o0 + dy / range);
+  });
+  const end = () => {
+    if (!on) return;
+    on = false;
+    if (!moved) setOpen(S.open > 0.5 ? 0 : 1);          // simple toucher : tout ouvrir ou tout replier
+    else if (S.open > 0.95) setOpen(1);
+    else if (S.open < 0.05) setOpen(0);
+    LS.set("open", S.open);
+  };
+  hd.addEventListener("pointerup", end);
+  hd.addEventListener("pointercancel", end);
+  window.addEventListener("resize", applyOpen);
+})();
 
 document.addEventListener("visibilitychange", () => { if (!document.hidden) loadAround(false); });
 
