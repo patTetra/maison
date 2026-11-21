@@ -6,6 +6,7 @@ const C = Object.assign({
   DUREE_DEFAUT_MIN: 60, HEURE_DEFAUT: 9, CACHE_SECONDES: 60
 }, window.CONFIG || {});
 
+const VERSION = "21 nov. 09:30";
 const MOIS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const MOIS_C = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const JOURS = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -429,6 +430,7 @@ function openCals() {
   $("#calList").innerHTML = cals.length
     ? cals.map((c, i) => `<div class="cl"><label class="lab" for="cb${i}"><i style="background:${esc(c.color)}"></i><span>${esc(c.name)}</span></label><button type="button" class="pk${ps.has(c.id) ? " on" : ""}" data-plan="${esc(c.id)}">Planning</button><input type="checkbox" id="cb${i}" data-id="${esc(c.id)}" ${S.hidden.has(c.id) ? "" : "checked"}></div>`).join("")
     : `<p class="hint">Aucun agenda pour l’instant : renseignez la connexion ci-dessous.</p>`;
+  $("#ver").textContent = "Version " + VERSION;
   dlgOpen("#dCals");
 }
 
@@ -504,30 +506,38 @@ $("#grid").addEventListener("touchend", (e) => {
   const hd = $("#handle");
   let y0 = 0, o0 = 1, range = 1, moved = false, on = false;
   const setOpen = (v) => { S.open = Math.min(1, Math.max(0, v)); applyOpen(); };
-  hd.addEventListener("pointerdown", (e) => {
+  function start(y) {
     const rows = $("#grid .rows");
     if (!rows || !rows.children.length) return;
     const row = rows.children[Math.min(S.selRow, rows.children.length - 1)];
     range = Math.max(1, rows.offsetHeight - row.offsetHeight);
-    y0 = e.clientY; o0 = S.open; moved = false; on = true;
-    try { hd.setPointerCapture(e.pointerId); } catch (err) {}
-  });
-  hd.addEventListener("pointermove", (e) => {
+    y0 = y; o0 = S.open; moved = false; on = true;
+  }
+  function move(y) {
     if (!on) return;
-    const dy = e.clientY - y0;
+    const dy = y - y0;
     if (Math.abs(dy) > 4) moved = true;
     if (moved) setOpen(o0 + dy / range);
-  });
-  const end = () => {
+  }
+  function end() {
     if (!on) return;
     on = false;
     if (!moved) setOpen(S.open > 0.5 ? 0 : 1);          // simple toucher : tout ouvrir ou tout replier
     else if (S.open > 0.95) setOpen(1);
     else if (S.open < 0.05) setOpen(0);
     LS.set("open", S.open);
-  };
-  hd.addEventListener("pointerup", end);
-  hd.addEventListener("pointercancel", end);
+  }
+  if ("ontouchstart" in window) {
+    hd.addEventListener("touchstart", (e) => start(e.touches[0].clientY), { passive: true });
+    hd.addEventListener("touchmove", (e) => { e.preventDefault(); move(e.touches[0].clientY); }, { passive: false });
+    hd.addEventListener("touchend", end);
+    hd.addEventListener("touchcancel", end);
+  } else {
+    hd.addEventListener("pointerdown", (e) => { start(e.clientY); try { hd.setPointerCapture(e.pointerId); } catch (err) {} });
+    hd.addEventListener("pointermove", (e) => move(e.clientY));
+    hd.addEventListener("pointerup", end);
+    hd.addEventListener("pointercancel", end);
+  }
   window.addEventListener("resize", applyOpen);
 })();
 
