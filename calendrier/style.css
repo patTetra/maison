@@ -130,3 +130,9 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .sr .srt{flex:1;min-width:0}
 .sr b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sr small{display:block;color:var(--mut);font-size:13px}
+
+/* Cases à cocher visibles (appearance:none les rendait invisibles) */
+.sheet .row input[type=checkbox],.sheet .cl input[type=checkbox]{appearance:none;-webkit-appearance:none;width:28px;height:28px;border-radius:50%;border:2px solid var(--mut);background:transparent;flex:none;position:relative;margin:0;padding:0}
+.sheet .row input[type=checkbox]:checked,.sheet .cl input[type=checkbox]:checked{background:var(--acc);border-color:var(--acc)}
+.sheet .row input[type=checkbox]:checked::after,.sheet .cl input[type=checkbox]:checked::after{content:"";position:absolute;left:8px;top:3px;width:7px;height:13px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
+.cl.off .lab{opacity:.4}
