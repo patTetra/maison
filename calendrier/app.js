@@ -6,7 +6,7 @@ const C = Object.assign({
   DUREE_DEFAUT_MIN: 60, HEURE_DEFAUT: 9, CACHE_SECONDES: 60
 }, window.CONFIG || {});
 
-const VERSION = "21 nov. 09:30";
+const VERSION = "21 nov. 10:15";
 const MOIS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const MOIS_C = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const JOURS = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -62,7 +62,7 @@ async function api(action, data) {
   const u = url(), token = LS.get("token", "");
   if (!u || !token) throw new Error("config");
   let res;
-  if (action === "create") {
+  if (action === "create" || action === "update" || action === "delete") {
     res = await fetch(u, { method: "POST", body: JSON.stringify(Object.assign({}, data, { action, token })) });
   } else {
     const q = new URLSearchParams(Object.assign({}, data, { action, token }));
@@ -334,6 +334,13 @@ function openDetail(e) {
   h += `<div class="box"><small>Agenda</small><span style="color:${esc(c.color || "#8e8e93")}">●</span> ${esc(c.name || "")}</div>`;
   if (e.location) h += `<div class="box"><small>Lieu</small>${esc(e.location)}</div>`;
   if (e.description) h += `<div class="box"><small>Notes</small>${link(e.description)}</div>`;
+  h += `<p class="err" id="dErr"></p>`;
+  if (e.rec) h += `<p class="hint">Cet événement se répète : « Modifier » ne change que cette occurrence.</p>`;
+  h += `<div class="acts"><button type="button" class="btn" data-act="edit">Modifier</button>` +
+    (e.rec
+      ? `<button type="button" class="btn del" data-act="del1">Supprimer cette occurrence</button><button type="button" class="btn del" data-act="delall">Supprimer toute la série</button>`
+      : `<button type="button" class="btn del" data-act="del1">Supprimer</button>`) + `</div>`;
+  S.cur = e;
   $("#detail").innerHTML = h;
   dlgOpen("#dDetail");
 }
@@ -356,14 +363,40 @@ function readDuration() {
   else dur = Math.max(0, +endDate() - +startDate());
 }
 
+const AL_TIMED = [["def", ""], ["none", "Aucune"], ["0", "À l’heure de l’événement"], ["5", "5 minutes avant"], ["10", "10 minutes avant"], ["15", "15 minutes avant"], ["30", "30 minutes avant"], ["60", "1 heure avant"], ["120", "2 heures avant"], ["1440", "1 jour avant"]];
+const AL_ALL = [["def", ""], ["none", "Aucune"], ["360", "La veille à 18 h"], ["900", "La veille à 9 h"], ["2340", "2 jours avant, 9 h"], ["9540", "1 semaine avant, 9 h"]];
+
+function fillAlerts() {
+  const opts = (isAll() ? AL_ALL : AL_TIMED).map(([v, t]) => `<option value="${v}">${esc(v === "def" ? (S.edit ? "Inchangées" : "Par défaut de l’agenda") : t)}</option>`).join("");
+  $("#cAl1").innerHTML = opts;
+  $("#cAl2").innerHTML = opts;
+  syncAl2();
+}
+function syncAl2() {
+  const v = $("#cAl1").value;
+  $("#rAl2").style.display = (v === "def" || v === "none") ? "none" : "";
+  if (v === "def" || v === "none") $("#cAl2").value = "def";
+}
+$("#cAl1").addEventListener("change", syncAl2);
+
 function toggleAll() {
+  fillAlerts();
   $("#fCreate").classList.toggle("allday", isAll());
   if (isAll()) durDays = 0; else dur = C.DUREE_DEFAUT_MIN * 60000;
   applyEnd();
 }
 
-function openCreate() {
+function syncRep() { $("#rUntil").style.display = $("#cRep").value ? "" : "none"; }
+$("#cRep").addEventListener("change", syncRep);
+
+function openCreate(edit) {
   if (!S.cals.length) { openSettings(); return; }
+  S.edit = edit || null;
+  $("#cHead").textContent = edit ? "Modifier" : "Nouvel événement";
+  $("#cSave").textContent = edit ? "Enregistrer" : "Ajouter";
+  $("#cCal").disabled = !!edit;
+  $("#rRep").style.display = edit ? "none" : "";
+  $("#cRep").value = ""; $("#cUntil").value = ""; syncRep();
   const cals = S.cals.slice().sort((a, b) => (b.owned - a.owned) || a.name.localeCompare(b.name));
   $("#cCal").innerHTML = cals.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}${c.owned ? "" : " (partagé)"}</option>`).join("");
   const last = LS.get("lastCal", "");
@@ -376,8 +409,22 @@ function openCreate() {
   $("#fCreate").classList.remove("allday");
   dur = C.DUREE_DEFAUT_MIN * 60000;
   applyEnd();
+  fillAlerts();
+  if (edit) {
+    $("#cCal").value = edit.cal;
+    $("#cTitle").value = edit.title; $("#cLoc").value = edit.location || ""; $("#cNote").value = edit.description || "";
+    $("#cAll").checked = edit.allDay;
+    $("#fCreate").classList.toggle("allday", edit.allDay);
+    fillAlerts();
+    if (edit.allDay) { $("#cD0").value = edit.d0; $("#cD1").value = edit.d1; }
+    else {
+      $("#cD0").value = ymd(edit.s); $("#cT0").value = hhmm(edit.s);
+      $("#cD1").value = ymd(edit.en); $("#cT1").value = hhmm(edit.en);
+    }
+    readDuration();
+  }
   dlgOpen("#dCreate");
-  setTimeout(() => $("#cTitle").focus(), 50);
+  if (!edit) setTimeout(() => $("#cTitle").focus(), 50);
 }
 
 $("#cAll").addEventListener("change", toggleAll);
@@ -406,9 +453,29 @@ $("#fCreate").addEventListener("submit", async (ev) => {
     if (e <= s) { err.textContent = "La fin doit être après le début."; return; }
     data.start = s.toISOString(); data.end = e.toISOString(); firstDay = ymd(s);
   }
+  if (!S.edit && $("#cRep").value) {
+    data.repeat = $("#cRep").value;
+    const u = $("#cUntil").value;
+    if (u) {
+      if (u < firstDay) { err.textContent = "La fin de répétition est avant le début."; return; }
+      data.repeatUntil = u;
+    }
+  }
+  if (S.edit) {
+    data.calendarId = S.edit.cal; data.id = S.edit.id;
+    data.origStart = S.edit.start; data.origAllDay = S.edit.allDay;
+  }
+  const a1 = $("#cAl1").value, a2 = $("#cAl2").value;
+  if (a1 === "none") data.alertMode = "none";
+  else if (a1 !== "def") {
+    data.alertMode = "custom";
+    data.alerts = [...new Set([a1, a2].filter((v) => v !== "def" && v !== "none").map(Number))];
+  }
   const btn = $("#cSave"); btn.disabled = true; btn.textContent = "…";
+  let warn = "";
   try {
-    await api("create", data);
+    const res = await api(S.edit ? "update" : "create", data);
+    if (res.warnings && res.warnings.length) warn = "Enregistré, mais " + res.warnings.join(" ");
     LS.set("lastCal", data.calendarId);
     $("#dCreate").close();
     S.sel = firstDay;
@@ -416,12 +483,75 @@ $("#fCreate").addEventListener("submit", async (ev) => {
     S.cursor = new Date(d.getFullYear(), d.getMonth(), 1);
     renderAll();
     await loadAround(true);
+    if (warn) { S.error = warn; setStatus(); }
   } catch (e) {
     err.textContent = "Échec : " + e.message;
   } finally {
-    btn.disabled = false; btn.textContent = "Ajouter";
+    btn.disabled = false; btn.textContent = S.edit ? "Enregistrer" : "Ajouter";
   }
 });
+
+$("#detail").addEventListener("click", async (ev) => {
+  const b = ev.target.closest("[data-act]");
+  if (!b || !S.cur) return;
+  const e = S.cur, act = b.dataset.act;
+  if (act === "edit") { $("#dDetail").close(); openCreate(e); return; }
+  const all = act === "delall";
+  if (!confirm(all ? `Supprimer toute la série « ${e.title} » ?` : `Supprimer « ${e.title} » ?`)) return;
+  b.disabled = true;
+  try {
+    await api("delete", { calendarId: e.cal, id: e.id, origStart: e.start, origAllDay: e.allDay, scope: all ? "all" : "one" });
+    $("#dDetail").close();
+    await loadAround(true);
+  } catch (err) {
+    b.disabled = false;
+    $("#dErr").textContent = "Suppression impossible : " + err.message;
+  }
+});
+
+/* Recherche */
+let sTimer = 0, sSeq = 0;
+function srDate(e) {
+  const d = parseYmd(e.d0);
+  let t = `${JOURS[d.getDay()].slice(0, 3)}. ${d.getDate()} ${MOIS_C[d.getMonth()]} ${d.getFullYear()}`;
+  t += e.allDay ? " · jour entier" : ` · ${hhmm(e.s)}`;
+  const n = calOf(e.cal).name;
+  return n ? `${t} · ${n}` : t;
+}
+function openSearch() {
+  if (!configured()) { openSettings(); return; }
+  $("#sQ").value = ""; $("#sRes").innerHTML = "";
+  dlgOpen("#dSearch");
+  setTimeout(() => $("#sQ").focus(), 50);
+}
+async function runSearch() {
+  const q = $("#sQ").value.trim(), res = $("#sRes");
+  if (q.length < 2) { res.innerHTML = ""; return; }
+  const my = ++sSeq;
+  res.innerHTML = `<p class="hint">Recherche…</p>`;
+  try {
+    const a = new Date(); a.setFullYear(a.getFullYear() - 1);
+    const b = new Date(); b.setFullYear(b.getFullYear() + 2);
+    const j = await api("search", { q, from: a.toISOString(), to: b.toISOString() });
+    if (my !== sSeq) return;
+    S.sres = j.events.map(norm);
+    res.innerHTML = S.sres.length
+      ? S.sres.map((e, i) => `<button type="button" class="sr" data-i="${i}"><i style="background:${esc(calColor(e.cal))}"></i><span class="srt"><b>${esc(e.title)}</b><small>${esc(srDate(e))}</small></span></button>`).join("")
+      : `<p class="hint">Aucun résultat.</p>`;
+  } catch (err) {
+    if (my === sSeq) res.innerHTML = `<p class="err">${esc(err.message)}</p>`;
+  }
+}
+$("#sQ").addEventListener("input", () => { clearTimeout(sTimer); sTimer = setTimeout(runSearch, 450); });
+$("#sQ").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); clearTimeout(sTimer); runSearch(); } });
+$("#sRes").addEventListener("click", (e) => {
+  const b = e.target.closest(".sr");
+  if (!b) return;
+  const ev = S.sres[+b.dataset.i];
+  $("#dSearch").close();
+  selectDay(ev.d0);
+});
+$("#bSearch").addEventListener("click", openSearch);
 
 /* Agendas visibles */
 function openCals() {
@@ -488,7 +618,7 @@ $("#list").addEventListener("click", (e) => { const b = e.target.closest(".ev");
 $("#bPrev").addEventListener("click", () => goMonth(-1));
 $("#bNext").addEventListener("click", () => goMonth(1));
 $("#bToday").addEventListener("click", goToday);
-$("#bAdd").addEventListener("click", openCreate);
+$("#bAdd").addEventListener("click", () => openCreate());
 $("#bCals").addEventListener("click", openCals);
 $("#bSettings").addEventListener("click", openSettings);
 $("#bRefresh").addEventListener("click", () => loadAround(true));
