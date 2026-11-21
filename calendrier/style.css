@@ -93,3 +93,24 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 #detail .box{background:var(--bg);border-radius:12px;padding:12px;margin-bottom:10px;white-space:pre-wrap;word-break:break-word}
 #detail .box small{display:block;color:var(--mut);font-size:12px;margin-bottom:2px}
 #detail a{color:var(--acc)}
+
+/* Vue Planning : cases colorées */
+.day.pc{margin:2px;border-radius:10px;min-height:56px;justify-content:center;gap:1px;padding:4px 2px;background:var(--bg2)}
+.day.pc .n,.day.pc.sel .n,.day.pc.today .n{width:auto;height:auto;border-radius:0;background:none;color:var(--fg);font-size:17px;font-weight:700}
+.day.pc.we:not([class*="k-"]) .n{color:var(--mut)}
+.day.pc .lb{font-size:11px;line-height:1.1;text-align:center;color:var(--mut);word-break:break-word;padding:0 2px}
+.day.pc[class*="k-"] .lb{color:var(--fg)}
+.day.pc.other{opacity:.4}
+.day.pc.sel{box-shadow:0 0 0 2px var(--fg)}
+.day.pc.today{box-shadow:0 0 0 2px var(--red)}
+.day.pc.k-soir,.leg .k-soir{background:rgba(255,138,61,.65)}
+.day.pc.k-ve,.leg .k-ve{background:rgba(64,140,255,.6)}
+.day.pc.k-jour,.leg .k-jour{background:rgba(255,138,61,.22)}
+.day.pc.k-rh,.leg .k-rh{background:rgba(128,140,150,.28)}
+.day.pc.k-rtt,.leg .k-rtt{background:rgba(90,130,200,.4)}
+.leg{display:flex;gap:8px;justify-content:center;padding:8px 0 10px}
+.leg span{font-size:11px;padding:3px 10px;border-radius:999px}
+.cl .lab{flex:1;min-width:0;display:flex;align-items:center;gap:12px}
+.cl .lab span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}
+.pk.on{background:var(--acc);border-color:var(--acc);color:#fff}
