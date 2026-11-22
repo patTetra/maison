@@ -436,7 +436,6 @@ button.power{color:inherit;font:inherit;text-align:left}
     weather: 'weather.forecast_maison',
     minuteurs: 'sensor.minuteurs_alexa',
     ssidPatrick: 'sensor.iphone_15_pro_de_patrick_2_ssid',
-    ssidGael: 'sensor.iphone_de_gael_ssid',
     salonTemp: 'sensor.bthome_sensor_cb2e_temperature',
     power: 'sensor.lixee_zlinky_tic_puissance_apparente',
     powerMax: 'input_number.seuil_puissance_max',
@@ -3719,12 +3718,13 @@ button.power{color:inherit;font:inherit;text-align:left}
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   var WIFI = ['routeur2', 'livebox'];
-  var SSID = { p: 'sensor.iphone_15_pro_de_patrick_2_ssid', g: 'sensor.iphone_de_gael_ssid' };
+  var SSID = { p: 'sensor.iphone_15_pro_de_patrick_2_ssid' };   // seul l'iPhone de Patrick pour l'instant
   var COL = { Cuisine: '#f59e0b', Salon: '#a78bfa' };
   function who() { try { return localStorage.getItem('alx_qui') || ''; } catch (e) { return ''; } }
   function chez() {                       // tablette : toujours ; téléphone : seulement sur le Wi-Fi de la maison
     if (tab) return true;
     var w = who(); if (!w) return true;
+    if (!SSID[w]) return false;           // autre personne : pas d'alerte pour l'instant
     var o = HA.store[SSID[w]];
     if (!o) return true;                  // capteur introuvable : on n'empêche pas l'alerte
     var ss = String(o.state || '').toLowerCase(); return WIFI.some(function (n) { return ss.indexOf(n) === 0; });
@@ -3801,7 +3801,7 @@ button.power{color:inherit;font:inherit;text-align:left}
       h += '<div class="at' + (i ? ' sm' : '') + '" style="border-color:' + (COL[x.piece] || '#22d3ee') + '88"><div class="tm">' + fmt(rest) + '</div><div class="who"><div class="nm">' + esc(name(x)) + badge(x.piece) + '</div><div class="du">' + (x.duree ? 'Minuteur de ' + esc(dur(x.duree)) : '') + '</div></div>' + (x.duree ? '<div class="bar" style="width:' + pct + '%"></div>' : '') + '</div>';
     });
     if (!tab && !who() && (HA.store[E.minuteurs] && (HA.store[E.minuteurs].attributes.timers || []).length)) {
-      h = '<div class="at" style="flex-direction:column;align-items:stretch;gap:10px"><div class="nm">Ce téléphone est à…</div><div style="display:flex;gap:10px"><button data-alx-qui="p" style="background:#22d3ee;color:#042">Patrick</button><button data-alx-qui="g" style="background:#22d3ee;color:#042">Gaëlle</button></div></div>' + h;
+      h = '<div class="at" style="flex-direction:column;align-items:stretch;gap:10px"><div class="nm">Ce téléphone est à…</div><div style="display:flex;gap:10px"><button data-alx-qui="p" style="background:#22d3ee;color:#042">Patrick</button><button data-alx-qui="g" style="background:#22d3ee;color:#042">Autre</button></div></div>' + h;
     }
     var el = host();
     if (el.innerHTML !== h) el.innerHTML = h;
