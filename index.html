@@ -138,6 +138,22 @@ svg{flex:none}
 .swatch{width:44px;height:44px;border-radius:22px;border:2px solid transparent}
 .swatch.on{border-color:var(--text)}
 .msg{margin-top:10px;font-size:13px;font-weight:600}
+.pconf{display:flex;align-items:center;gap:14px;margin:8px 0 10px;padding:14px 16px;border-radius:16px;border:1px solid rgba(34,197,94,.55);background:rgba(34,197,94,.14)}
+.pconf .pc-ic{flex:none;width:44px;height:44px;border-radius:50%;background:#22c55e;color:#06210f;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;line-height:1}
+.pconf .pc-t{font-size:20px;font-weight:700;line-height:1.2}
+.pconf .pc-s{font-size:15px;color:var(--muted);margin-top:2px}
+.pconf .pc-s b{color:var(--text,inherit);font-size:17px}
+.pconf.wait{border-color:var(--accent-line);background:rgba(127,127,127,.12)}
+.pconf.wait .pc-ic{background:var(--accent);color:#06141a;font-size:20px}
+.pconf.ko{border-color:rgba(239,68,68,.6);background:rgba(239,68,68,.14)}
+.pconf.ko .pc-ic{background:#ef4444;color:#fff}
+.pconf.pop{animation:pcpop .35s cubic-bezier(.2,1.4,.4,1)}
+.pconf.pop .pc-ic{animation:pcic .5s .1s both}
+@keyframes pcpop{from{transform:scale(.88);opacity:0}to{transform:none;opacity:1}}
+@keyframes pcic{from{transform:scale(0) rotate(-40deg)}to{transform:none}}
+.pel-val.bump{animation:pcbump .6s}
+@keyframes pcbump{0%{transform:scale(1)}30%{transform:scale(1.18);color:#22c55e}100%{transform:scale(1)}}
+.plast{font-size:13px;color:var(--muted);margin:2px 0 8px}
 .msg.ok{color:var(--accent)}
 .msg.ko{color:var(--danger)}
 .btnrow{display:flex;gap:10px;margin-top:14px}
@@ -1724,11 +1740,13 @@ button.power{color:inherit;font:inherit;text-align:left}
 
   async function run(mut, label, okMsg) {
     if (P.busy) return;
-    P.busy = true; P.msg = { cls: '', text: 'Enregistrement…' };
+    P.busy = true; P.msg = { cls: '', text: 'Enregistrement…' }; P.flash = null;
     show();
     try {
       await write(mut, label);
       P.msg = { cls: 'ok', text: okMsg(P.stock()) };
+      var h0 = P.data && P.data.historique && P.data.historique[0];
+      if (h0) P.flash = { delta: h0.delta, stock: h0.stock, before: h0.stock - h0.delta, type: h0.type, fresh: true };
       M.haptic(60);   // enregistré (fonctionne si le navigateur le permet)
       qty = 1;
     } catch (e) {
@@ -1865,13 +1883,24 @@ button.power{color:inherit;font:inherit;text-align:left}
   function show() {
     var s = P.stock();
     var statsBlk = '<button class="subhead' + (statsOpen ? ' open' : '') + '" id="p-stats" style="margin-top:10px"><span>Consommation par saison</span><span class="chev">' + M.icon('chevd', 20) + '</span></button>' + (statsOpen ? statsHtml() : '');
-    var h = '<h3>Pellets</h3>' +
-      '<div class="pel-val">' + (s == null ? '—' : s + ' <small>' + plural(s) + ' en stock</small>') + '</div>' +
+    var fl = P.flash, bump = fl && fl.fresh;
+    if (fl) fl.fresh = false;
+    var conf = '';
+    if (P.busy) conf = '<div class="pconf wait"><div class="pc-ic">…</div><div><div class="pc-t">Enregistrement…</div></div></div>';
+    else if (P.msg && P.msg.cls === 'ko') conf = '<div class="pconf ko"><div class="pc-ic">!</div><div><div class="pc-t">Non enregistré</div><div class="pc-s">' + M.esc(P.msg.text) + '</div></div></div>';
+    else if (fl) {
+      var n = Math.abs(fl.delta), what = fl.type === 'correction' ? 'Stock corrigé' : (fl.delta < 0 ? n + ' ' + plural(n) + ' retiré' + (n > 1 ? 's' : '') : n + ' ' + plural(n) + ' ajouté' + (n > 1 ? 's' : ''));
+      conf = '<div class="pconf ok' + (bump ? ' pop' : '') + '"><div class="pc-ic">\u2713</div><div><div class="pc-t">' + what + '</div><div class="pc-s">Stock : ' + fl.before + ' \u2192 <b>' + fl.stock + ' ' + plural(fl.stock) + '</b></div></div></div>';
+    }
+    // dernier mouvement enregistré (reste visible à la réouverture)
+    var last = P.data && P.data.historique && P.data.historique[0], lastTxt = '';
+    if (!conf && last && typeof last.delta === 'number') lastTxt = '<div class="plast">Dernier mouvement : ' + (last.type === 'correction' ? 'correction' : (last.delta < 0 ? '\u2212' : '+') + Math.abs(last.delta) + ' ' + plural(last.delta)) + ' \u00b7 ' + when(last.date) + ' (stock : ' + last.stock + ')</div>';
+    var h = '<h3>Pellets</h3>' + conf +
+      '<div class="pel-val' + (bump ? ' bump' : '') + '">' + (s == null ? '\u2014' : s + ' <small>' + plural(s) + ' en stock</small>') + '</div>' + lastTxt +
       (P.error ? '<div class="msg ko">' + M.esc(P.error) + '</div>' : '') +
       '<div class="wheels" style="margin-top:6px">' + qtyWheel() + '<span class="colon" id="p-unit" style="font-size:22px">' + plural(qty) + '</span></div>' +
       '<button class="btn solid" id="p-take" style="width:100%;height:60px;font-size:20px;margin-top:6px"' + (P.busy ? ' disabled' : '') + '>' + takeLabel() + '</button>' +
       '<button class="btn" id="p-add" style="width:100%;margin-top:8px"' + (P.busy ? ' disabled' : '') + '>Acheter ' + qty + ' ' + plural(qty) + '</button>' +
-      (P.msg ? '<div class="msg ' + P.msg.cls + '">' + M.esc(P.msg.text) + '</div>' : '') +
       statsBlk +
       '<div class="field"><label for="p-set">Corriger le stock (après inventaire)</label><div class="btnrow" style="margin-top:0"><input class="inp" id="p-set" type="number" inputmode="numeric" min="0" step="1" value="' + (s == null ? '' : s) + '"><button class="btn" id="p-setb" style="flex:none">Corriger</button></div></div>';
     M.openSheet(h, function (sh) {
@@ -1907,7 +1936,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     qty = 1;
     seasonOffset = 0;
     monthSel = null;
-    P.msg = null;
+    P.msg = null; P.flash = null;
     show();
     P.refresh();
   };
