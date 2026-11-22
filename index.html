@@ -436,6 +436,8 @@ button.power{color:inherit;font:inherit;text-align:left}
     weather: 'weather.forecast_maison',
     minuteurs: 'sensor.minuteurs_alexa',
     ssidPatrick: 'sensor.iphone_15_pro_de_patrick_2_ssid',
+    poubelle: 'sensor.poubelle_a_sortir',
+    poubelleSortie: 'input_boolean.poubelle_sortie',
     salonTemp: 'sensor.bthome_sensor_cb2e_temperature',
     power: 'sensor.lixee_zlinky_tic_puissance_apparente',
     powerMax: 'input_number.seuil_puissance_max',
@@ -3826,6 +3828,40 @@ button.power{color:inherit;font:inherit;text-align:left}
   }
   HA.onChange(tick);
   setInterval(tick, 500);
+})(window.M = window.M || {});
+
+</script>
+<script>
+// Pastille « poubelle à sortir » (dimanche / lundi férié) : couleur + bouton Sortie
+(function (M) {
+  'use strict';
+  var HA = M.HA, E = M.E;
+  var COL = { JAUNE: ['#facc15', '#1a1400'], NOIRE: ['#1f2937', '#f1f5f9'] };
+  function st() { var o = HA.store[E.poubelle]; return o ? String(o.state || '') : ''; }
+  function paint() {
+    var s = st(), el = document.getElementById('pbl');
+    var c = COL[s];
+    if (!c) { if (el) el.remove(); return; }
+    var h = '<span class="d" style="background:' + c[0] + ';border-color:' + (s === 'NOIRE' ? '#94a3b8' : c[0]) + '"></span><span class="t">Poubelle <b>' + s + '</b> à sortir</span><button type="button" data-pbl-ok="1">Sortie</button>';
+    if (!el) {
+      var tab = /tablette/i.test(location.pathname) || window.innerWidth >= 900;
+      var css = document.createElement('style');
+      css.textContent = '#pbl{position:fixed;z-index:68;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + ' + (tab ? '92px' : '84px') + ');display:flex;align-items:center;gap:12px;padding:' + (tab ? '14px 18px 14px 20px' : '10px 10px 10px 14px') + ';border-radius:99px;background:var(--card2,#17303b);border:1px solid var(--accent-line,#22d3ee66);box-shadow:0 10px 30px rgba(0,0,0,.45);color:var(--text,#e6edf7);font-size:' + (tab ? '22px' : '15px') + ';white-space:nowrap}' +
+        '#pbl .d{width:' + (tab ? '30px' : '22px') + ';height:' + (tab ? '30px' : '22px') + ';border-radius:50%;border:2px solid;flex:none}' +
+        '#pbl button{border:0;border-radius:99px;padding:' + (tab ? '10px 20px' : '7px 14px') + ';font:inherit;font-weight:800;background:var(--accent,#22d3ee);color:#042}';
+      document.head.appendChild(css);
+      el = document.createElement('div'); el.id = 'pbl'; document.body.appendChild(el);
+      el.addEventListener('click', function (ev) {
+        if (!ev.target.closest('[data-pbl-ok]')) return;
+        try { HA.optimistic(E.poubelleSortie, 'on'); } catch (e) { /* ignore */ }
+        HA.act('input_boolean', 'turn_on', { entity_id: E.poubelleSortie }, [E.poubelleSortie]).catch(function () {});
+        el.remove();
+      });
+    }
+    if (el.getAttribute('data-c') !== s) { el.innerHTML = h; el.setAttribute('data-c', s); }
+  }
+  HA.onChange(paint);
+  setInterval(paint, 2000);
 })(window.M = window.M || {});
 
 </script>
