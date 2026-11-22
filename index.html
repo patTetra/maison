@@ -436,7 +436,7 @@ button.power{color:inherit;font:inherit;text-align:left}
     weather: 'weather.forecast_maison',
     minuteurs: 'sensor.minuteurs_alexa',
     ssidPatrick: 'sensor.iphone_15_pro_de_patrick_2_ssid',
-    poubelle: 'sensor.poubelle_a_sortir',
+    ferie: 'calendar.jours_feries_et_autres_fetes_en_france',
     poubelleSortie: 'input_boolean.poubelle_sortie',
     salonTemp: 'sensor.bthome_sensor_cb2e_temperature',
     power: 'sensor.lixee_zlinky_tic_puissance_apparente',
@@ -3837,7 +3837,25 @@ button.power{color:inherit;font:inherit;text-align:left}
   'use strict';
   var HA = M.HA, E = M.E;
   var COL = { JAUNE: ['#facc15', '#1a1400'], NOIRE: ['#1f2937', '#f1f5f9'] };
-  function st() { var o = HA.store[E.poubelle]; return o ? String(o.state || '') : ''; }
+  var CAL = 'calendar.jours_feries_et_autres_fetes_en_france';
+  function ymd(d) { var m = d.getMonth() + 1, j = d.getDate(); return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (j < 10 ? '0' : '') + j; }
+  function isoWeek(d) {                       // numéro de semaine ISO (%V)
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n);
+    return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 86400000 + 1) / 7);
+  }
+  function st() {                             // même règle que le rappel Telegram
+    var out = HA.store[E.poubelleSortie];
+    if (!out || out.state === 'on') return '';
+    var now = new Date(), wd = now.getDay();   // 0 = dimanche, 1 = lundi
+    var c = HA.store[CAL], sd = c && c.attributes && c.attributes.start_time ? String(c.attributes.start_time).split(' ')[0] : '';
+    var demain = new Date(now.getTime() + 86400000), auj = ymd(now);
+    var dimanche = wd === 0 && sd !== ymd(demain);
+    var lundiFerie = wd === 1 && (sd === auj || (c && c.state === 'on'));
+    if (!dimanche && !lundiFerie) return '';
+    var cible = wd === 0 ? demain : now;
+    return isoWeek(cible) % 2 === 0 ? 'JAUNE' : 'NOIRE';
+  }
   function paint() {
     var s = st(), el = document.getElementById('pbl');
     var c = COL[s];
